@@ -1,14 +1,73 @@
 import mongoose from "mongoose";
 const productSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    brand: String,
-    price: { type: Number, required: true },
-    stock: { type: Number, default: 0 },
-    imageUrl: String,
-    description: String,
-    categories: [String]
+    name: {
+      type: String,
+      required: [true, "El nombre del producto es obligatorio"],
+      trim: true,
+      maxlength: [100, "El nombre no puede tener más de 100 caracteres"]
+    },
+    brand: {
+      type: String,
+      trim: true,
+      maxlength: [50, "La marca no puede tener más de 50 caracteres"]
+    },
+    price: {
+      type: Number,
+      required: [true, "El precio es obligatorio"],
+      min: [0, "El precio no puede ser negativo"],
+      max: [10000, "El precio no puede exceder $10,000"]
+    },
+    stock: {
+      type: Number,
+      default: 0,
+      min: [0, "El stock no puede ser negativo"]
+    },
+    imageUrl: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return !v || /^https?:\/\/.+/.test(v);
+        },
+        message: "La URL de la imagen debe ser válida"
+      }
+    },
+    description: {
+      type: String,
+      maxlength: [500, "La descripción no puede tener más de 500 caracteres"]
+    },
+    categories: {
+      type: [String],
+      validate: {
+        validator: function (v) {
+          return !v || v.length <= 10;
+        },
+        message: "No puede tener más de 10 categorías"
+      }
+    }
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// Índices para mejorar el rendimiento de las consultas
+productSchema.index({ name: 'text', description: 'text' });
+productSchema.index({ categories: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ brand: 1 });
+
+// Virtual para el precio con formato
+productSchema.virtual('formattedPrice').get(function () {
+  return `$${this.price.toFixed(2)}`;
+});
+
+// Virtual para el estado del stock
+productSchema.virtual('stockStatus').get(function () {
+  if (this.stock === 0) return 'Agotado';
+  if (this.stock < 10) return 'Stock bajo';
+  return 'Disponible';
+});
 export default mongoose.model("Product", productSchema);
