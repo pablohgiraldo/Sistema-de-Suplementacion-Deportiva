@@ -2,9 +2,8 @@
 
 ## 📋 Variables de Entorno Requeridas
 
-### En Render Dashboard, configura estas variables:
+En **Render Dashboard**, configura estas variables de entorno:
 
-```
 KEY: MONGODB_URI
 VALUE: mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains?retryWrites=true&w=majority
 
@@ -12,34 +11,44 @@ KEY: JWT_SECRET
 VALUE: tu_secreto_jwt_muy_seguro_aqui
 
 KEY: CORS_ORIGIN
-VALUE: https://tu-frontend.vercel.app
+VALUE: https://supergains-frontend.vercel.app
 
 KEY: NODE_ENV
 VALUE: production
 
-KEY: PORT
-VALUE: 10000
-```
+r
+Copiar
+Editar
 
-## 🔍 Cómo Obtener la URI de MongoDB
+**Nota:**  
+No definas manualmente `PORT` en Render. Render asigna un puerto dinámico a través de `process.env.PORT`.  
+En tu código ya usas:  
+```js
+const PORT = process.env.PORT || 4000;
+🔍 Cómo Obtener la URI de MongoDB
+Ve a cloud.mongodb.com
 
-1. Ve a [cloud.mongodb.com](https://cloud.mongodb.com)
-2. Login en tu cuenta
-3. Selecciona tu cluster
-4. Click en "Connect"
-5. Selecciona "Connect your application"
-6. Copia la URI completa
+Inicia sesión en tu cuenta
 
-## 🧪 Pruebas Locales
+Selecciona tu cluster
 
-### Antes de deployar, prueba localmente:
+Haz clic en Connect
 
-```bash
+Selecciona Connect your application
+
+Copia la URI completa (formato mongodb+srv://...).
+
+🧪 Pruebas Locales
+Antes de desplegar, prueba localmente:
+
+bash
+Copiar
+Editar
 # Instalar dependencias
 npm install
 
 # Crear archivo .env con tus variables
-cp env.example .env
+cp .env.example .env
 # Edita .env con tus valores reales
 
 # Probar conexión a MongoDB
@@ -47,121 +56,119 @@ npm run test:mongodb
 
 # Probar servidor local
 npm run dev
-```
+Validar en navegador:
+http://localhost:4000/api/health
 
-## ⚠️ Problemas Comunes
+⚠️ Problemas Comunes
+Error: ENOTFOUND _mongodb._tcp.supergains.mongodb.net
+Solución: La URI debe incluir el nombre completo del cluster.
 
-### Error: ENOTFOUND _mongodb._tcp.supergains.mongodb.net
-- **Solución:** La URI debe incluir el nombre completo del cluster
-- **Ejemplo correcto:** `mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains`
+Ejemplo correcto:
 
-### Error: Authentication failed
-- **Solución:** Verifica usuario y contraseña en MongoDB Atlas
-- **Verifica:** Database Access > Usuario tiene permisos de lectura/escritura
+bash
+Copiar
+Editar
+mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains
+Error: Authentication failed
+Solución: Verifica usuario y contraseña en MongoDB Atlas.
 
-### Error: Network Access denied
-- **Solución:** En MongoDB Atlas > Network Access > Add IP Address > 0.0.0.0/0
+Asegúrate de que el usuario tenga permisos de lectura/escritura en Database Access.
 
-## ✅ Checklist de Despliegue
+Error: Network Access denied
+Solución: En MongoDB Atlas → Network Access → Add IP Address → 0.0.0.0/0 (habilita acceso global).
 
-- [ ] Variables de entorno configuradas en Render
-- [ ] MongoDB URI es correcta y accesible
-- [ ] CORS_ORIGIN apunta a tu frontend
-- [ ] Build Command: `npm install`
-- [ ] Start Command: `npm start`
-- [ ] Branch: `develop` (o la rama donde esté tu código)
-- [ ] Root Directory: `backend`
+Error: Cannot GET /
+Explicación: El backend no sirve contenido en la raíz (/).
 
-## ⚠️ **ERROR IDENTIFICADO:**
+Solución: Validar siempre en /api/health o /api/products.
 
-El error `CRYPT_E_NO_REVOCATION_CHECK` es un problema de certificados SSL en Windows, no de tu backend.
+Error: CORS blocked by policy
+Solución: Configurar CORS_ORIGIN correctamente en Render:
 
----
+ini
+Copiar
+Editar
+CORS_ORIGIN=https://supergains-frontend.vercel.app
+En desarrollo local usar también:
 
-## 🔧 **SOLUCIÓN 1: IGNORAR VERIFICACIÓN SSL (RÁPIDA)**
+arduino
+Copiar
+Editar
+http://localhost:5173
+✅ Checklist de Despliegue
+ Variables de entorno configuradas en Render.
 
-```bash
-<code_block_to_apply_changes_from>
-```
+ MongoDB URI es correcta y accesible.
 
----
+ CORS_ORIGIN apunta al frontend en Vercel.
 
-## 🔧 **SOLUCIÓN 2: USAR POWERSHELL (RECOMENDADA)**
+ PORT no definido manualmente.
 
-```powershell
-# En PowerShell, usa Invoke-WebRequest
-Invoke-WebRequest -Uri "https://tu-backend-render.onrender.com/api/health"
+ Build Command: npm install.
 
-# O más simple
-Invoke-RestMethod -Uri "https://tu-backend-render.onrender.com/api/health"
-```
+ Start Command: npm start.
 
----
+ Branch correcta (main o develop).
 
-## 🔧 **SOLUCIÓN 3: USAR NAVEGADOR**
+ Root Directory: backend si tu proyecto está en monorepo.
 
-1. **Abre tu navegador**
-2. **Ve a:** `https://tu-backend-render.onrender.com/api/health`
-3. **Deberías ver:**
-```json
+🔎 Validación de Despliegue
+Verificar desde navegador
+Abrir: https://supergains-backend.onrender.com/api/health
+
+Debe devolver:
+
+json
+Copiar
+Editar
 {
   "status": "OK",
   "message": "Server is running",
   "timestamp": "2025-01-XX..."
 }
-```
+Verificar productos
+bash
+Copiar
+Editar
+curl -k https://supergains-backend.onrender.com/api/products
+📱 Validación de Conexión con Frontend
+En tu frontend desplegado en Vercel:
 
----
+Abre https://supergains-frontend.vercel.app desde un navegador o dispositivo móvil.
 
-## 🔧 **SOLUCIÓN 4: USAR POSTMAN**
+En DevTools (F12) → Console → validar que los productos cargan desde la API.
 
-1. **Abre Postman**
-2. **GET:** `https://tu-backend-render.onrender.com/api/health`
-3. **Send**
+Si aparece error de CORS, revisar variable CORS_ORIGIN en Render.
 
----
+Si aparece error de URL, revisar variable VITE_API_URL en Vercel:
 
-## 🔧 **SOLUCIÓN 5: VERIFICAR DESDE RENDER DASHBOARD**
+ini
+Copiar
+Editar
+VITE_API_URL=https://supergains-backend.onrender.com
+📡 Logs en Render
+En Render Dashboard:
 
-1. **Ve a tu Web Service en Render**
-2. **Click en "Logs"**
-3. **Verifica que no hay errores**
-4. **Busca mensajes como:**
-   - `✅ MongoDB conectado exitosamente`
-   - `🚀 API escuchando en puerto 10000`
+Ir a tu servicio web.
 
----
+Clic en Logs.
 
-##  **PRUEBAS ALTERNATIVAS:**
+Mensajes esperados:
 
-### **Test 1: Endpoint de productos**
-```bash
-curl -k https://tu-backend-render.onrender.com/api/products
-```
+✅ Base de datos conectada
 
-### **Test 2: Con headers**
-```bash
-curl -k -H "Accept: application/json" https://tu-backend-render.onrender.com/api/health
-```
+🚀 API escuchando en puerto XXXXX
 
----
+🔧 Pruebas Alternativas
+Usando PowerShell
+powershell
+Copiar
+Editar
+Invoke-RestMethod -Uri "https://supergains-backend.onrender.com/api/health"
+Usando Postman
+Método: GET
 
-##  **VERIFICAR ESTADO DEL SERVICIO:**
+URL: https://supergains-backend.onrender.com/api/health
 
-### **En Render Dashboard:**
-1. **Ve a tu Web Service**
-2. **Verifica el estado:**
-   - ✅ **Live** = Funcionando
-   - ⚠️ **Building** = En construcción
-   - ❌ **Failed** = Falló
+Enviar → Debe devolver JSON de estado.
 
-3. **Click en "Logs" para ver errores**
-
----
-
-## 📱 **VERIFICAR DESDE EL FRONTEND:**
-
-### **En tu frontend (Vercel):**
-1. **Abre las DevTools (F12)**
-2. **Ve a Console**
-3. **Verifica que no 

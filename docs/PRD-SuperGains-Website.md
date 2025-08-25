@@ -86,8 +86,8 @@
 - **Estados:** Visible/oculto según promociones activas
 
 #### 1.2 Header Principal
-- **Logo:** "ESN" en estilo moderno y negrita
-- **Subtítulo:** "ELITE SPORTS NUTRITION" debajo del logo
+- **Logo:** "SPG" en estilo moderno y negrita
+- **Subtítulo:** "SUPERGAINS" debajo del logo
 - **Barra de Búsqueda:** 
   - Placeholder: "Search for Protein, Food..."
   - Icono de lupa
@@ -139,7 +139,7 @@
   - Indica lanzamiento reciente
 - **Productos Mostrados:**
   - **Producto Principal:** Bote negro con etiqueta rosa
-    - Logo: "ESN ELITE SPORTS NUTRITION"
+    - Logo: "SUPERGAINS"
     - Nombre: "DESIGNER. WHEY PROTEIN"
     - Gráfico: Bebida rosa cremosa con frutas
     - Badge: "LIMITED EDITION KiBa Flavor"
@@ -170,7 +170,7 @@
 - **Elementos Comunes:**
   - **Etiqueta de Estado:** Badge negro redondeado (ej: "Bestseller", "New Flavor")
   - **Icono de Favorito:** Corazón en esquina superior derecha
-  - **Logo de Marca:** "ESN ELITE SPORTS NUTRITION"
+  - **Logo de Marca:** "SUPERGAINS ELITE SPORTS NUTRITION"
   - **Imagen del Producto:** Empaque sobre fondo gris
   - **Información del Producto:** Nombre, descripción, valoración, precio
   - **Icono de Acción:** Botón circular negro con icono de carrito
@@ -178,31 +178,31 @@
 #### 3.4 Productos Específicos
 
 **Producto 1: Protein Starterkit**
-- **Imagen:** Caja negra vertical con logo ESN
+- **Imagen:** Caja negra vertical con logo SUPERGAINS
 - **Contenido:** 2x Designer Whey y 2x Isoclear®
 - **Valoración:** 5 estrellas (3 reseñas)
-- **Precio:** €8,90
+- **Precio:** $37,380 COP
 - **Estado:** Producto de muestra
 
 **Producto 2: Sample Box Isoclear, 5 x 30g**
-- **Imagen:** Caja negra horizontal con logo ESN
+- **Imagen:** Caja negra horizontal con logo SUPERGAINS
 - **Contenido:** 5 variedades más vendidas para probar
 - **Valoración:** 5 estrellas (397 reseñas)
-- **Precio:** €10,90
+- **Precio:** $45,780 COP
 - **Estado:** Pack de muestras
 
 **Producto 3: Sample Box Designer Whey, 5 x 30g**
-- **Imagen:** Caja negra horizontal con logo ESN
+- **Imagen:** Caja negra horizontal con logo SUPERGAINS
 - **Contenido:** 5 variedades más vendidas para probar
 - **Valoración:** 5 estrellas (269 reseñas)
-- **Precio:** €9,90
+- **Precio:** $41,580 COP
 - **Estado:** Pack de muestras
 
 **Producto 4: Sample Box Designer Bars, 4 x 45g**
-- **Imagen:** Caja negra vertical con logo ESN
+- **Imagen:** Caja negra vertical con logo SUPERGAINS
 - **Contenido:** 4 variedades más vendidas para probar
 - **Valoración:** 5 estrellas (267 reseñas)
-- **Precio:** €8,90
+- **Precio:** $37,380 COP
 - **Estado:** Pack de barras
 
 ### 4. Sección de Intereses del Usuario
@@ -234,7 +234,7 @@
 
 **Imagen 4: Hidratación y Recuperación**
 - **Contenido:** Hombre bebiendo de shaker
-- **Contexto:** Logo ESN visible en la botella
+- **Contexto:** Logo SUPERGAINS visible en la botella
 - **Categoría:** Bebidas y recuperación
 
 ### 5. Sección de Productos Destacados
@@ -249,29 +249,29 @@
 **Producto 1: Isoclear Whey Protein Isolate**
 - **Descripción:** "Refreshingly clear protein drink"
 - **Valoración:** 5 estrellas (8,526 reseñas)
-- **Precio:** €52,90
-- **Precio por Unidad:** €58,26/kg
+- **Precio:** $222,180 COP
+- **Precio por Unidad:** $244,692 COP/kg
 - **Estado:** Bestseller
 
 **Producto 2: Designer Whey Protein**
 - **Descripción:** "Germany's No. 1 whey"
 - **Valoración:** 5 estrellas (7,607 reseñas)
-- **Precio:** €39,90
-- **Precio por Unidad:** €43,94/kg
+- **Precio:** $167,580 COP
+- **Precio por Unidad:** $184,548 COP/kg
 - **Estado:** Bestseller
 
 **Producto 3: Designer Protein Bar**
 - **Descripción:** "Protein bars with no added sugar"
 - **Valoración:** 5 estrellas (7,628 reseñas)
-- **Precio:** €26,90
-- **Precio por Unidad:** €49,81/kg
+- **Precio:** $112,980 COP
+- **Precio por Unidad:** $209,202 COP/kg
 - **Estado:** Bestseller
 
 **Producto 4: Ultrapure Creatine Powder**
 - **Descripción:** "High-quality micro creatine powder"
 - **Valoración:** 5 estrellas (1,570 reseñas)
-- **Precio:** €29,90
-- **Precio por Unidad:** €59,80/kg
+- **Precio:** $125,580 COP
+- **Precio por Unidad:** $251,160 COP/kg
 - **Estado:** Bestseller
 
 ### 6. Banner Promocional de Outlet
@@ -284,13 +284,13 @@
 #### 6.2 Sección Izquierda (Productos)
 - **Fondo:** Oscuro con símbolos de porcentaje repetidos
 - **Productos Mostrados:**
-  - **ESN DESIGNER VEGAN PROTEIN BAR:** Cajas apiladas, sabor chocolate
-  - **ESN CRANK FOCUS PRO:** Bote negro con gráfico de mango
-  - **ESN DESIGNER VEGAN PROTEIN:** Bote grande, "NEW RECIPE Milky Chocolate Flavor"
+  - **SUPERGAINS DESIGNER VEGAN PROTEIN BAR:** Cajas apiladas, sabor chocolate
+  - **SUPERGAINS CRANK FOCUS PRO:** Bote negro con gráfico de mango
+  - **SUPERGAINS DESIGNER VEGAN PROTEIN:** Bote grande, "NEW RECIPE Milky Chocolate Flavor"
 
 #### 6.3 Sección Derecha (Promoción)
 - **Fondo:** Negro sólido
-- **Título:** "ESN OUTLET:" (grande, blanco)
+- **Título:** "SUPERGAINS OUTLET:" (grande, blanco)
 - **Subtítulo:** "UP TO 50%" (más grande, negrita)
 - **Descripción:** "Top supplements at best prices"
 - **Botón CTA:** "SAVE NOW" (blanco con texto negro)
@@ -317,8 +317,8 @@
 - **Estilo:** Texto blanco sobre fondo negro
 
 #### 8.2 Sección Izquierda (Marca y Copyright)
-- **Logo:** "ESN" prominente en fuente estilizada blanca
-- **Nombre Completo:** "ELITE SPORTS NUTRITION" en mayúsculas
+- **Logo:** "SUPERGAINS" prominente en fuente estilizada blanca
+- **Nombre Completo:** "SUPERGAINS ELITE SPORTS NUTRITION" en mayúsculas
 - **Copyright:** 
   - "© 2025 Fitmart GmbH & Co."
   - "All prices incl. VAT."
@@ -539,7 +539,7 @@
 ## 📚 Recursos y Referencias
 
 ### Diseño
-- **Inspiración:** ESN Elite Sports Nutrition
+- **Inspiración:** SUPERGAINS Elite Sports Nutrition
 - **Paleta:** Coolors.co para generación de colores
 - **Iconos:** Heroicons, Feather Icons
 - **Fuentes:** Google Fonts, Inter
