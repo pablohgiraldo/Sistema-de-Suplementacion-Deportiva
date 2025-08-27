@@ -1,6 +1,6 @@
-# 🚀 Guía de Despliegue - Backend SuperGains
+#     Guía de Despliegue - Backend SuperGains
 
-## 📋 Variables de Entorno Requeridas
+##    Variables de Entorno Requeridas
 
 En **Render Dashboard**, configura estas variables de entorno:
 
@@ -25,7 +25,7 @@ No definas manualmente `PORT` en Render. Render asigna un puerto dinámico a tra
 En tu código ya usas:  
 ```js
 const PORT = process.env.PORT || 4000;
-🔍 Cómo Obtener la URI de MongoDB
+   Cómo Obtener la URI de MongoDB
 Ve a cloud.mongodb.com
 
 Inicia sesión en tu cuenta
@@ -38,7 +38,7 @@ Selecciona Connect your application
 
 Copia la URI completa (formato mongodb+srv://...).
 
-🧪 Pruebas Locales
+   Pruebas Locales
 Antes de desplegar, prueba localmente:
 
 bash
@@ -59,7 +59,7 @@ npm run dev
 Validar en navegador:
 http://localhost:4000/api/health
 
-⚠️ Problemas Comunes
+   Problemas Comunes
 Error: ENOTFOUND _mongodb._tcp.supergains.mongodb.net
 Solución: La URI debe incluir el nombre completo del cluster.
 
@@ -95,7 +95,7 @@ arduino
 Copiar
 Editar
 http://localhost:5173
-✅ Checklist de Despliegue
+   Checklist de Despliegue
  Variables de entorno configuradas en Render.
 
  MongoDB URI es correcta y accesible.
@@ -112,7 +112,7 @@ http://localhost:5173
 
  Root Directory: backend si tu proyecto está en monorepo.
 
-🔎 Validación de Despliegue
+   Validación de Despliegue
 Verificar desde navegador
 Abrir: https://supergains-backend.onrender.com/api/health
 
@@ -131,7 +131,7 @@ bash
 Copiar
 Editar
 curl -k https://supergains-backend.onrender.com/api/products
-📱 Validación de Conexión con Frontend
+   Validación de Conexión con Frontend
 En tu frontend desplegado en Vercel:
 
 Abre https://supergains-frontend.vercel.app desde un navegador o dispositivo móvil.
@@ -155,11 +155,11 @@ Clic en Logs.
 
 Mensajes esperados:
 
-✅ Base de datos conectada
+   Base de datos conectada
 
-🚀 API escuchando en puerto XXXXX
+   API escuchando en puerto XXXXX
 
-🔧 Pruebas Alternativas
+   Pruebas Alternativas
 Usando PowerShell
 powershell
 Copiar

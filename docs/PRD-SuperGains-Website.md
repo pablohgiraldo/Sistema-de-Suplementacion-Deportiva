@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD) - SuperGains Website
 
-## 📋 Información del Proyecto
+##  Información del Proyecto
 
 - **Nombre del Proyecto:** SuperGains - Plataforma de E-commerce de Suplementos Deportivos
 - **Stack Tecnológico:** MERN (MongoDB Atlas + Express.js + React + Node.js)
@@ -9,7 +9,7 @@
 
 ---
 
-## 🎯 Objetivos del Producto
+##  Objetivos del Producto
 
 ### Objetivos Principales
 1. **Crear una plataforma de e-commerce moderna** para la venta de suplementos deportivos
@@ -25,7 +25,7 @@
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 ### Stack Tecnológico
 - **Frontend:** React.js con Vite
@@ -46,7 +46,7 @@
 
 ---
 
-## 🎨 Especificaciones de Diseño y UX
+##  Especificaciones de Diseño y UX
 
 ### Paleta de Colores
 - **Primario:** Negro (#000000) - Elegancia y profesionalismo
@@ -71,7 +71,7 @@
 
 ---
 
-## 📱 Especificaciones de Páginas y Componentes
+##  Especificaciones de Páginas y Componentes
 
 ### 1. Header / Navegación Principal
 
@@ -370,7 +370,7 @@
 
 ---
 
-## 🔧 Requerimientos Técnicos
+##  Requerimientos Técnicos
 
 ### Frontend (React)
 - **Componentes Reutilizables:**
@@ -407,7 +407,7 @@
 
 ---
 
-## 📱 Requerimientos de Responsividad
+##  Requerimientos de Responsividad
 
 ### Breakpoints
 - **Mobile:** 320px - 768px
@@ -421,7 +421,7 @@
 
 ---
 
-## 🚀 Funcionalidades Principales
+##  Funcionalidades Principales
 
 ### 1. Sistema de Usuarios
 - **Registro/Login:** Email y contraseña
@@ -455,7 +455,7 @@
 
 ---
 
-## 📊 Métricas de Éxito
+##  Métricas de Éxito
 
 ### KPIs Principales
 - **Conversión:** Tasa de visitantes a compradores
@@ -471,7 +471,7 @@
 
 ---
 
-## 🗓️ Cronograma de Desarrollo
+##  Cronograma de Desarrollo
 
 ### Fase 1: MVP (4-6 semanas)
 - [ ] Setup del proyecto MERN
@@ -495,7 +495,7 @@
 
 ---
 
-## 🔒 Consideraciones de Seguridad
+##  Consideraciones de Seguridad
 
 ### Autenticación
 - **JWT:** Tokens seguros con expiración
@@ -511,7 +511,7 @@
 
 ---
 
-## 📋 Criterios de Aceptación
+##  Criterios de Aceptación
 
 ### Funcionalidades Básicas
 - [ ] Usuario puede navegar por categorías
@@ -536,7 +536,7 @@
 
 ---
 
-## 📚 Recursos y Referencias
+##  Recursos y Referencias
 
 ### Diseño
 - **Inspiración:** SUPERGAINS Elite Sports Nutrition
@@ -552,7 +552,7 @@
 
 ---
 
-## 📝 Notas de Implementación
+##  Notas de Implementación
 
 ### Prioridades de Desarrollo
 1. **Alta Prioridad:** Funcionalidades core de e-commerce

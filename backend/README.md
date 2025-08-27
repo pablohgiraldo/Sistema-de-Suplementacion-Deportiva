@@ -1,6 +1,6 @@
-# 🚀 Backend SuperGains
+#    Backend SuperGains
 
-## 📋 Instalación
+##   Instalación
 
 ```bash
 # Instalar dependencias
@@ -11,14 +11,14 @@ cp env.example .env
 # Edita .env con tus valores reales
 ```
 
-## 🧪 Scripts Disponibles
+##   Scripts Disponibles
 
 ```bash
 # Desarrollo con nodemon
 npm run dev
 
 # Producción
-npm start# 🚀 Backend SuperGains
+npm start#   Backend SuperGains
 
 API REST para la plataforma SuperGains (e-commerce de suplementos deportivos).  
 Desarrollado con **Node.js + Express + MongoDB**, desplegado en **Render**.
@@ -34,7 +34,7 @@ npm install
 # Crear archivo de variables de entorno
 cp .env.example .env
 # Edita .env con tus valores reales
-🧪 Scripts Disponibles
+   Scripts Disponibles
 bash
 Copiar
 Editar
@@ -52,7 +52,7 @@ npm run test:server
 
 # Seed de base de datos
 npm run seed
-🔧 Variables de Entorno
+   Variables de Entorno
 Crea un archivo .env con:
 
 env
@@ -69,7 +69,7 @@ CORS_ORIGIN debe contener el dominio del frontend en Vercel y/o http://localhost
 
 No definir PORT manualmente en Render (Render lo asigna automáticamente).
 
-🚀 Iniciar Servidor
+   Iniciar Servidor
 bash
 Copiar
 Editar
@@ -80,7 +80,7 @@ npm run dev
 npm start
 El servidor corre en http://localhost:4000 por defecto.
 
-📡 Endpoints
+   Endpoints
 Health Check
 GET /api/health → Estado del servidor.
 
@@ -95,7 +95,7 @@ Editar
 Productos
 GET /api/products → Lista de productos.
 
-☁️ Despliegue en Render
+   Despliegue en Render
 Crear un servicio web en Render con el repo del backend.
 
 Configurar Environment Variables en Render con los valores de .env.
@@ -120,7 +120,7 @@ Backend: https://supergains-backend.onrender.com/api/health
 
 Conexión con frontend: https://supergains-frontend.vercel.app
 
-🐞 Problemas Resueltos en Sprint 1
+   Problemas Resueltos en Sprint 1
 CORS bloqueando comunicación frontend-backend
 
 Solución: Configurar cors() en Express con dominios permitidos.
@@ -133,7 +133,7 @@ Error de PORT en Render
 
 Solución: Eliminar variable PORT manual y usar process.env.PORT || 4000.
 
-🔍 Pruebas
+   Pruebas
 bash
 Copiar
 Editar
@@ -153,7 +153,7 @@ npm run test:server
 npm run seed
 ```
 
-## 🔧 Variables de Entorno
+##   Variables de Entorno
 
 Crea un archivo `.env` con:
 
@@ -165,7 +165,7 @@ NODE_ENV=development
 PORT=4000
 ```
 
-## 🚀 Iniciar Servidor
+##   Iniciar Servidor
 
 ```bash
 # Desarrollo
@@ -175,12 +175,12 @@ npm run dev
 npm start
 ```
 
-## 📡 Endpoints
+##   Endpoints
 
 - **Health Check:** `GET /api/health`
 - **Productos:** `GET /api/products`
 
-## 🔍 Pruebas
+##   Pruebas
 
 ```bash
 # Probar conexión a MongoDB
@@ -190,6 +190,6 @@ npm run test:mongodb
 npm run test:server
 ```
 
-## 📚 Documentación
+##   Documentación
 
 Ver `DEPLOYMENT.md` para instrucciones de despliegue en Render.

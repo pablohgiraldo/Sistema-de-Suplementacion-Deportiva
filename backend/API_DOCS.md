@@ -5,7 +5,7 @@ Disponible en entorno local y producción.
 
 ---
 
-## 🌍 Base URLs
+##   Base URLs
 
 - **Local (desarrollo):**
 http://localhost:4000/api
@@ -119,7 +119,7 @@ Editar
   "message": "Server is running",
   "timestamp": "2025-01-XX..."
 }
-📡 Códigos de Estado HTTP
+   Códigos de Estado HTTP
 200 - OK
 
 201 - Created
@@ -130,7 +130,7 @@ Editar
 
 500 - Internal Server Error
 
-📑 Validaciones del Modelo
+   Validaciones del Modelo
 Producto
 name: Obligatorio, máx. 100 caracteres.
 
@@ -144,12 +144,12 @@ description: Máx. 500 caracteres.
 
 categories: Máx. 10 categorías.
 
-⚡ Campos Virtuales
+   Campos Virtuales
 formattedPrice: Precio con símbolo de moneda.
 
 stockStatus: Estado del stock (Agotado, Bajo, Disponible).
 
-🗄️ Índices de Base de Datos
+   Índices de Base de Datos
 Búsqueda de texto en nombre y descripción.
 
 Categorías para consultas rápidas.
@@ -158,7 +158,7 @@ Precio para ordenamiento/filtros.
 
 Marca para agrupación.
 
-🔍 Ejemplos de Uso
+   Ejemplos de Uso
 Crear un producto
 bash
 Copiar
