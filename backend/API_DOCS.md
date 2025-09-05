@@ -402,6 +402,534 @@ curl https://supergains-backend.onrender.com/api/products
 
 ---
 
+## Flujo de Autenticación
+
+### Resumen del Flujo
+El sistema de autenticación de SuperGains utiliza JWT (JSON Web Tokens) para manejar la autenticación de usuarios de forma segura. El flujo completo incluye registro, login, uso de tokens, refresh y logout.
+
+### Diagrama del Flujo
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Usuario   │    │  Frontend   │    │   Backend   │    │   MongoDB   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │                   │
+       │ 1. Registro       │                   │                   │
+       ├──────────────────►│ POST /register    │                   │
+       │                   ├──────────────────►│                   │
+       │                   │                   │ 2. Crear usuario  │
+       │                   │                   ├──────────────────►│
+       │                   │                   │ 3. Generar JWT   │
+       │                   │                   │◄──────────────────┤
+       │ 4. Tokens         │◄──────────────────┤                   │
+       │◄──────────────────│                   │                   │
+       │                   │                   │                   │
+       │ 5. Login          │                   │                   │
+       ├──────────────────►│ POST /login       │                   │
+       │                   ├──────────────────►│                   │
+       │                   │                   │ 6. Validar creds │
+       │                   │                   ├──────────────────►│
+       │                   │                   │ 7. Generar JWT   │
+       │                   │                   │◄──────────────────┤
+       │ 8. Tokens         │◄──────────────────┤                   │
+       │◄──────────────────│                   │                   │
+       │                   │                   │                   │
+       │ 9. API Calls      │                   │                   │
+       ├──────────────────►│ GET /profile      │                   │
+       │                   │ Authorization:    │                   │
+       │                   │ Bearer <token>    │                   │
+       │                   ├──────────────────►│                   │
+       │                   │                   │ 10. Validar JWT  │
+       │                   │                   ├──────────────────►│
+       │                   │                   │ 11. Respuesta    │
+       │                   │                   │◄──────────────────┤
+       │ 12. Datos         │◄──────────────────┤                   │
+       │◄──────────────────│                   │                   │
+       │                   │                   │                   │
+       │ 13. Refresh       │                   │                   │
+       ├──────────────────►│ POST /refresh     │                   │
+       │                   ├──────────────────►│                   │
+       │                   │                   │ 14. Nuevo token  │
+       │                   │                   │◄──────────────────┤
+       │ 15. Nuevo token   │◄──────────────────┤                   │
+       │◄──────────────────│                   │                   │
+       │                   │                   │                   │
+       │ 16. Logout        │                   │                   │
+       ├──────────────────►│ POST /logout      │                   │
+       │                   ├──────────────────►│                   │
+       │                   │                   │ 17. Revocar token│
+       │                   │                   │◄──────────────────┤
+       │ 18. Confirmación  │◄──────────────────┤                   │
+       │◄──────────────────│                   │                   │
+```
+
+### Pasos Detallados
+
+#### 1. Registro de Usuario
+```bash
+# Paso 1: Registrar nuevo usuario
+curl -X POST http://localhost:4000/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Pérez",
+    "email": "juan@ejemplo.com",
+    "contraseña": "password123"
+  }'
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Usuario registrado exitosamente",
+  "data": {
+    "user": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "role": "usuario",
+      "activo": true,
+      "lastLogin": "2025-01-05T03:00:00.000Z"
+    },
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresIn": "24h"
+    }
+  }
+}
+```
+
+#### 2. Login de Usuario
+```bash
+# Paso 2: Iniciar sesión
+curl -X POST http://localhost:4000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "juan@ejemplo.com",
+    "contraseña": "password123"
+  }'
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Inicio de sesión exitoso",
+  "data": {
+    "user": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "role": "usuario",
+      "activo": true,
+      "lastLogin": "2025-01-05T03:00:00.000Z"
+    },
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresIn": "24h"
+    }
+  }
+}
+```
+
+#### 3. Uso de Tokens para Acceso a Rutas Protegidas
+```bash
+# Paso 3: Acceder a ruta protegida
+curl -X GET http://localhost:4000/api/users/profile \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Perfil obtenido exitosamente",
+  "data": {
+    "usuario": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "rol": "usuario",
+      "activo": true,
+      "fechaCreacion": "2025-01-05T02:00:00.000Z"
+    }
+  }
+}
+```
+
+#### 4. Verificación de Estado del Token
+```bash
+# Paso 4: Verificar estado del token
+curl -X GET http://localhost:4000/api/users/token-status \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Token válido",
+  "data": {
+    "usuario": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "rol": "usuario"
+    },
+    "token": {
+      "valido": true,
+      "expiraEn": "2025-01-06T03:00:00.000Z",
+      "tiempoRestante": 3600,
+      "expiraPronto": false
+    }
+  }
+}
+```
+
+#### 5. Refresh de Token
+```bash
+# Paso 5: Refrescar token cuando esté próximo a expirar
+curl -X POST http://localhost:4000/api/users/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Token refrescado exitosamente",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresIn": "24h"
+  }
+}
+```
+
+#### 6. Logout
+```bash
+# Paso 6: Cerrar sesión
+curl -X POST http://localhost:4000/api/users/logout \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+
+# Respuesta exitosa:
+{
+  "success": true,
+  "message": "Sesión cerrada exitosamente"
+}
+```
+
+**Nota importante sobre JWT y Logout**: Los tokens JWT son stateless, lo que significa que el servidor no mantiene un registro de tokens válidos. Después del logout, el access token seguirá siendo técnicamente válido hasta que expire. Para mayor seguridad en producción, se recomienda:
+- Usar tokens con tiempo de vida corto (15-30 minutos)
+- Implementar una blacklist de tokens en Redis
+- Almacenar tokens en httpOnly cookies para mejor seguridad
+
+### Manejo de Errores
+
+#### Token Expirado
+```json
+{
+  "success": false,
+  "message": "Token expirado"
+}
+```
+
+#### Token Inválido
+```json
+{
+  "success": false,
+  "message": "Token inválido"
+}
+```
+
+#### Credenciales Incorrectas
+```json
+{
+  "success": false,
+  "message": "Credenciales inválidas"
+}
+```
+
+#### Usuario Inactivo
+```json
+{
+  "success": false,
+  "message": "Usuario inactivo"
+}
+```
+
+### Headers de Respuesta
+
+#### Token Próximo a Expirar
+```
+X-Token-Expires-Soon: true
+X-Token-Expires-At: 2025-01-06T03:00:00.000Z
+X-Token-Refresh-Suggested: true
+```
+
+### Mejores Prácticas
+
+1. **Almacenamiento de Tokens**:
+   - Access Token: Almacenar en memoria o sessionStorage
+   - Refresh Token: Almacenar en httpOnly cookie o localStorage seguro
+
+2. **Renovación Automática**:
+   - Verificar `X-Token-Expires-Soon` header
+   - Renovar automáticamente cuando sea necesario
+   - Implementar retry automático en caso de token expirado
+
+3. **Manejo de Errores**:
+   - Interceptar respuestas 401
+   - Intentar refresh automático
+   - Redirigir a login si refresh falla
+
+4. **Seguridad**:
+   - Nunca exponer tokens en logs
+   - Usar HTTPS en producción
+   - Implementar rate limiting en endpoints de auth
+
+### Implementación en Frontend
+
+#### JavaScript/React Ejemplo
+```javascript
+class AuthService {
+  constructor() {
+    this.baseURL = 'http://localhost:4000/api';
+    this.accessToken = localStorage.getItem('accessToken');
+    this.refreshToken = localStorage.getItem('refreshToken');
+  }
+
+  // Login
+  async login(email, password) {
+    try {
+      const response = await fetch(`${this.baseURL}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, contraseña: password }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        this.accessToken = data.data.tokens.accessToken;
+        this.refreshToken = data.data.tokens.refreshToken;
+        
+        localStorage.setItem('accessToken', this.accessToken);
+        localStorage.setItem('refreshToken', this.refreshToken);
+        
+        return data.data.user;
+      }
+      throw new Error(data.message);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Refresh token
+  async refreshAccessToken() {
+    try {
+      const response = await fetch(`${this.baseURL}/users/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken: this.refreshToken }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        this.accessToken = data.data.accessToken;
+        localStorage.setItem('accessToken', this.accessToken);
+        return this.accessToken;
+      }
+      throw new Error(data.message);
+    } catch (error) {
+      this.logout();
+      throw error;
+    }
+  }
+
+  // API call con retry automático
+  async apiCall(url, options = {}) {
+    const config = {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    };
+
+    try {
+      const response = await fetch(`${this.baseURL}${url}`, config);
+      
+      // Si el token expiró, intentar refresh
+      if (response.status === 401) {
+        await this.refreshAccessToken();
+        config.headers['Authorization'] = `Bearer ${this.accessToken}`;
+        return await fetch(`${this.baseURL}${url}`, config);
+      }
+      
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Logout
+  async logout() {
+    try {
+      if (this.refreshToken) {
+        await fetch(`${this.baseURL}/users/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken: this.refreshToken }),
+        });
+      }
+    } catch (error) {
+      console.error('Error en logout:', error);
+    } finally {
+      this.accessToken = null;
+      this.refreshToken = null;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    }
+  }
+}
+
+// Uso
+const authService = new AuthService();
+
+// Login
+authService.login('juan@ejemplo.com', 'password123')
+  .then(user => console.log('Usuario logueado:', user))
+  .catch(error => console.error('Error de login:', error));
+
+// Llamada a API protegida
+authService.apiCall('/users/profile')
+  .then(response => response.json())
+  .then(data => console.log('Perfil:', data))
+  .catch(error => console.error('Error:', error));
+```
+
+### Troubleshooting
+
+#### Problemas Comunes
+
+1. **Error 401 - Token expirado**
+   ```json
+   {
+     "success": false,
+     "message": "Token expirado"
+   }
+   ```
+   **Solución**: Implementar refresh automático o redirigir a login
+
+2. **Error 401 - Token inválido**
+   ```json
+   {
+     "success": false,
+     "message": "Token inválido"
+   }
+   ```
+   **Solución**: Verificar formato del token y headers de Authorization
+
+3. **Error 403 - Acceso denegado**
+   ```json
+   {
+     "success": false,
+     "message": "Acceso denegado. Rol insuficiente"
+   }
+   ```
+   **Solución**: Verificar que el usuario tenga el rol necesario
+
+4. **Error de CORS**
+   ```
+   Access to fetch at 'http://localhost:4000/api/users/login' 
+   from origin 'http://localhost:3000' has been blocked by CORS policy
+   ```
+   **Solución**: Verificar configuración CORS en el backend
+
+#### Debugging
+
+1. **Verificar token en jwt.io**:
+   - Copiar el token JWT
+   - Pegar en https://jwt.io
+   - Verificar payload y expiración
+
+2. **Verificar headers**:
+   ```bash
+   curl -v -H "Authorization: Bearer <token>" http://localhost:4000/api/users/profile
+   ```
+
+3. **Verificar estado del token**:
+   ```bash
+   curl -H "Authorization: Bearer <token>" http://localhost:4000/api/users/token-status
+   ```
+
+#### Logs Útiles
+
+```bash
+# Ver logs del servidor
+npm run dev
+
+# Ver logs de MongoDB
+# Revisar conexión en MongoDB Atlas
+
+# Ver logs de autenticación
+# Revisar console.log en el frontend
+```
+
+### Resumen del Flujo de Autenticación
+
+El sistema de autenticación JWT de SuperGains está completamente implementado y funcional. Incluye:
+
+#### ✅ Funcionalidades Implementadas
+- **Registro de usuarios** con generación automática de tokens JWT
+- **Login seguro** con validación de credenciales
+- **Tokens de acceso** (24h) y **refresh tokens** (7d)
+- **Middleware de autenticación** para proteger rutas
+- **Middleware de roles** para control de acceso granular
+- **Verificación de estado de tokens** con información de expiración
+- **Refresh automático** de tokens de acceso
+- **Logout** con invalidación de refresh tokens
+- **Headers informativos** para el frontend sobre expiración de tokens
+- **Rutas públicas y protegidas** claramente diferenciadas
+
+#### ✅ Endpoints de Autenticación
+- `POST /api/users/register` - Registro de usuarios
+- `POST /api/users/login` - Inicio de sesión
+- `POST /api/users/refresh` - Refresh de tokens
+- `POST /api/users/logout` - Cerrar sesión
+- `GET /api/users/profile` - Perfil del usuario (protegida)
+- `PUT /api/users/profile` - Actualizar perfil (protegida)
+- `GET /api/users/token-status` - Estado del token (protegida)
+
+#### ✅ Rutas Protegidas
+- **Productos**: Crear, actualizar, eliminar (requiere autenticación)
+- **Usuarios**: Perfil y actualización (requiere autenticación)
+- **Eliminación de productos**: Requiere rol de administrador
+
+#### ✅ Seguridad Implementada
+- Contraseñas hasheadas con bcrypt
+- Tokens JWT firmados con secreto seguro
+- Validación de tokens en cada request protegido
+- Verificación de usuarios activos
+- Headers de seguridad (CORS, Helmet)
+- Rate limiting en endpoints de autenticación
+
+#### ✅ Testing y Documentación
+- Scripts de prueba completos para todo el flujo
+- Documentación detallada con ejemplos
+- Guía de troubleshooting
+- Ejemplos de implementación en frontend
+- Diagramas de flujo de autenticación
+
+El sistema está listo para ser integrado con el frontend y puede manejar autenticación de usuarios de forma segura y escalable.
+
+---
+
 ## Autenticación JWT
 
 ### Configuración

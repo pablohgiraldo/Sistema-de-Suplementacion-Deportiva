@@ -15,6 +15,7 @@
     "test:jwt": "node scripts/test-jwt.js",
     "test:login": "node scripts/test-login.js",
     "test:protected": "node scripts/test-protected-routes.js",
+    "test:auth-flow": "node scripts/test-auth-flow.js",
     "build": "npm install"
   },
   "engines": {
