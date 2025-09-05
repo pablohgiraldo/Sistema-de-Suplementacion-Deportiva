@@ -30,7 +30,8 @@ app.use(
   cors({
     origin: [
       process.env.CORS_ORIGIN || "https://supergains-frontend.vercel.app", // dominio del frontend en Vercel
-      "http://localhost:5173", // frontend local (vite, react, etc.)
+      "http://localhost:5173", // frontend local (vite dev server)
+      "http://localhost:4173", // frontend local (vite preview)
     ],
     credentials: true,
   })
@@ -54,6 +55,19 @@ app.get("/api/health", (_req, res) =>
     }
   })
 );
+
+// Ruta raíz
+app.get("/", (_req, res) => {
+  res.json({
+    message: "SuperGains API",
+    version: "1.0.0",
+    endpoints: {
+      health: "/api/health",
+      products: "/api/products",
+      users: "/api/users"
+    }
+  });
+});
 
 // Rutas
 app.use("/api/products", productRoutes);
