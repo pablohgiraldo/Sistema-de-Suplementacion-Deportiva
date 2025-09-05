@@ -296,3 +296,37 @@ export const cerrarSesion = async (req, res) => {
         });
     }
 };
+
+// GET /api/users/token-status - Verificar estado del token
+export const verificarEstadoToken = async (req, res) => {
+    try {
+        const usuario = req.user;
+        const tokenInfo = req.tokenInfo;
+
+        res.json({
+            success: true,
+            message: 'Token válido',
+            data: {
+                usuario: {
+                    id: usuario._id,
+                    email: usuario.email,
+                    nombre: usuario.nombre,
+                    rol: usuario.rol
+                },
+                token: {
+                    valido: true,
+                    expiraEn: tokenInfo?.expiresAt || null,
+                    tiempoRestante: tokenInfo?.timeLeft || null,
+                    expiraPronto: tokenInfo?.isExpiringSoon || false
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al verificar estado del token:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};

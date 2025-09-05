@@ -5,9 +5,11 @@ import {
     obtenerPerfil,
     actualizarPerfil,
     refrescarToken,
-    cerrarSesion
+    cerrarSesion,
+    verificarEstadoToken
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
 
 const router = express.Router();
 
@@ -18,7 +20,8 @@ router.post('/refresh', refrescarToken);
 router.post('/logout', cerrarSesion);
 
 // Rutas protegidas (requieren autenticación)
-router.get('/profile', authMiddleware, obtenerPerfil);
-router.put('/profile', authMiddleware, actualizarPerfil);
+router.get('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, obtenerPerfil);
+router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, actualizarPerfil);
+router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, verificarEstadoToken);
 
 export default router;

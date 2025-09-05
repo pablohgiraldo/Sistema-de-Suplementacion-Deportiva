@@ -7,15 +7,20 @@ import {
     deleteProduct,
     searchProducts
 } from "../controllers/productController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { requireAdmin, requireModerator } from "../middleware/roleMiddleware.js";
+import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from "../middleware/tokenExpirationMiddleware.js";
 
 const router = express.Router();
 
-// Rutas CRUD básicas
+// Rutas públicas (no requieren autenticación)
 router.get("/", getProducts);
 router.get("/search", searchProducts);
 router.get("/:id", getProductById);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+
+// Rutas protegidas (requieren autenticación)
+router.post("/", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, createProduct);
+router.put("/:id", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, updateProduct);
+router.delete("/:id", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, requireAdmin, deleteProduct);
 
 export default router;

@@ -196,10 +196,40 @@ Authorization: Bearer <access_token>
 }
 ```
 
+#### GET /users/token-status
+Verifica el estado del token de autenticación del usuario.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Token válido",
+  "data": {
+    "usuario": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "rol": "usuario"
+    },
+    "token": {
+      "valido": true,
+      "expiraEn": "2025-01-06T03:00:00.000Z",
+      "tiempoRestante": 3600,
+      "expiraPronto": false
+    }
+  }
+}
+```
+
 ### Productos
 
 #### GET /products
-Obtiene todos los productos (máximo 50).
+Obtiene todos los productos (máximo 50). **Ruta pública** - No requiere autenticación.
 
 **Query Parameters:**
 - `limit` (opcional): Número máximo de productos a retornar.
@@ -215,7 +245,7 @@ Editar
 ---
 
 #### GET /products/:id
-Obtiene un producto específico por ID.
+Obtiene un producto específico por ID. **Ruta pública** - No requiere autenticación.
 
 **Ejemplo:**
 GET https://supergains-backend.onrender.com/api/products/64f1a2b3c4d5e6f7g8h9i0j1
@@ -227,7 +257,12 @@ Editar
 ---
 
 #### POST /products
-Crea un nuevo producto.
+Crea un nuevo producto. **Ruta protegida** - Requiere autenticación JWT.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
 
 **Request Body:**
 ```json
@@ -240,8 +275,13 @@ Crea un nuevo producto.
   "description": "Descripción del producto",
   "categories": ["Categoría 1", "Categoría 2"]
 }
-PUT /products/:id
-Actualiza un producto existente.
+#### PUT /products/:id
+Actualiza un producto existente. **Ruta protegida** - Requiere autenticación JWT.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
 
 Request Body (ejemplo):
 
@@ -252,11 +292,16 @@ Editar
   "price": 34.99,
   "stock": 75
 }
-DELETE /products/:id
-Elimina un producto por ID.
+#### DELETE /products/:id
+Elimina un producto por ID. **Ruta protegida** - Requiere autenticación JWT y rol de administrador.
 
-GET /products/search
-Busca productos por nombre o categoría.
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+#### GET /products/search
+Busca productos por nombre o categoría. **Ruta pública** - No requiere autenticación.
 
 Query Parameters:
 
