@@ -16,6 +16,9 @@
     "test:login": "node scripts/test-login.js",
     "test:protected": "node scripts/test-protected-routes.js",
     "test:auth-flow": "node scripts/test-auth-flow.js",
+    "test:cart": "node scripts/test-cart.js",
+    "create-test-user": "node scripts/create-test-user.js",
+    "test-login-simple": "node scripts/test-login-simple.js",
     "build": "npm install"
   },
   "engines": {
