@@ -25,6 +25,177 @@ Editar
 
 ## Endpoints
 
+### Autenticación JWT
+
+#### POST /users/register
+Registra un nuevo usuario y genera tokens JWT.
+
+**Request Body:**
+```json
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@ejemplo.com",
+  "contraseña": "password123",
+  "rol": "usuario"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Usuario registrado exitosamente",
+  "data": {
+    "user": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "role": "usuario",
+      "activo": true,
+      "lastLogin": "2025-01-XX..."
+    },
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresIn": "24h"
+    }
+  }
+}
+```
+
+#### POST /users/login
+Inicia sesión y genera tokens JWT.
+
+**Request Body:**
+```json
+{
+  "email": "juan@ejemplo.com",
+  "contraseña": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Inicio de sesión exitoso",
+  "data": {
+    "user": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "role": "usuario",
+      "activo": true,
+      "lastLogin": "2025-01-XX..."
+    },
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresIn": "24h"
+    }
+  }
+}
+```
+
+#### POST /users/refresh
+Refresca el token de acceso usando un refresh token.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Token refrescado exitosamente",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresIn": "24h"
+  }
+}
+```
+
+#### POST /users/logout
+Cierra la sesión del usuario.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Sesión cerrada exitosamente"
+}
+```
+
+#### GET /users/profile
+Obtiene el perfil del usuario autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Perfil obtenido exitosamente",
+  "data": {
+    "usuario": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan@ejemplo.com",
+      "nombre": "Juan Pérez",
+      "rol": "usuario",
+      "activo": true,
+      "fechaCreacion": "2025-01-XX..."
+    }
+  }
+}
+```
+
+#### PUT /users/profile
+Actualiza el perfil del usuario autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "nombre": "Juan Carlos Pérez",
+  "email": "juan.carlos@ejemplo.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Perfil actualizado exitosamente",
+  "data": {
+    "usuario": {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "juan.carlos@ejemplo.com",
+      "nombre": "Juan Carlos Pérez",
+      "rol": "usuario",
+      "activo": true
+    }
+  }
+}
+```
+
 ### Productos
 
 #### GET /products
@@ -183,3 +354,83 @@ bash
 Copiar
 Editar
 curl https://supergains-backend.onrender.com/api/products
+
+---
+
+## Autenticación JWT
+
+### Configuración
+La API utiliza JWT (JSON Web Tokens) para la autenticación. Los tokens incluyen:
+- **Access Token**: Válido por 24 horas por defecto
+- **Refresh Token**: Válido por 7 días por defecto
+
+### Variables de Entorno
+```env
+JWT_SECRET=tu_secreto_jwt_muy_seguro_aqui
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+### Uso de Tokens
+Para acceder a rutas protegidas, incluye el access token en el header:
+```
+Authorization: Bearer <access_token>
+```
+
+### Ejemplos de Uso
+
+#### Registro de Usuario
+```bash
+curl -X POST http://localhost:4000/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Pérez",
+    "email": "juan@ejemplo.com",
+    "contraseña": "password123"
+  }'
+```
+
+#### Login
+```bash
+curl -X POST http://localhost:4000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "juan@ejemplo.com",
+    "contraseña": "password123"
+  }'
+```
+
+#### Acceso a Perfil (Protegido)
+```bash
+curl -X GET http://localhost:4000/api/users/profile \
+  -H "Authorization: Bearer <access_token>"
+```
+
+#### Refresh Token
+```bash
+curl -X POST http://localhost:4000/api/users/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "<refresh_token>"
+  }'
+```
+
+#### Logout
+```bash
+curl -X POST http://localhost:4000/api/users/logout \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "<refresh_token>"
+  }'
+```
+
+### Códigos de Error de Autenticación
+- **401 Unauthorized**: Token inválido, expirado o no proporcionado
+- **403 Forbidden**: Token válido pero sin permisos suficientes
+- **400 Bad Request**: Datos de entrada inválidos
+
+### Seguridad
+- Los tokens están firmados con una clave secreta
+- Los refresh tokens permiten renovar access tokens sin re-autenticación
+- Los tokens incluyen información del usuario (ID, email, rol)
+- Se valida la existencia y estado activo del usuario en cada request

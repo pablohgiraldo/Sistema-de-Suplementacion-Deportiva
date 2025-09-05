@@ -12,6 +12,8 @@
     "test:mongodb": "node scripts/test-mongodb.js",
     "test:server": "node scripts/test-server.js",
     "test:auth": "node scripts/test-auth.js",
+    "test:jwt": "node scripts/test-jwt.js",
+    "test:login": "node scripts/test-login.js",
     "build": "npm install"
   },
   "engines": {
