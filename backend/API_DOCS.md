@@ -226,6 +226,163 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Carrito de Compras
+
+#### GET /cart
+Obtiene el carrito del usuario autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "product": {
+          "_id": "507f1f77bcf86cd799439011",
+          "name": "Designer Whey Protein",
+          "price": 167580,
+          "imageUrl": "https://example.com/image.jpg",
+          "brand": "SuperGains"
+        },
+        "quantity": 2,
+        "price": 167580
+      }
+    ],
+    "total": 335160
+  }
+}
+```
+
+#### POST /cart/add
+Agrega un producto al carrito del usuario autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "productId": "507f1f77bcf86cd799439011",
+  "quantity": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Producto agregado al carrito",
+  "data": {
+    "items": [
+      {
+        "product": {
+          "_id": "507f1f77bcf86cd799439011",
+          "name": "Designer Whey Protein",
+          "price": 167580,
+          "imageUrl": "https://example.com/image.jpg",
+          "brand": "SuperGains"
+        },
+        "quantity": 1,
+        "price": 167580
+      }
+    ],
+    "total": 167580
+  }
+}
+```
+
+**Errores posibles:**
+- `404`: Producto no encontrado
+- `400`: Stock insuficiente
+- `401`: Token de autenticación inválido o expirado
+
+#### PUT /cart/item/:productId
+Actualiza la cantidad de un producto en el carrito.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "quantity": 3
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Carrito actualizado",
+  "data": {
+    "items": [
+      {
+        "product": {
+          "_id": "507f1f77bcf86cd799439011",
+          "name": "Designer Whey Protein",
+          "price": 167580,
+          "imageUrl": "https://example.com/image.jpg",
+          "brand": "SuperGains"
+        },
+        "quantity": 3,
+        "price": 167580
+      }
+    ],
+    "total": 502740
+  }
+}
+```
+
+#### DELETE /cart/item/:productId
+Remueve un producto del carrito.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Producto removido del carrito",
+  "data": {
+    "items": [],
+    "total": 0
+  }
+}
+```
+
+#### DELETE /cart/clear
+Limpia completamente el carrito del usuario.
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Carrito limpiado",
+  "data": {
+    "items": [],
+    "total": 0
+  }
+}
+```
+
 ### Productos
 
 #### GET /products
