@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Register() {
+    const { register } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         nombre: '',
         email: '',
@@ -46,23 +48,25 @@ export default function Register() {
 
         try {
             const { confirmarContraseña, ...dataToSend } = formData;
-            const response = await api.post('/users/register', dataToSend);
+            const result = await register(dataToSend);
 
-            if (response.data.success) {
+            if (result.success) {
                 setSuccess(true);
-                // Opcional: auto-login después del registro
+                // Redirigir al login después de 2 segundos
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    navigate('/login');
                 }, 2000);
+            } else {
+                if (result.details) {
+                    // Mostrar errores de validación del backend
+                    const errorMessages = result.details.map(detail => detail.message).join(', ');
+                    setError(errorMessages);
+                } else {
+                    setError(result.error);
+                }
             }
         } catch (err) {
-            if (err.response?.data?.details) {
-                // Mostrar errores de validación del backend
-                const errorMessages = err.response.data.details.map(detail => detail.message).join(', ');
-                setError(errorMessages);
-            } else {
-                setError(err.response?.data?.error || 'Error al registrar usuario');
-            }
+            setError('Error inesperado al registrar usuario');
         } finally {
             setLoading(false);
         }

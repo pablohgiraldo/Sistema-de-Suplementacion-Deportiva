@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
+    const { login } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         contraseña: ''
@@ -23,19 +25,15 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await api.post('/users/login', formData);
+            const result = await login(formData.email, formData.contraseña);
 
-            if (response.data.success) {
-                // Guardar tokens en localStorage
-                localStorage.setItem('accessToken', response.data.data.tokens.accessToken);
-                localStorage.setItem('refreshToken', response.data.data.tokens.refreshToken);
-                localStorage.setItem('user', JSON.stringify(response.data.data.user));
-
-                // Redirigir al dashboard o página principal
-                window.location.href = '/';
+            if (result.success) {
+                navigate('/');
+            } else {
+                setError(result.error);
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'Error al iniciar sesión');
+            setError('Error inesperado al iniciar sesión');
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import {
+    saveAuthData,
+    clearAuthData,
+    getAuthData,
+    hasValidTokens,
+    getRefreshToken,
+    saveAccessToken
+} from '../utils/tokenUtils';
 
 const AuthContext = createContext();
 
@@ -16,29 +24,25 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Verificar si hay un usuario logueado al cargar la app
+    // Verificar si hay tokens válidos al cargar la aplicación
     useEffect(() => {
         const checkAuth = async () => {
-            const token = localStorage.getItem('accessToken');
-            const userData = localStorage.getItem('user');
-
-            if (token && userData) {
+            if (hasValidTokens()) {
                 try {
                     // Verificar si el token sigue siendo válido
-                    const response = await api.get('/users/token-status', {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const response = await api.get('/users/token-status');
 
                     if (response.data.success) {
-                        setUser(JSON.parse(userData));
+                        const authData = getAuthData();
+                        setUser(authData.user);
                         setIsAuthenticated(true);
                     } else {
                         // Token inválido, limpiar localStorage
-                        logout();
+                        clearAuthData();
                     }
                 } catch (error) {
                     // Error al verificar token, limpiar localStorage
-                    logout();
+                    clearAuthData();
                 }
             }
             setLoading(false);
@@ -54,10 +58,12 @@ export const AuthProvider = ({ children }) => {
             if (response.data.success) {
                 const { user: userData, tokens } = response.data.data;
 
-                // Guardar en localStorage
-                localStorage.setItem('accessToken', tokens.accessToken);
-                localStorage.setItem('refreshToken', tokens.refreshToken);
-                localStorage.setItem('user', JSON.stringify(userData));
+                // Guardar en localStorage usando utilidades
+                saveAuthData({
+                    accessToken: tokens.accessToken,
+                    refreshToken: tokens.refreshToken,
+                    user: userData
+                });
 
                 // Actualizar estado
                 setUser(userData);
@@ -91,17 +97,15 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = getRefreshToken();
             if (refreshToken) {
                 await api.post('/users/logout', { refreshToken });
             }
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
         } finally {
-            // Limpiar localStorage y estado
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
+            // Limpiar localStorage y estado usando utilidades
+            clearAuthData();
             setUser(null);
             setIsAuthenticated(false);
         }
@@ -109,7 +113,7 @@ export const AuthProvider = ({ children }) => {
 
     const refreshToken = async () => {
         try {
-            const refreshTokenValue = localStorage.getItem('refreshToken');
+            const refreshTokenValue = getRefreshToken();
             if (!refreshTokenValue) {
                 throw new Error('No hay refresh token');
             }
@@ -119,7 +123,7 @@ export const AuthProvider = ({ children }) => {
             });
 
             if (response.data.success) {
-                localStorage.setItem('accessToken', response.data.data.accessToken);
+                saveAccessToken(response.data.data.accessToken);
                 return { success: true };
             }
         } catch (error) {
