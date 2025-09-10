@@ -29,12 +29,15 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 
 ### Tecnologías Utilizadas
 
-- **Frontend**: HTML5, CSS3, JavaScript, React
-- **Backend**: Node.js, Express.js (JavaScript)
+- **Frontend**: React 18, Vite, Tailwind CSS, React Router DOM
+- **Backend**: Node.js, Express.js, MongoDB, Mongoose
 - **Base de Datos**: MongoDB Atlas
-- **Despliegue**: Vercel
-- **Inteligencia Artificial**: Python, Scikit-learn, TensorFlow
-- **Pagos**: Integración con pasarelas de pago seguras
+- **Autenticación**: JWT (JSON Web Tokens)
+- **Validación**: Express-validator
+- **Despliegue**: Render (Backend), Vercel (Frontend)
+- **Desarrollo**: Concurrently, Nodemon
+- **Inteligencia Artificial**: Python, Scikit-learn, TensorFlow (próximo sprint)
+- **Pagos**: Integración con pasarelas de pago seguras (próximo sprint)
 
 ## Equipo de Desarrollo
 
@@ -47,13 +50,16 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 
 ## Funcionalidades Principales
 
-### E-commerce
-- Catálogo de productos interactivo con filtros avanzados
-- Carrito de compras con persistencia de sesión
-- Proceso de checkout simplificado
-- Múltiples métodos de pago seguros
-- Seguimiento de pedidos en tiempo real
-- Sistema de notificaciones automáticas
+### E-commerce ✅ IMPLEMENTADO
+- ✅ Catálogo de productos interactivo con filtros avanzados
+- ✅ Carrito de compras con persistencia de sesión
+- ✅ Sistema de autenticación completo (login/registro)
+- ✅ Páginas de perfil de usuario
+- ✅ Búsqueda de productos con índices MongoDB
+- ✅ Paginación y filtros por marca, precio, categoría
+- ⏳ Proceso de checkout simplificado (próximo sprint)
+- ⏳ Múltiples métodos de pago seguros (próximo sprint)
+- ⏳ Seguimiento de pedidos en tiempo real (próximo sprint)
 
 ### Sistema ERP
 - Control de inventario en tiempo real
@@ -154,21 +160,20 @@ OPENAI_API_KEY=your_openai_key
 ### Desarrollo
 
 ```bash
-# Terminal 1: Backend API
-cd backend
+# Opción 1: Ejecutar todo simultáneamente (recomendado)
 npm run dev
 
+# Opción 2: Ejecutar por separado
+# Terminal 1: Backend API
+npm run dev:backend
+
 # Terminal 2: Frontend React
-cd frontend
-npm start
+npm run dev:frontend
 
-# Terminal 3: Servicio de IA
-cd ai-engine
-python app.py
-
-# Terminal 4: Worker de procesos en background
-cd backend
-npm run worker
+# URLs de desarrollo:
+# Frontend: http://localhost:5174 (o 5173)
+# Backend: http://localhost:4000
+# API Health: http://localhost:4000/api/health
 ```
 
 ### Producción
@@ -196,14 +201,15 @@ El proyecto utiliza metodología Scrum con sprints de 2 semanas:
 
 ### Cronograma de Entregables
 
-| Mes | Entregable | Estado |
-|-----|------------|--------|
-| 1-2 | Arquitectura omnicanal | En desarrollo |
-| 2-3 | Plataforma E-commerce | Planificado |
-| 3-4 | Sistema ERP | Planificado |
-| 4-5 | CRM y base de datos | Planificado |
-| 5-6 | Sistema de IA | Planificado |
-| 6 | Testing e integración | Planificado |
+| Sprint | Entregable | Estado |
+|--------|------------|--------|
+| 1 | Arquitectura base y configuración | ✅ Completado |
+| 2 | Plataforma E-commerce básica | ✅ Completado |
+| 3 | Sistema de autenticación y carrito | ✅ Completado |
+| 4 | Sistema ERP | ⏳ En desarrollo |
+| 5 | CRM y base de datos | ⏳ Planificado |
+| 6 | Sistema de IA | ⏳ Planificado |
+| 7 | Testing e integración | ⏳ Planificado |
 
 ## Testing y Calidad
 
@@ -285,6 +291,81 @@ npm run test:coverage
 La documentación completa de las APIs está disponible en:
 - **Swagger UI**: `http://localhost:3000/api-docs`
 - **Postman Collection**: `./docs/SuperGains-API.postman_collection.json`
+- **API Docs**: `./backend/API_DOCS.md`
+
+### Endpoints Principales
+
+#### Autenticación de Usuarios
+```bash
+# Registro de usuario
+POST /api/users/register
+Content-Type: application/json
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@ejemplo.com",
+  "contraseña": "Password123",
+  "rol": "usuario"
+}
+
+# Inicio de sesión
+POST /api/users/login
+Content-Type: application/json
+{
+  "email": "juan@ejemplo.com",
+  "contraseña": "Password123"
+}
+
+# Obtener perfil del usuario
+GET /api/users/profile
+Authorization: Bearer <token>
+
+# Renovar token de acceso
+POST /api/users/refresh
+Content-Type: application/json
+{
+  "refreshToken": "<refresh_token>"
+}
+```
+
+#### Gestión del Carrito
+```bash
+# Obtener carrito del usuario
+GET /api/cart
+Authorization: Bearer <token>
+
+# Agregar producto al carrito
+POST /api/cart/add
+Authorization: Bearer <token>
+Content-Type: application/json
+{
+  "productId": "68ba5a9042eecff32cec5f49",
+  "quantity": 2
+}
+
+# Actualizar cantidad de producto
+PUT /api/cart/item/:productId
+Authorization: Bearer <token>
+Content-Type: application/json
+{
+  "quantity": 3
+}
+
+# Eliminar producto del carrito
+DELETE /api/cart/item/:productId
+Authorization: Bearer <token>
+```
+
+#### Catálogo de Productos
+```bash
+# Listar productos con filtros
+GET /api/products?brand=Optimum&price_min=10&price_max=50&category=proteina&limit=10&page=1
+
+# Búsqueda de productos
+GET /api/products/search?q=whey protein&sortBy=price&limit=20
+
+# Obtener producto por ID
+GET /api/products/:id
+```
 
 ### Diagramas de Arquitectura
 
