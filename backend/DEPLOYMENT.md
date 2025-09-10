@@ -1,174 +1,207 @@
-#     Guía de Despliegue - Backend SuperGains
+# Guía de Despliegue - SuperGains (Backend + Frontend)
 
-##    Variables de Entorno Requeridas
+## 📋 Resumen del Proyecto
 
-En **Render Dashboard**, configura estas variables de entorno:
+**SuperGains** es una aplicación e-commerce desarrollada con:
+- **Backend**: Node.js + Express + MongoDB
+- **Frontend**: React + Vite + Tailwind CSS
+- **Despliegue**: Backend en Render, Frontend en Vercel
 
-KEY: MONGODB_URI
-VALUE: mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains?retryWrites=true&w=majority
+## 🚀 URLs de Producción
 
-KEY: JWT_SECRET
-VALUE: supergains_jwt_secret_2024_very_secure_key_for_production_deployment_xyz789
+- **Backend API**: `https://supergains-backend.onrender.com`
+- **Frontend**: `https://supergains-frontend.vercel.app` (pendiente de deploy)
+- **Desarrollo Local**: `http://localhost:5174` (frontend) + `http://localhost:4000` (backend)
 
-KEY: CORS_ORIGIN
-VALUE: https://supergains-frontend.vercel.app
+## 🔧 Variables de Entorno Requeridas
 
-KEY: NODE_ENV
-VALUE: production
+### Backend (Render Dashboard)
 
-r
-Copiar
-Editar
+| Variable | Valor | Descripción |
+|----------|-------|-------------|
+| `MONGODB_URI` | `mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains?retryWrites=true&w=majority` | URI de conexión a MongoDB Atlas |
+| `JWT_SECRET` | `supergains_jwt_secret_2024_very_secure_key_for_production_deployment_xyz789` | Clave secreta para JWT tokens |
+| `CORS_ORIGIN` | `https://supergains-frontend.vercel.app` | Origen permitido para CORS |
+| `NODE_ENV` | `production` | Entorno de ejecución |
 
-**Nota:**  
-No definas manualmente `PORT` en Render. Render asigna un puerto dinámico a través de `process.env.PORT`.  
-En tu código ya usas:  
-```js
-const PORT = process.env.PORT || 4000;
-   Cómo Obtener la URI de MongoDB
-Ve a cloud.mongodb.com
+### Frontend (Vercel Dashboard)
 
-Inicia sesión en tu cuenta
+| Variable | Valor | Descripción |
+|----------|-------|-------------|
+| `VITE_API_URL` | `https://supergains-backend.onrender.com` | URL del backend API |
 
-Selecciona tu cluster
+## 🏗️ Arquitectura del Proyecto
 
-Haz clic en Connect
+### Backend (Node.js + Express)
+```
+backend/
+├── src/
+│   ├── controllers/     # Controladores de rutas
+│   ├── models/         # Modelos de MongoDB
+│   ├── routes/         # Definición de rutas
+│   ├── validators/     # Validación con express-validator
+│   ├── config/         # Configuración de DB
+│   └── server.js       # Servidor principal
+├── scripts/            # Scripts de prueba
+└── package.json
+```
 
-Selecciona Connect your application
+### Frontend (React + Vite)
+```
+frontend/
+├── src/
+│   ├── components/     # Componentes reutilizables
+│   ├── pages/          # Páginas de la aplicación
+│   ├── contexts/       # Contextos de React (Auth, Cart)
+│   ├── hooks/          # Hooks personalizados
+│   ├── services/       # Servicios de API
+│   └── utils/          # Utilidades
+├── public/             # Archivos estáticos
+└── package.json
+```
 
-Copia la URI completa (formato mongodb+srv://...).
+## 🔌 Endpoints de la API
 
-   Pruebas Locales
-Antes de desplegar, prueba localmente:
+### Autenticación
+- `POST /api/users/register` - Registro de usuario
+- `POST /api/users/login` - Inicio de sesión
+- `GET /api/users/profile` - Perfil del usuario
+- `POST /api/users/refresh` - Renovar token
 
-bash
-Copiar
-Editar
+### Productos
+- `GET /api/products` - Listar productos (con filtros y paginación)
+- `GET /api/products/search` - Búsqueda de productos
+- `GET /api/products/:id` - Obtener producto por ID
+
+### Carrito
+- `GET /api/cart` - Obtener carrito del usuario
+- `POST /api/cart/add` - Agregar producto al carrito
+- `PUT /api/cart/item/:productId` - Actualizar cantidad
+- `DELETE /api/cart/item/:productId` - Eliminar producto
+
+## 🚀 Comandos de Despliegue
+
+### Desarrollo Local
+```bash
 # Instalar dependencias
 npm install
 
-# Crear archivo .env con tus variables
-cp .env.example .env
-# Edita .env con tus valores reales
-
-# Probar conexión a MongoDB
-npm run test:mongodb
-
-# Probar servidor local
+# Ejecutar backend y frontend simultáneamente
 npm run dev
-Validar en navegador:
-http://localhost:4000/api/health
 
-   Problemas Comunes
-Error: ENOTFOUND _mongodb._tcp.supergains.mongodb.net
-Solución: La URI debe incluir el nombre completo del cluster.
+# Solo backend
+npm run dev:backend
 
-Ejemplo correcto:
+# Solo frontend
+npm run dev:frontend
+```
 
-bash
-Copiar
-Editar
-mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains
-Error: Authentication failed
-Solución: Verifica usuario y contraseña en MongoDB Atlas.
+### Backend (Render)
+1. Conectar repositorio a Render
+2. Configurar variables de entorno
+3. Deploy automático en cada push
 
-Asegúrate de que el usuario tenga permisos de lectura/escritura en Database Access.
+### Frontend (Vercel)
+1. Conectar repositorio a Vercel
+2. Configurar variables de entorno
+3. Deploy automático en cada push
 
-Error: Network Access denied
-Solución: En MongoDB Atlas → Network Access → Add IP Address → 0.0.0.0/0 (habilita acceso global).
+## 🐛 Problemas Conocidos
 
-Error: Cannot GET /
-Explicación: El backend no sirve contenido en la raíz (/).
+### CORS Issues
+- **Problema**: Frontend no puede conectar con backend
+- **Solución**: Verificar configuración CORS en `server.js`
+- **Puertos permitidos**: `localhost:5173`, `localhost:5174`, `localhost:4173`
 
-Solución: Validar siempre en /api/health o /api/products.
+### Vercel Deploy Issues
+- **Problema**: Errores de build en Vercel
+- **Estado**: Pendiente de resolución
+- **Workaround**: Usar desarrollo local por ahora
 
-Error: CORS blocked by policy
-Solución: Configurar CORS_ORIGIN correctamente en Render:
+## 📱 Validación Móvil
 
-ini
-Copiar
-Editar
-CORS_ORIGIN=https://supergains-frontend.vercel.app
-En desarrollo local usar también:
+### Estado Actual
+- ❌ **No disponible** - Frontend no desplegado en Vercel
+- ✅ **Desarrollo local** - Funciona en `http://localhost:5174`
 
-arduino
-Copiar
-Editar
-http://localhost:5173
-   Checklist de Despliegue
- Variables de entorno configuradas en Render.
+### Próximos Pasos
+1. Resolver problemas de deploy en Vercel
+2. Configurar dominio móvil
+3. Probar en dispositivos reales
 
- MongoDB URI es correcta y accesible.
+## 🔍 Monitoreo y Logs
 
- CORS_ORIGIN apunta al frontend en Vercel.
+### Backend (Render)
+- Logs disponibles en Render Dashboard
+- Monitoreo de rendimiento incluido
+- Alertas de error automáticas
 
- PORT no definido manualmente.
+### Frontend (Vercel)
+- Logs de build y deploy
+- Analytics de rendimiento
+- Monitoreo de errores
 
- Build Command: npm install.
+## 📞 Soporte
 
- Start Command: npm start.
+Para problemas de despliegue:
+1. Revisar logs en Render/Vercel
+2. Verificar variables de entorno
+3. Comprobar conectividad de red
+4. Consultar documentación de la API
 
- Branch correcta (main o develop).
+---
 
- Root Directory: backend si tu proyecto está en monorepo.
+## 📝 Notas Importantes
 
-   Validación de Despliegue
-Verificar desde navegador
-Abrir: https://supergains-backend.onrender.com/api/health
+- **Puerto**: Render asigna automáticamente el puerto via `process.env.PORT`
+- **MongoDB**: Usar URI completa con nombre del cluster
+- **CORS**: Configurar orígenes permitidos correctamente
+- **JWT**: Usar clave secreta segura en producción
 
-Debe devolver:
+## 🔗 Enlaces Útiles
 
-json
-Copiar
-Editar
-{
-  "status": "OK",
-  "message": "Server is running",
-  "timestamp": "2025-01-XX..."
-}
-Verificar productos
-bash
-Copiar
-Editar
-curl -k https://supergains-backend.onrender.com/api/products
-   Validación de Conexión con Frontend
-En tu frontend desplegado en Vercel:
+- [Render Dashboard](https://dashboard.render.com)
+- [Vercel Dashboard](https://vercel.com/dashboard)
+- [MongoDB Atlas](https://cloud.mongodb.com)
+- [Documentación de la API](./API_DOCS.md)
 
-Abre https://supergains-frontend.vercel.app desde un navegador o dispositivo móvil.
+---
 
-En DevTools (F12) → Console → validar que los productos cargan desde la API.
+## ✅ Checklist de Despliegue
 
-Si aparece error de CORS, revisar variable CORS_ORIGIN en Render.
+### Backend (Render)
+- [ ] Variables de entorno configuradas
+- [ ] MongoDB URI correcta y accesible
+- [ ] CORS_ORIGIN apunta al frontend
+- [ ] Build Command: `npm install`
+- [ ] Start Command: `npm start`
+- [ ] Branch correcta (main o develop)
 
-Si aparece error de URL, revisar variable VITE_API_URL en Vercel:
+### Frontend (Vercel)
+- [ ] Variables de entorno configuradas
+- [ ] VITE_API_URL apunta al backend
+- [ ] Build exitoso sin errores
+- [ ] Deploy automático funcionando
 
-ini
-Copiar
-Editar
-VITE_API_URL=https://supergains-backend.onrender.com
-📡 Logs en Render
-En Render Dashboard:
+## 🧪 Validación de Despliegue
 
-Ir a tu servicio web.
+### Backend
+```bash
+# Verificar salud del API
+curl https://supergains-backend.onrender.com/api/health
 
-Clic en Logs.
+# Verificar productos
+curl https://supergains-backend.onrender.com/api/products
+```
 
-Mensajes esperados:
+### Frontend
+```bash
+# Verificar que carga correctamente
+# Abrir en navegador: https://supergains-frontend.vercel.app
+```
 
-   Base de datos conectada
+---
 
-   API escuchando en puerto XXXXX
-
-   Pruebas Alternativas
-Usando PowerShell
-powershell
-Copiar
-Editar
-Invoke-RestMethod -Uri "https://supergains-backend.onrender.com/api/health"
-Usando Postman
-Método: GET
-
-URL: https://supergains-backend.onrender.com/api/health
-
-Enviar → Debe devolver JSON de estado.
-
+**Última actualización**: Enero 2025  
+**Versión**: 1.0.0  
+**Estado**: Backend desplegado, Frontend pendiente
