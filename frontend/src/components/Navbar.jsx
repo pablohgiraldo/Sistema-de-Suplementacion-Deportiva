@@ -1,8 +1,20 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
+import { useContext } from 'react';
+import { CartContext } from '../contexts/CartContext';
+
+// Hook seguro para usar el carrito
+function useCartSafe() {
+    try {
+        return useContext(CartContext);
+    } catch {
+        return null;
+    }
+}
 
 export default function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
+    const cartContext = useCartSafe();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -35,9 +47,14 @@ export default function Navbar() {
                                 </Link>
                                 <Link
                                     to="/cart"
-                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                                    className="relative text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                                 >
                                     Carrito
+                                    {cartContext && cartContext.getCartItemCount() > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                            {cartContext.getCartItemCount()}
+                                        </span>
+                                    )}
                                 </Link>
                                 <button
                                     onClick={handleLogout}

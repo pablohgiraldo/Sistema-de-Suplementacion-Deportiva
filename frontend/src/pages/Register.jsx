@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Register() {
     const { register } = useAuth();
@@ -47,7 +47,7 @@ export default function Register() {
         setLoading(true);
 
         try {
-            const { confirmarContraseña, ...dataToSend } = formData;
+            const { confirmarContraseña: _, ...dataToSend } = formData;
             const result = await register(dataToSend);
 
             if (result.success) {
@@ -65,7 +65,7 @@ export default function Register() {
                     setError(result.error);
                 }
             }
-        } catch (err) {
+        } catch {
             setError('Error inesperado al registrar usuario');
         } finally {
             setLoading(false);

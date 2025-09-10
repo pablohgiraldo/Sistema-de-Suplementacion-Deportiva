@@ -1,107 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../contexts/CartContext';
 
 export default function Cart() {
-    const { user, isAuthenticated } = useAuth();
-    const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [updating, setUpdating] = useState(false);
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            fetchCart();
-        }
-    }, [isAuthenticated]);
-
-    const fetchCart = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get('/cart');
-
-            if (response.data.success) {
-                setCartItems(response.data.data.items || []);
-            }
-        } catch (err) {
-            setError('Error al cargar el carrito');
-            console.error('Error fetching cart:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const updateQuantity = async (productId, newQuantity) => {
-        if (newQuantity < 1) {
-            removeItem(productId);
-            return;
-        }
-
-        try {
-            setUpdating(true);
-            const response = await api.put('/cart/update', {
-                productId,
-                quantity: newQuantity
-            });
-
-            if (response.data.success) {
-                setCartItems(prev =>
-                    prev.map(item =>
-                        item.product._id === productId
-                            ? { ...item, quantity: newQuantity }
-                            : item
-                    )
-                );
-            }
-        } catch (err) {
-            setError('Error al actualizar cantidad');
-            console.error('Error updating quantity:', err);
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const removeItem = async (productId) => {
-        try {
-            setUpdating(true);
-            const response = await api.delete(`/cart/remove/${productId}`);
-
-            if (response.data.success) {
-                setCartItems(prev => prev.filter(item => item.product._id !== productId));
-            }
-        } catch (err) {
-            setError('Error al eliminar producto');
-            console.error('Error removing item:', err);
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const clearCart = async () => {
-        try {
-            setUpdating(true);
-            const response = await api.delete('/cart/clear');
-
-            if (response.data.success) {
-                setCartItems([]);
-            }
-        } catch (err) {
-            setError('Error al vaciar carrito');
-            console.error('Error clearing cart:', err);
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const calculateTotal = () => {
-        return cartItems.reduce((total, item) => {
-            return total + (item.product.price * item.quantity);
-        }, 0);
-    };
-
-    const calculateItemsCount = () => {
-        return cartItems.reduce((total, item) => total + item.quantity, 0);
-    };
+    const { isAuthenticated } = useAuth();
+    const {
+        cartItems,
+        loading,
+        error,
+        updateQuantity,
+        removeFromCart,
+        clearCart,
+        getCartTotal,
+        getCartItemCount
+    } = useCart();
 
     if (!isAuthenticated) {
         return (
@@ -131,7 +42,7 @@ export default function Cart() {
                         <h1 className="text-2xl font-bold text-white">Mi Carrito</h1>
                         <p className="text-blue-100">
                             {cartItems.length > 0
-                                ? `${calculateItemsCount()} producto${calculateItemsCount() !== 1 ? 's' : ''} en tu carrito`
+                                ? `${getCartItemCount()} producto${getCartItemCount() !== 1 ? 's' : ''} en tu carrito`
                                 : 'Tu carrito está vacío'
                             }
                         </p>
@@ -188,7 +99,7 @@ export default function Cart() {
                                             <div className="flex items-center space-x-2">
                                                 <button
                                                     onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
-                                                    disabled={updating}
+                                                    disabled={loading}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
                                                     -
@@ -198,7 +109,7 @@ export default function Cart() {
                                                 </span>
                                                 <button
                                                     onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                                                    disabled={updating}
+                                                    disabled={loading}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
                                                     +
@@ -210,8 +121,8 @@ export default function Cart() {
                                                     ${(item.product.price * item.quantity).toFixed(2)}
                                                 </p>
                                                 <button
-                                                    onClick={() => removeItem(item.product._id)}
-                                                    disabled={updating}
+                                                    onClick={() => removeFromCart(item.product._id)}
+                                                    disabled={loading}
                                                     className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
                                                 >
                                                     Eliminar
@@ -226,20 +137,20 @@ export default function Cart() {
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-medium text-gray-900">Total</h3>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            ${calculateTotal().toFixed(2)}
+                                            ${getCartTotal().toFixed(2)}
                                         </p>
                                     </div>
 
                                     <div className="flex space-x-4">
                                         <button
                                             onClick={clearCart}
-                                            disabled={updating}
+                                            disabled={loading}
                                             className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
                                         >
                                             Vaciar carrito
                                         </button>
                                         <button
-                                            disabled={updating}
+                                            disabled={loading}
                                             className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                                         >
                                             Proceder al pago

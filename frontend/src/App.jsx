@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.jsx';
+import { CartProvider } from './contexts/CartContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProductCard from './components/productCard';
@@ -16,21 +17,24 @@ function HomePage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    api.get("/products")
-      .then(res => {
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setProducts(res.data.data);
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get("/products");
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setProducts(response.data.data);
         } else {
-          console.error("Formato de respuesta inesperado:", res.data);
+          console.error("Formato de respuesta inesperado:", response.data);
           setError("Formato de respuesta inesperado del servidor");
         }
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Error cargando productos:", err);
         setError("Error al cargar los productos");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   if (loading) {
@@ -83,14 +87,20 @@ export default function App() {
         <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
           <Navbar />
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={
+              <CartProvider>
+                <HomePage />
+              </CartProvider>
+            } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <CartProvider>
+                    <Profile />
+                  </CartProvider>
                 </ProtectedRoute>
               }
             />
@@ -98,7 +108,9 @@ export default function App() {
               path="/cart"
               element={
                 <ProtectedRoute>
-                  <Cart />
+                  <CartProvider>
+                    <Cart />
+                  </CartProvider>
                 </ProtectedRoute>
               }
             />

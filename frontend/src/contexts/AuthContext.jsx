@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     saveAuthData,
@@ -8,16 +8,7 @@ import {
     getRefreshToken,
     saveAccessToken
 } from '../utils/tokenUtils';
-
-const AuthContext = createContext();
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-    }
-    return context;
-};
+import { AuthContext } from './AuthContext.js';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -27,8 +18,8 @@ export const AuthProvider = ({ children }) => {
     // Verificar si hay tokens válidos al cargar la aplicación
     useEffect(() => {
         const checkAuth = async () => {
-            if (hasValidTokens()) {
-                try {
+            try {
+                if (hasValidTokens()) {
                     // Verificar si el token sigue siendo válido
                     const response = await api.get('/users/token-status');
 
@@ -40,12 +31,14 @@ export const AuthProvider = ({ children }) => {
                         // Token inválido, limpiar localStorage
                         clearAuthData();
                     }
-                } catch (error) {
-                    // Error al verificar token, limpiar localStorage
-                    clearAuthData();
                 }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                // Error al verificar token, limpiar localStorage
+                clearAuthData();
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         checkAuth();
@@ -126,7 +119,7 @@ export const AuthProvider = ({ children }) => {
                 saveAccessToken(response.data.data.accessToken);
                 return { success: true };
             }
-        } catch (error) {
+        } catch {
             // Si el refresh falla, hacer logout
             logout();
             return { success: false };
