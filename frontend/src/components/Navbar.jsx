@@ -28,6 +28,12 @@ export default function Navbar() {
                                     Hola, {user?.nombre}
                                 </span>
                                 <Link
+                                    to="/profile"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Perfil
+                                </Link>
+                                <Link
                                     to="/cart"
                                     className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                                 >

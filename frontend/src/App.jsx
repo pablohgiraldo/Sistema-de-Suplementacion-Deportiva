@@ -1,9 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import ProductCard from './components/productCard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
+import Cart from './pages/Cart';
 import { useEffect, useState } from 'react';
 import api from './services/api';
 
@@ -83,6 +86,22 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </Router>
