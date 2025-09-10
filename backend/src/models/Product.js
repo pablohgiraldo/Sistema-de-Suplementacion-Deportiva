@@ -54,10 +54,28 @@ const productSchema = new mongoose.Schema(
 );
 
 // Índices para mejorar el rendimiento de las consultas
-productSchema.index({ name: 'text', description: 'text' });
+// Índice de texto completo para búsqueda avanzada
+productSchema.index({
+  name: 'text',
+  description: 'text',
+  brand: 'text',
+  categories: 'text'
+});
+
+// Índices individuales para filtros y ordenamiento
 productSchema.index({ categories: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ brand: 1 });
+productSchema.index({ stock: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ updatedAt: -1 });
+
+// Índice compuesto para búsquedas con filtros
+productSchema.index({
+  categories: 1,
+  price: 1,
+  brand: 1
+});
 
 // Virtual para el precio con formato
 productSchema.virtual('formattedPrice').get(function () {

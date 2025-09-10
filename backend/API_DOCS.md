@@ -538,20 +538,96 @@ Authorization: Bearer <access_token>
 ```
 
 #### GET /products/search
-Busca productos por nombre o categoría. **Ruta pública** - No requiere autenticación.
+Busca productos con índices de texto completo de MongoDB. **Ruta pública** - No requiere autenticación.
 
-Query Parameters:
+**Query Parameters:**
 
-q: término de búsqueda en nombre y descripción.
+**Búsqueda:**
+- `q` (opcional): Término de búsqueda en nombre, descripción, marca y categorías usando índices de texto completo.
+- `category` (opcional): Filtrar por categoría. Múltiples categorías separadas por coma.
+- `brand` (opcional): Filtrar por marca. Múltiples marcas separadas por coma.
+- `price_min` (opcional): Precio mínimo para filtrar.
+- `price_max` (opcional): Precio máximo para filtrar.
 
-category: categoría específica.
+**Paginación:**
+- `limit` (opcional): Número máximo de productos a retornar (máximo 100, por defecto 20).
+- `page` (opcional): Número de página para paginación (por defecto 1).
 
-Ejemplo:
+**Ordenamiento:**
+- `sortBy` (opcional): Ordenar por `score` (relevancia), `name`, `price`, `createdAt` (por defecto `score`).
 
-ruby
-Copiar
-Editar
-GET https://supergains-backend.onrender.com/api/products/search?q=proteína&category=Suplementos
+**Ejemplos de uso:**
+
+```bash
+# Búsqueda básica de texto
+GET https://supergains-backend.onrender.com/api/products/search?q=protein
+
+# Búsqueda con filtros
+GET https://supergains-backend.onrender.com/api/products/search?q=whey&category=Protein&brand=SUPERGAINS
+
+# Búsqueda con rango de precios
+GET https://supergains-backend.onrender.com/api/products/search?q=protein&price_min=100&price_max=300
+
+# Búsqueda con ordenamiento por precio
+GET https://supergains-backend.onrender.com/api/products/search?q=protein&sortBy=price
+
+# Búsqueda con paginación
+GET https://supergains-backend.onrender.com/api/products/search?q=protein&limit=10&page=1
+
+# Múltiples categorías
+GET https://supergains-backend.onrender.com/api/products/search?category=Protein,Vitamins
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 5,
+  "totalCount": 15,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Designer Whey Protein",
+      "brand": "SUPERGAINS",
+      "price": 167580,
+      "stock": 50,
+      "imageUrl": "https://example.com/image.jpg",
+      "description": "Proteína de suero premium",
+      "categories": ["Protein", "Whey"],
+      "createdAt": "2025-01-05T03:00:00.000Z",
+      "updatedAt": "2025-01-05T03:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPrevPage": false,
+    "nextPage": 2,
+    "prevPage": null,
+    "limit": 10,
+    "startIndex": 1,
+    "endIndex": 10,
+    "showing": "1-10 de 15 productos"
+  },
+  "search": {
+    "query": "protein",
+    "category": "Protein",
+    "brand": "SUPERGAINS",
+    "price_min": "100",
+    "price_max": "300",
+    "sortBy": "score",
+    "totalResults": 15
+  }
+}
+```
+
+**Características de la búsqueda:**
+- **Índices de texto completo**: Búsqueda optimizada en nombre, descripción, marca y categorías
+- **Ordenamiento por relevancia**: Los resultados se ordenan por relevancia cuando se usa búsqueda de texto
+- **Filtros combinados**: Puede combinar búsqueda de texto con filtros de categoría, marca y precio
+- **Paginación completa**: Incluye metadatos de paginación detallados
+- **Múltiples categorías/marcas**: Soporte para búsqueda en múltiples categorías o marcas
 Health Check
 GET /health
 Verifica el estado de la API.
