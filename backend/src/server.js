@@ -32,6 +32,7 @@ app.use(
     origin: [
       process.env.CORS_ORIGIN || "https://supergains-frontend.vercel.app", // dominio del frontend en Vercel
       "http://localhost:5173", // frontend local (vite dev server)
+      "http://localhost:5174", // frontend local (vite dev server puerto alternativo)
       "http://localhost:4173", // frontend local (vite preview)
     ],
     credentials: true,

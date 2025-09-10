@@ -8,7 +8,7 @@ KEY: MONGODB_URI
 VALUE: mongodb+srv://usuario:password@cluster0.abc123.mongodb.net/supergains?retryWrites=true&w=majority
 
 KEY: JWT_SECRET
-VALUE: tu_secreto_jwt_muy_seguro_aqui
+VALUE: supergains_jwt_secret_2024_very_secure_key_for_production_deployment_xyz789
 
 KEY: CORS_ORIGIN
 VALUE: https://supergains-frontend.vercel.app
