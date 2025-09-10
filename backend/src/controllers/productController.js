@@ -38,10 +38,18 @@ export async function getProducts(req, res) {
       query.categories = { $in: categories };
     }
 
-    // Configurar paginación
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
-    const pageNum = Math.max(1, parseInt(page));
+    // Configurar paginación con validaciones mejoradas
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+    const pageNum = Math.max(1, parseInt(page) || 1);
     const skip = (pageNum - 1) * limitNum;
+
+    // Validar parámetros de paginación
+    if (isNaN(limitNum) || isNaN(pageNum)) {
+      return res.status(400).json({
+        success: false,
+        error: "Parámetros de paginación inválidos. 'limit' y 'page' deben ser números."
+      });
+    }
 
     // Ejecutar consulta con filtros y paginación
     const [products, totalCount] = await Promise.all([
@@ -54,10 +62,14 @@ export async function getProducts(req, res) {
       Product.countDocuments(query)
     ]);
 
-    // Calcular metadatos de paginación
+    // Calcular metadatos de paginación mejorados
     const totalPages = Math.ceil(totalCount / limitNum);
     const hasNextPage = pageNum < totalPages;
     const hasPrevPage = pageNum > 1;
+    const nextPage = hasNextPage ? pageNum + 1 : null;
+    const prevPage = hasPrevPage ? pageNum - 1 : null;
+    const startIndex = skip + 1;
+    const endIndex = Math.min(skip + limitNum, totalCount);
 
     res.json({
       success: true,
@@ -69,7 +81,12 @@ export async function getProducts(req, res) {
         totalPages,
         hasNextPage,
         hasPrevPage,
-        limit: limitNum
+        nextPage,
+        prevPage,
+        limit: limitNum,
+        startIndex,
+        endIndex,
+        showing: `${startIndex}-${endIndex} de ${totalCount} productos`
       },
       filters: {
         brand: brand || null,

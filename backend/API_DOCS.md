@@ -389,8 +389,12 @@ Authorization: Bearer <access_token>
 Obtiene todos los productos con filtros avanzados. **Ruta pública** - No requiere autenticación.
 
 **Query Parameters:**
+
+**Paginación:**
 - `limit` (opcional): Número máximo de productos a retornar (máximo 100, por defecto 50).
 - `page` (opcional): Número de página para paginación (por defecto 1).
+
+**Filtros:**
 - `brand` (opcional): Filtrar por marca (búsqueda parcial, case-insensitive).
 - `price_min` (opcional): Precio mínimo para filtrar.
 - `price_max` (opcional): Precio máximo para filtrar.
@@ -443,7 +447,12 @@ GET https://supergains-backend.onrender.com/api/products?brand=SUPERGAINS&price_
     "totalPages": 3,
     "hasNextPage": true,
     "hasPrevPage": false,
-    "limit": 10
+    "nextPage": 2,
+    "prevPage": null,
+    "limit": 10,
+    "startIndex": 1,
+    "endIndex": 10,
+    "showing": "1-10 de 25 productos"
   },
   "filters": {
     "brand": "SUPERGAINS",
@@ -453,6 +462,18 @@ GET https://supergains-backend.onrender.com/api/products?brand=SUPERGAINS&price_
   }
 }
 ```
+
+**Información de Paginación:**
+- `currentPage`: Página actual
+- `totalPages`: Total de páginas disponibles
+- `hasNextPage`: Indica si hay página siguiente
+- `hasPrevPage`: Indica si hay página anterior
+- `nextPage`: Número de la página siguiente (null si no existe)
+- `prevPage`: Número de la página anterior (null si no existe)
+- `limit`: Límite de productos por página aplicado
+- `startIndex`: Índice del primer producto en la página actual
+- `endIndex`: Índice del último producto en la página actual
+- `showing`: Texto descriptivo de los productos mostrados
 
 yaml
 Copiar
