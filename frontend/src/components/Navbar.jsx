@@ -1,0 +1,64 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+export default function Navbar() {
+    const { user, isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/');
+    };
+
+    return (
+        <nav className="bg-white shadow-lg">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex justify-between h-16">
+                    <div className="flex items-center">
+                        <Link to="/" className="flex-shrink-0 flex items-center">
+                            <span className="text-2xl font-bold text-gray-900">SPG</span>
+                            <span className="ml-2 text-sm text-gray-600">SUPERGAINS</span>
+                        </Link>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        {isAuthenticated ? (
+                            <>
+                                <span className="text-gray-700">
+                                    Hola, {user?.nombre}
+                                </span>
+                                <Link
+                                    to="/cart"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Carrito
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Iniciar Sesión
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Registrarse
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+}
