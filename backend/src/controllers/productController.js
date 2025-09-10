@@ -1,10 +1,83 @@
 import Product from "../models/Product.js";
 
-// Obtener todos los productos
+// Obtener todos los productos con filtros
 export async function getProducts(req, res) {
   try {
-    const products = await Product.find().limit(50).lean();
-    res.json({ success: true, count: products.length, data: products });
+    const {
+      brand,
+      price_min,
+      price_max,
+      category,
+      limit = 50,
+      page = 1
+    } = req.query;
+
+    // Construir query de filtros
+    let query = {};
+
+    // Filtro por marca
+    if (brand) {
+      query.brand = { $regex: brand, $options: 'i' };
+    }
+
+    // Filtro por rango de precios
+    if (price_min || price_max) {
+      query.price = {};
+      if (price_min) {
+        query.price.$gte = parseFloat(price_min);
+      }
+      if (price_max) {
+        query.price.$lte = parseFloat(price_max);
+      }
+    }
+
+    // Filtro por categoría
+    if (category) {
+      // Permitir múltiples categorías separadas por coma
+      const categories = category.split(',').map(cat => cat.trim());
+      query.categories = { $in: categories };
+    }
+
+    // Configurar paginación
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const pageNum = Math.max(1, parseInt(page));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Ejecutar consulta con filtros y paginación
+    const [products, totalCount] = await Promise.all([
+      Product.find(query)
+        .select('name brand price stock imageUrl description categories createdAt updatedAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Product.countDocuments(query)
+    ]);
+
+    // Calcular metadatos de paginación
+    const totalPages = Math.ceil(totalCount / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      success: true,
+      count: products.length,
+      totalCount,
+      data: products,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNum
+      },
+      filters: {
+        brand: brand || null,
+        price_min: price_min || null,
+        price_max: price_max || null,
+        category: category || null
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

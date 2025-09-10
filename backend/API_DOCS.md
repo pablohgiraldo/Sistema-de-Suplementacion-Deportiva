@@ -386,14 +386,73 @@ Authorization: Bearer <access_token>
 ### Productos
 
 #### GET /products
-Obtiene todos los productos (máximo 50). **Ruta pública** - No requiere autenticación.
+Obtiene todos los productos con filtros avanzados. **Ruta pública** - No requiere autenticación.
 
 **Query Parameters:**
-- `limit` (opcional): Número máximo de productos a retornar.
-- `page` (opcional): Número de página para paginación.
+- `limit` (opcional): Número máximo de productos a retornar (máximo 100, por defecto 50).
+- `page` (opcional): Número de página para paginación (por defecto 1).
+- `brand` (opcional): Filtrar por marca (búsqueda parcial, case-insensitive).
+- `price_min` (opcional): Precio mínimo para filtrar.
+- `price_max` (opcional): Precio máximo para filtrar.
+- `category` (opcional): Filtrar por categoría. Múltiples categorías separadas por coma.
 
-**Ejemplo (producción):**
-GET https://supergains-backend.onrender.com/api/products?limit=10&page=1
+**Ejemplos de uso:**
+
+```bash
+# Obtener todos los productos
+GET https://supergains-backend.onrender.com/api/products
+
+# Filtrar por marca
+GET https://supergains-backend.onrender.com/api/products?brand=SUPERGAINS
+
+# Filtrar por rango de precios
+GET https://supergains-backend.onrender.com/api/products?price_min=100&price_max=300
+
+# Filtrar por categoría
+GET https://supergains-backend.onrender.com/api/products?category=Protein
+
+# Múltiples categorías
+GET https://supergains-backend.onrender.com/api/products?category=Protein,Vitamins
+
+# Combinar filtros con paginación
+GET https://supergains-backend.onrender.com/api/products?brand=SUPERGAINS&price_min=50&price_max=200&limit=10&page=1
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 10,
+  "totalCount": 25,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Designer Whey Protein",
+      "brand": "SUPERGAINS",
+      "price": 167580,
+      "stock": 50,
+      "imageUrl": "https://example.com/image.jpg",
+      "description": "Proteína de suero premium",
+      "categories": ["Protein", "Whey"],
+      "createdAt": "2025-01-05T03:00:00.000Z",
+      "updatedAt": "2025-01-05T03:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPrevPage": false,
+    "limit": 10
+  },
+  "filters": {
+    "brand": "SUPERGAINS",
+    "price_min": "50",
+    "price_max": "200",
+    "category": "Protein"
+  }
+}
+```
 
 yaml
 Copiar
