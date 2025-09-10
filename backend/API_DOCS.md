@@ -659,6 +659,54 @@ Editar
 
 500 - Internal Server Error
 
+### Validaciones de Entrada
+La API utiliza **express-validator** para validar todas las entradas de datos. Las validaciones incluyen:
+
+#### Validaciones de Productos
+- **Nombre**: Obligatorio, 2-100 caracteres
+- **Marca**: Opcional, máximo 50 caracteres
+- **Precio**: Obligatorio, número entre 0-10,000
+- **Stock**: Opcional, entero mayor o igual a 0
+- **URL de imagen**: Opcional, debe ser URL válida
+- **Descripción**: Opcional, máximo 500 caracteres
+- **Categorías**: Opcional, máximo 10 categorías, cada una máximo 50 caracteres
+
+#### Validaciones de Usuarios
+- **Nombre**: Obligatorio, 2-50 caracteres
+- **Email**: Obligatorio, formato de email válido, máximo 100 caracteres
+- **Contraseña**: Obligatorio, 6-100 caracteres, debe contener al menos una letra minúscula, una mayúscula y un número
+- **Rol**: Opcional, debe ser 'usuario', 'admin' o 'moderador'
+
+#### Validaciones de Carrito
+- **ID de producto**: Obligatorio, debe ser ObjectId válido de MongoDB
+- **Cantidad**: Obligatorio, entero entre 1-100
+
+#### Validaciones de Filtros y Búsqueda
+- **Límite**: Opcional, entero entre 1-100
+- **Página**: Opcional, entero mayor a 0
+- **Precios**: Opcional, números válidos, precio mínimo no puede ser mayor al máximo
+- **Ordenamiento**: Opcional, valores permitidos según el endpoint
+
+#### Respuesta de Errores de Validación
+```json
+{
+  "success": false,
+  "error": "Datos de entrada inválidos",
+  "details": [
+    {
+      "field": "nombre",
+      "message": "El nombre es obligatorio",
+      "value": ""
+    },
+    {
+      "field": "email",
+      "message": "El email debe ser válido",
+      "value": "email-invalido"
+    }
+  ]
+}
+```
+
    Validaciones del Modelo
 Producto
 name: Obligatorio, máx. 100 caracteres.

@@ -8,6 +8,13 @@ import {
 } from '../controllers/cartController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
+import {
+    validateGetCart,
+    validateAddToCart,
+    validateUpdateCartItem,
+    validateRemoveFromCart,
+    validateClearCart
+} from '../validators/cartValidators.js';
 
 const router = express.Router();
 
@@ -17,10 +24,10 @@ router.use(tokenExpirationMiddleware);
 router.use(tokenRefreshSuggestionMiddleware);
 
 // Rutas del carrito
-router.get('/', getCart);
-router.post('/add', addToCart);
-router.put('/item/:productId', updateCartItem);
-router.delete('/item/:productId', removeFromCart);
-router.delete('/clear', clearCart);
+router.get('/', validateGetCart, getCart);
+router.post('/add', validateAddToCart, addToCart);
+router.put('/item/:productId', validateUpdateCartItem, updateCartItem);
+router.delete('/item/:productId', validateRemoveFromCart, removeFromCart);
+router.delete('/clear', validateClearCart, clearCart);
 
 export default router;
