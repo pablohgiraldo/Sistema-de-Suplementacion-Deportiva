@@ -282,7 +282,7 @@ export async function validateCartStock(req, res) {
         // Validar cada producto en el carrito
         for (const item of cart.items) {
             const inventory = await Inventory.findOne({ product: item.product._id });
-            
+
             if (!inventory) {
                 issues.push({
                     productId: item.product._id,
@@ -370,14 +370,14 @@ export async function syncCartWithInventory(req, res) {
         // Verificar cada producto en el carrito
         for (const item of cart.items) {
             const inventory = await Inventory.findOne({ product: item.product._id });
-            
+
             if (!inventory || inventory.status !== 'active' || inventory.availableStock < item.quantity) {
                 removedItems.push({
                     productId: item.product._id,
                     productName: item.product.name,
                     quantity: item.quantity,
-                    reason: !inventory ? 'No disponible en inventario' : 
-                            inventory.status !== 'active' ? `Estado: ${inventory.status}` :
+                    reason: !inventory ? 'No disponible en inventario' :
+                        inventory.status !== 'active' ? `Estado: ${inventory.status}` :
                             `Stock insuficiente (${inventory.availableStock} disponible)`
                 });
             } else {
