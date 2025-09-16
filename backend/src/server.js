@@ -9,6 +9,7 @@ import { connectDB } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import inventoryRoutes from "./routes/inventoryRoutes.js";
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.get("/", (_req, res) => {
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
@@ -118,6 +120,7 @@ const startServer = async () => {
       console.log(`   - POST /api/users/login`);
       console.log(`   - GET  /api/users/profile`);
       console.log(`   - *    /api/cart/*`);
+      console.log(`   - *    /api/inventory/*`);
       console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
