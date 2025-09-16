@@ -1,18 +1,18 @@
 import express from "express";
 import {
-  getInventories,
-  getInventoryById,
-  getInventoryByProductId,
-  createInventory,
-  updateInventory,
-  deleteInventory,
-  restockInventory,
-  reserveStock,
-  releaseStock,
-  sellStock,
-  getLowStockProducts,
-  getOutOfStockProducts,
-  getInventoryStats
+    getInventories,
+    getInventoryById,
+    getInventoryByProductId,
+    createInventory,
+    updateInventory,
+    deleteInventory,
+    restockInventory,
+    reserveStock,
+    releaseStock,
+    sellStock,
+    getLowStockProducts,
+    getOutOfStockProducts,
+    getInventoryStats
 } from "../controllers/inventoryController.js";
 
 const router = express.Router();

@@ -3,465 +3,465 @@ import Product from "../models/Product.js";
 
 // Obtener todos los registros de inventario con filtros
 export async function getInventories(req, res) {
-  try {
-    const {
-      status,
-      stock_min,
-      stock_max,
-      needs_restock,
-      limit = 50,
-      page = 1,
-      sortBy = 'createdAt',
-      sortOrder = 'desc'
-    } = req.query;
+    try {
+        const {
+            status,
+            stock_min,
+            stock_max,
+            needs_restock,
+            limit = 50,
+            page = 1,
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        } = req.query;
 
-    // Construir query de filtros
-    let query = {};
+        // Construir query de filtros
+        let query = {};
 
-    // Filtro por estado
-    if (status) {
-      query.status = status;
+        // Filtro por estado
+        if (status) {
+            query.status = status;
+        }
+
+        // Filtro por rango de stock
+        if (stock_min || stock_max) {
+            query.currentStock = {};
+            if (stock_min) {
+                query.currentStock.$gte = parseInt(stock_min);
+            }
+            if (stock_max) {
+                query.currentStock.$lte = parseInt(stock_max);
+            }
+        }
+
+        // Filtro por productos que necesitan reabastecimiento
+        if (needs_restock === 'true') {
+            query.$expr = { $lte: ['$currentStock', '$minStock'] };
+        }
+
+        // Configurar paginación
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Configurar ordenamiento
+        const sortOptions = {
+            'createdAt': { createdAt: sortOrder === 'desc' ? -1 : 1 },
+            'updatedAt': { updatedAt: sortOrder === 'desc' ? -1 : 1 },
+            'currentStock': { currentStock: sortOrder === 'desc' ? -1 : 1 },
+            'productName': { 'product.name': sortOrder === 'desc' ? -1 : 1 },
+            'totalSold': { totalSold: sortOrder === 'desc' ? -1 : 1 }
+        };
+        const sortQuery = sortOptions[sortBy] || { createdAt: -1 };
+
+        // Ejecutar consulta con populate
+        const [inventories, totalCount] = await Promise.all([
+            Inventory.find(query)
+                .populate('product', 'name brand price imageUrl description categories')
+                .sort(sortQuery)
+                .skip(skip)
+                .limit(limitNum)
+                .lean(),
+            Inventory.countDocuments(query)
+        ]);
+
+        // Calcular metadatos de paginación
+        const totalPages = Math.ceil(totalCount / limitNum);
+        const hasNextPage = pageNum < totalPages;
+        const hasPrevPage = pageNum > 1;
+        const nextPage = hasNextPage ? pageNum + 1 : null;
+        const prevPage = hasPrevPage ? pageNum - 1 : null;
+        const startIndex = skip + 1;
+        const endIndex = Math.min(skip + limitNum, totalCount);
+
+        res.json({
+            success: true,
+            count: inventories.length,
+            totalCount,
+            data: inventories,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage,
+                hasPrevPage,
+                nextPage,
+                prevPage,
+                limit: limitNum,
+                startIndex,
+                endIndex,
+                showing: `${startIndex}-${endIndex} de ${totalCount} registros`
+            },
+            filters: {
+                status: status || null,
+                stock_min: stock_min || null,
+                stock_max: stock_max || null,
+                needs_restock: needs_restock || null,
+                sortBy,
+                sortOrder
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
-
-    // Filtro por rango de stock
-    if (stock_min || stock_max) {
-      query.currentStock = {};
-      if (stock_min) {
-        query.currentStock.$gte = parseInt(stock_min);
-      }
-      if (stock_max) {
-        query.currentStock.$lte = parseInt(stock_max);
-      }
-    }
-
-    // Filtro por productos que necesitan reabastecimiento
-    if (needs_restock === 'true') {
-      query.$expr = { $lte: ['$currentStock', '$minStock'] };
-    }
-
-    // Configurar paginación
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
-    const pageNum = Math.max(1, parseInt(page) || 1);
-    const skip = (pageNum - 1) * limitNum;
-
-    // Configurar ordenamiento
-    const sortOptions = {
-      'createdAt': { createdAt: sortOrder === 'desc' ? -1 : 1 },
-      'updatedAt': { updatedAt: sortOrder === 'desc' ? -1 : 1 },
-      'currentStock': { currentStock: sortOrder === 'desc' ? -1 : 1 },
-      'productName': { 'product.name': sortOrder === 'desc' ? -1 : 1 },
-      'totalSold': { totalSold: sortOrder === 'desc' ? -1 : 1 }
-    };
-    const sortQuery = sortOptions[sortBy] || { createdAt: -1 };
-
-    // Ejecutar consulta con populate
-    const [inventories, totalCount] = await Promise.all([
-      Inventory.find(query)
-        .populate('product', 'name brand price imageUrl description categories')
-        .sort(sortQuery)
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
-      Inventory.countDocuments(query)
-    ]);
-
-    // Calcular metadatos de paginación
-    const totalPages = Math.ceil(totalCount / limitNum);
-    const hasNextPage = pageNum < totalPages;
-    const hasPrevPage = pageNum > 1;
-    const nextPage = hasNextPage ? pageNum + 1 : null;
-    const prevPage = hasPrevPage ? pageNum - 1 : null;
-    const startIndex = skip + 1;
-    const endIndex = Math.min(skip + limitNum, totalCount);
-
-    res.json({
-      success: true,
-      count: inventories.length,
-      totalCount,
-      data: inventories,
-      pagination: {
-        currentPage: pageNum,
-        totalPages,
-        hasNextPage,
-        hasPrevPage,
-        nextPage,
-        prevPage,
-        limit: limitNum,
-        startIndex,
-        endIndex,
-        showing: `${startIndex}-${endIndex} de ${totalCount} registros`
-      },
-      filters: {
-        status: status || null,
-        stock_min: stock_min || null,
-        stock_max: stock_max || null,
-        needs_restock: needs_restock || null,
-        sortBy,
-        sortOrder
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
 }
 
 // Obtener un registro de inventario por ID
 export async function getInventoryById(req, res) {
-  try {
-    const inventory = await Inventory.findById(req.params.id)
-      .populate('product', 'name brand price imageUrl description categories');
-    
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
+    try {
+        const inventory = await Inventory.findById(req.params.id)
+            .populate('product', 'name brand price imageUrl description categories');
+
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        res.json({ success: true, data: inventory });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
-    
-    res.json({ success: true, data: inventory });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
 }
 
 // Obtener inventario por ID de producto
 export async function getInventoryByProductId(req, res) {
-  try {
-    const inventory = await Inventory.findOne({ product: req.params.productId })
-      .populate('product', 'name brand price imageUrl description categories');
-    
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "No se encontró inventario para este producto" 
-      });
+    try {
+        const inventory = await Inventory.findOne({ product: req.params.productId })
+            .populate('product', 'name brand price imageUrl description categories');
+
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "No se encontró inventario para este producto"
+            });
+        }
+
+        res.json({ success: true, data: inventory });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
-    
-    res.json({ success: true, data: inventory });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
 }
 
 // Crear un nuevo registro de inventario
 export async function createInventory(req, res) {
-  try {
-    const { productId, currentStock, minStock, maxStock, notes } = req.body;
+    try {
+        const { productId, currentStock, minStock, maxStock, notes } = req.body;
 
-    // Verificar que el producto existe
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Producto no encontrado" 
-      });
+        // Verificar que el producto existe
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: "Producto no encontrado"
+            });
+        }
+
+        // Verificar que no existe inventario para este producto
+        const existingInventory = await Inventory.findOne({ product: productId });
+        if (existingInventory) {
+            return res.status(400).json({
+                success: false,
+                error: "Ya existe un registro de inventario para este producto"
+            });
+        }
+
+        // Crear nuevo inventario
+        const inventoryData = {
+            product: productId,
+            currentStock: currentStock || 0,
+            minStock: minStock || 5,
+            maxStock: maxStock || 100,
+            reservedStock: 0,
+            availableStock: currentStock || 0,
+            status: (currentStock > 0) ? 'active' : 'out_of_stock',
+            notes: notes || ''
+        };
+
+        const inventory = new Inventory(inventoryData);
+        const savedInventory = await inventory.save();
+
+        // Populate para respuesta
+        await savedInventory.populate('product', 'name brand price imageUrl description categories');
+
+        res.status(201).json({
+            success: true,
+            data: savedInventory,
+            message: "Registro de inventario creado exitosamente"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    // Verificar que no existe inventario para este producto
-    const existingInventory = await Inventory.findOne({ product: productId });
-    if (existingInventory) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Ya existe un registro de inventario para este producto" 
-      });
-    }
-
-    // Crear nuevo inventario
-    const inventoryData = {
-      product: productId,
-      currentStock: currentStock || 0,
-      minStock: minStock || 5,
-      maxStock: maxStock || 100,
-      reservedStock: 0,
-      availableStock: currentStock || 0,
-      status: (currentStock > 0) ? 'active' : 'out_of_stock',
-      notes: notes || ''
-    };
-
-    const inventory = new Inventory(inventoryData);
-    const savedInventory = await inventory.save();
-    
-    // Populate para respuesta
-    await savedInventory.populate('product', 'name brand price imageUrl description categories');
-    
-    res.status(201).json({ 
-      success: true, 
-      data: savedInventory,
-      message: "Registro de inventario creado exitosamente"
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Actualizar un registro de inventario
 export async function updateInventory(req, res) {
-  try {
-    const { currentStock, minStock, maxStock, status, notes } = req.body;
-    
-    const updateData = {};
-    if (currentStock !== undefined) updateData.currentStock = currentStock;
-    if (minStock !== undefined) updateData.minStock = minStock;
-    if (maxStock !== undefined) updateData.maxStock = maxStock;
-    if (status !== undefined) updateData.status = status;
-    if (notes !== undefined) updateData.notes = notes;
+    try {
+        const { currentStock, minStock, maxStock, status, notes } = req.body;
 
-    const inventory = await Inventory.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('product', 'name brand price imageUrl description categories');
+        const updateData = {};
+        if (currentStock !== undefined) updateData.currentStock = currentStock;
+        if (minStock !== undefined) updateData.minStock = minStock;
+        if (maxStock !== undefined) updateData.maxStock = maxStock;
+        if (status !== undefined) updateData.status = status;
+        if (notes !== undefined) updateData.notes = notes;
 
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
+        const inventory = await Inventory.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true, runValidators: true }
+        ).populate('product', 'name brand price imageUrl description categories');
+
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        res.json({
+            success: true,
+            data: inventory,
+            message: "Registro de inventario actualizado exitosamente"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    res.json({ 
-      success: true, 
-      data: inventory,
-      message: "Registro de inventario actualizado exitosamente"
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Eliminar un registro de inventario
 export async function deleteInventory(req, res) {
-  try {
-    const inventory = await Inventory.findByIdAndDelete(req.params.id);
-    
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
-    }
+    try {
+        const inventory = await Inventory.findByIdAndDelete(req.params.id);
 
-    res.json({ 
-      success: true, 
-      message: "Registro de inventario eliminado exitosamente" 
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Registro de inventario eliminado exitosamente"
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 }
 
 // Reabastecer stock de un producto
 export async function restockInventory(req, res) {
-  try {
-    const { quantity, notes } = req.body;
-    
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "La cantidad debe ser mayor a 0" 
-      });
+    try {
+        const { quantity, notes } = req.body;
+
+        if (!quantity || quantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: "La cantidad debe ser mayor a 0"
+            });
+        }
+
+        const inventory = await Inventory.findById(req.params.id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        await inventory.restock(quantity, notes);
+        await inventory.populate('product', 'name brand price imageUrl description categories');
+
+        res.json({
+            success: true,
+            data: inventory,
+            message: `Stock reabastecido exitosamente. ${quantity} unidades agregadas.`
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    const inventory = await Inventory.findById(req.params.id);
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
-    }
-
-    await inventory.restock(quantity, notes);
-    await inventory.populate('product', 'name brand price imageUrl description categories');
-
-    res.json({ 
-      success: true, 
-      data: inventory,
-      message: `Stock reabastecido exitosamente. ${quantity} unidades agregadas.`
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Reservar stock de un producto
 export async function reserveStock(req, res) {
-  try {
-    const { quantity } = req.body;
-    
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "La cantidad debe ser mayor a 0" 
-      });
+    try {
+        const { quantity } = req.body;
+
+        if (!quantity || quantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: "La cantidad debe ser mayor a 0"
+            });
+        }
+
+        const inventory = await Inventory.findById(req.params.id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        await inventory.reserveStock(quantity);
+        await inventory.populate('product', 'name brand price imageUrl description categories');
+
+        res.json({
+            success: true,
+            data: inventory,
+            message: `Stock reservado exitosamente. ${quantity} unidades reservadas.`
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    const inventory = await Inventory.findById(req.params.id);
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
-    }
-
-    await inventory.reserveStock(quantity);
-    await inventory.populate('product', 'name brand price imageUrl description categories');
-
-    res.json({ 
-      success: true, 
-      data: inventory,
-      message: `Stock reservado exitosamente. ${quantity} unidades reservadas.`
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Liberar stock reservado
 export async function releaseStock(req, res) {
-  try {
-    const { quantity } = req.body;
-    
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "La cantidad debe ser mayor a 0" 
-      });
+    try {
+        const { quantity } = req.body;
+
+        if (!quantity || quantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: "La cantidad debe ser mayor a 0"
+            });
+        }
+
+        const inventory = await Inventory.findById(req.params.id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        await inventory.releaseStock(quantity);
+        await inventory.populate('product', 'name brand price imageUrl description categories');
+
+        res.json({
+            success: true,
+            data: inventory,
+            message: `Stock liberado exitosamente. ${quantity} unidades liberadas.`
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    const inventory = await Inventory.findById(req.params.id);
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
-    }
-
-    await inventory.releaseStock(quantity);
-    await inventory.populate('product', 'name brand price imageUrl description categories');
-
-    res.json({ 
-      success: true, 
-      data: inventory,
-      message: `Stock liberado exitosamente. ${quantity} unidades liberadas.`
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Vender stock de un producto
 export async function sellStock(req, res) {
-  try {
-    const { quantity } = req.body;
-    
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "La cantidad debe ser mayor a 0" 
-      });
+    try {
+        const { quantity } = req.body;
+
+        if (!quantity || quantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: "La cantidad debe ser mayor a 0"
+            });
+        }
+
+        const inventory = await Inventory.findById(req.params.id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                error: "Registro de inventario no encontrado"
+            });
+        }
+
+        await inventory.sellStock(quantity);
+        await inventory.populate('product', 'name brand price imageUrl description categories');
+
+        res.json({
+            success: true,
+            data: inventory,
+            message: `Venta procesada exitosamente. ${quantity} unidades vendidas.`
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
     }
-
-    const inventory = await Inventory.findById(req.params.id);
-    if (!inventory) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Registro de inventario no encontrado" 
-      });
-    }
-
-    await inventory.sellStock(quantity);
-    await inventory.populate('product', 'name brand price imageUrl description categories');
-
-    res.json({ 
-      success: true, 
-      data: inventory,
-      message: `Venta procesada exitosamente. ${quantity} unidades vendidas.`
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
 }
 
 // Obtener productos con stock bajo
 export async function getLowStockProducts(req, res) {
-  try {
-    const products = await Inventory.getLowStockProducts();
-    
-    res.json({
-      success: true,
-      count: products.length,
-      data: products,
-      message: `Se encontraron ${products.length} productos con stock bajo`
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+    try {
+        const products = await Inventory.getLowStockProducts();
+
+        res.json({
+            success: true,
+            count: products.length,
+            data: products,
+            message: `Se encontraron ${products.length} productos con stock bajo`
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 }
 
 // Obtener productos agotados
 export async function getOutOfStockProducts(req, res) {
-  try {
-    const products = await Inventory.getOutOfStockProducts();
-    
-    res.json({
-      success: true,
-      count: products.length,
-      data: products,
-      message: `Se encontraron ${products.length} productos agotados`
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+    try {
+        const products = await Inventory.getOutOfStockProducts();
+
+        res.json({
+            success: true,
+            count: products.length,
+            data: products,
+            message: `Se encontraron ${products.length} productos agotados`
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 }
 
 // Obtener estadísticas de inventario
 export async function getInventoryStats(req, res) {
-  try {
-    const stats = await Inventory.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalProducts: { $sum: 1 },
-          totalStock: { $sum: '$currentStock' },
-          totalReserved: { $sum: '$reservedStock' },
-          totalAvailable: { $sum: '$availableStock' },
-          totalSold: { $sum: '$totalSold' },
-          avgStock: { $avg: '$currentStock' },
-          minStock: { $min: '$currentStock' },
-          maxStock: { $max: '$currentStock' }
-        }
-      }
-    ]);
+    try {
+        const stats = await Inventory.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalProducts: { $sum: 1 },
+                    totalStock: { $sum: '$currentStock' },
+                    totalReserved: { $sum: '$reservedStock' },
+                    totalAvailable: { $sum: '$availableStock' },
+                    totalSold: { $sum: '$totalSold' },
+                    avgStock: { $avg: '$currentStock' },
+                    minStock: { $min: '$currentStock' },
+                    maxStock: { $max: '$currentStock' }
+                }
+            }
+        ]);
 
-    const statusStats = await Inventory.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
+        const statusStats = await Inventory.aggregate([
+            {
+                $group: {
+                    _id: '$status',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
 
-    const lowStockCount = await Inventory.countDocuments({
-      $expr: { $lte: ['$currentStock', '$minStock'] }
-    });
+        const lowStockCount = await Inventory.countDocuments({
+            $expr: { $lte: ['$currentStock', '$minStock'] }
+        });
 
-    const outOfStockCount = await Inventory.countDocuments({
-      currentStock: 0
-    });
+        const outOfStockCount = await Inventory.countDocuments({
+            currentStock: 0
+        });
 
-    res.json({
-      success: true,
-      data: {
-        general: stats[0] || {},
-        statusBreakdown: statusStats,
-        alerts: {
-          lowStock: lowStockCount,
-          outOfStock: outOfStockCount
-        }
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+        res.json({
+            success: true,
+            data: {
+                general: stats[0] || {},
+                statusBreakdown: statusStats,
+                alerts: {
+                    lowStock: lowStockCount,
+                    outOfStock: outOfStockCount
+                }
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 }

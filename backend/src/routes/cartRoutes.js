@@ -4,7 +4,9 @@ import {
     addToCart,
     updateCartItem,
     removeFromCart,
-    clearCart
+    clearCart,
+    validateCartStock,
+    syncCartWithInventory
 } from '../controllers/cartController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
@@ -29,5 +31,9 @@ router.post('/add', validateAddToCart, addToCart);
 router.put('/item/:productId', validateUpdateCartItem, updateCartItem);
 router.delete('/item/:productId', validateRemoveFromCart, removeFromCart);
 router.delete('/clear', validateClearCart, clearCart);
+
+// Rutas de validación de stock
+router.get('/validate', validateGetCart, validateCartStock);
+router.post('/sync', validateGetCart, syncCartWithInventory);
 
 export default router;
