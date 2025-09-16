@@ -13,10 +13,10 @@ import inventoryRoutes from "./routes/inventoryRoutes.js";
 
 const app = express();
 
-// Configuración de rate limiting
+// Configuración de rate limiting (solo en producción)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // límite de 100 requests por ventana de tiempo
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // más permisivo en desarrollo
   message: {
     success: false,
     message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo en 15 minutos.'
@@ -24,19 +24,39 @@ const limiter = rateLimit({
 });
 
 // Middlewares de seguridad
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(limiter);
 
 // Configuración CORS
 app.use(
   cors({
-    origin: [
-      process.env.CORS_ORIGIN || "https://supergains-frontend.vercel.app", // dominio del frontend en Vercel
-      "http://localhost:5173", // frontend local (vite dev server)
-      "http://localhost:5174", // frontend local (vite dev server puerto alternativo)
-      "http://localhost:4173", // frontend local (vite preview)
-    ],
+    origin: function (origin, callback) {
+      // Permitir requests sin origin (como Postman, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        process.env.CORS_ORIGIN || "https://supergains-frontend.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:5174", 
+        "http://localhost:4173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000"
+      ];
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log('CORS blocked origin:', origin);
+        callback(new Error('No permitido por CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200
   })
 );
 
