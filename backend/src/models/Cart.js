@@ -36,6 +36,16 @@ const cartSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Virtual para calcular el número total de items
+cartSchema.virtual('itemCount').get(function () {
+    return this.items.reduce((sum, item) => sum + item.quantity, 0);
+});
+
+// Virtual para verificar si el carrito está vacío
+cartSchema.virtual('isEmpty').get(function () {
+    return this.items.length === 0;
+});
+
 // Middleware para calcular el total antes de guardar
 cartSchema.pre('save', function (next) {
     this.total = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
