@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Cart from './pages/Cart';
+import ProductDetail from './pages/ProductDetail';
 import { useEffect, useState } from 'react';
 import api from './services/api';
 
@@ -112,6 +113,14 @@ export default function App() {
                     <Cart />
                   </CartProvider>
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/product/:productId"
+              element={
+                <CartProvider>
+                  <ProductDetail />
+                </CartProvider>
               }
             />
           </Routes>

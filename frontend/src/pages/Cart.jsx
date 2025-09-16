@@ -1,5 +1,6 @@
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../contexts/CartContext';
+import { useMultipleInventory, inventoryUtils } from '../hooks/useInventory';
 
 export default function Cart() {
     const { isAuthenticated } = useAuth();
@@ -13,6 +14,54 @@ export default function Cart() {
         getCartTotal,
         getCartItemCount
     } = useCart();
+
+    // Obtener inventarios de todos los productos en el carrito
+    const productIds = cartItems.map(item => item.product._id);
+    const { inventories, loading: inventoryLoading } = useMultipleInventory(productIds);
+
+    // Funciones para validar stock
+    const getProductInventory = (productId) => {
+        return inventories[productId] || null;
+    };
+
+    const canUpdateQuantity = (productId, newQuantity) => {
+        const inventory = getProductInventory(productId);
+        if (!inventory) return true; // Si no hay inventario, permitir (fallback)
+        return inventoryUtils.canAddToCart(inventory, newQuantity);
+    };
+
+    const getStockStatus = (productId) => {
+        const inventory = getProductInventory(productId);
+        if (!inventory) return 'Desconocido';
+        return inventoryUtils.getStockStatus(inventory);
+    };
+
+    const getStockStatusColor = (productId) => {
+        const inventory = getProductInventory(productId);
+        if (!inventory) return 'bg-gray-100 text-gray-800';
+        return inventoryUtils.getStockStatusColor(inventory);
+    };
+
+    const getAvailableStock = (productId) => {
+        const inventory = getProductInventory(productId);
+        if (!inventory) return 0;
+        return inventory.availableStock;
+    };
+
+    const handleUpdateQuantityWithValidation = async (productId, newQuantity) => {
+        if (newQuantity < 1) {
+            await updateQuantity(productId, 0);
+            return;
+        }
+
+        if (!canUpdateQuantity(productId, newQuantity)) {
+            const availableStock = getAvailableStock(productId);
+            alert(`Stock insuficiente. Disponible: ${availableStock} unidades`);
+            return;
+        }
+
+        await updateQuantity(productId, newQuantity);
+    };
 
     if (!isAuthenticated) {
         return (
@@ -56,6 +105,15 @@ export default function Cart() {
                             </div>
                         )}
 
+                        {inventoryLoading && (
+                            <div className="mb-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+                                <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+                                    Verificando disponibilidad de productos...
+                                </div>
+                            </div>
+                        )}
+
                         {cartItems.length === 0 ? (
                             <div className="text-center py-12">
                                 <div className="text-gray-400 mb-4">
@@ -94,12 +152,22 @@ export default function Cart() {
                                                 <p className="text-lg font-semibold text-green-600">
                                                     ${item.product.price.toFixed(2)}
                                                 </p>
+
+                                                {/* Información de stock */}
+                                                <div className="mt-2 flex items-center space-x-2">
+                                                    <span className="text-xs text-gray-500">
+                                                        Stock: {inventoryLoading ? 'Cargando...' : getAvailableStock(item.product._id)} unidades
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${getStockStatusColor(item.product._id)}`}>
+                                                        {getStockStatus(item.product._id)}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
                                                 <button
-                                                    onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
-                                                    disabled={loading}
+                                                    onClick={() => handleUpdateQuantityWithValidation(item.product._id, item.quantity - 1)}
+                                                    disabled={loading || inventoryLoading}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
                                                     -
@@ -108,8 +176,8 @@ export default function Cart() {
                                                     {item.quantity}
                                                 </span>
                                                 <button
-                                                    onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                                                    disabled={loading}
+                                                    onClick={() => handleUpdateQuantityWithValidation(item.product._id, item.quantity + 1)}
+                                                    disabled={loading || inventoryLoading || !canUpdateQuantity(item.product._id, item.quantity + 1)}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
                                                     +

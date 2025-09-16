@@ -11,59 +11,59 @@ jest.setTimeout(10000);
 
 // Setup y teardown de base de datos
 beforeAll(async () => {
-  try {
-    // Conectar a la base de datos de test
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('✅ Base de datos de test conectada');
-  } catch (error) {
-    console.error('❌ Error conectando a base de datos de test:', error);
-    throw error;
-  }
+    try {
+        // Conectar a la base de datos de test
+        await mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('✅ Base de datos de test conectada');
+    } catch (error) {
+        console.error('❌ Error conectando a base de datos de test:', error);
+        throw error;
+    }
 });
 
 afterAll(async () => {
-  try {
-    // Limpiar todas las colecciones
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-      const collection = collections[key];
-      await collection.deleteMany({});
+    try {
+        // Limpiar todas las colecciones
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            const collection = collections[key];
+            await collection.deleteMany({});
+        }
+
+        // Cerrar conexión
+        await mongoose.connection.close();
+        console.log('✅ Conexión de test cerrada');
+    } catch (error) {
+        console.error('❌ Error cerrando conexión de test:', error);
+        throw error;
     }
-    
-    // Cerrar conexión
-    await mongoose.connection.close();
-    console.log('✅ Conexión de test cerrada');
-  } catch (error) {
-    console.error('❌ Error cerrando conexión de test:', error);
-    throw error;
-  }
 });
 
 // Limpiar base de datos entre tests
 beforeEach(async () => {
-  try {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-      const collection = collections[key];
-      await collection.deleteMany({});
+    try {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            const collection = collections[key];
+            await collection.deleteMany({});
+        }
+    } catch (error) {
+        console.error('Error cleaning database:', error);
     }
-  } catch (error) {
-    console.error('Error cleaning database:', error);
-  }
 });
 
 // Configurar console para tests
 const originalConsole = console;
 global.console = {
-  ...originalConsole,
-  // Silenciar logs en tests a menos que haya errores
-  log: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: originalConsole.error,
+    ...originalConsole,
+    // Silenciar logs en tests a menos que haya errores
+    log: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: originalConsole.error,
 };
 
 // Mock de variables de entorno

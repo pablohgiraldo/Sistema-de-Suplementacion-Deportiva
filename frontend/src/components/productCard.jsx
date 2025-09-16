@@ -1,6 +1,8 @@
 import { useAuth } from '../hooks/useAuth';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../contexts/CartContext';
+import { useInventory, inventoryUtils } from '../hooks/useInventory';
 
 // Hook seguro para usar el carrito
 function useCartSafe() {
@@ -14,6 +16,8 @@ function useCartSafe() {
 export default function ProductCard({ p }) {
   const { isAuthenticated } = useAuth();
   const cartContext = useCartSafe();
+  const navigate = useNavigate();
+  const { inventory, loading: inventoryLoading } = useInventory(p._id);
 
   // Función para formatear el precio
   const formatPrice = (price) => {
@@ -23,14 +27,34 @@ export default function ProductCard({ p }) {
     return '$0.00';
   };
 
-  // Función para obtener el estado del stock
-  const getStockStatus = (stock) => {
-    if (stock === 0) return 'Agotado';
-    if (stock < 10) return 'Stock bajo';
-    return 'Disponible';
+  // Función para obtener el estado del stock (usando inventario real)
+  const getStockStatus = () => {
+    if (inventoryLoading) return 'Cargando...';
+    if (!inventory) return 'No disponible';
+    return inventoryUtils.getStockStatus(inventory);
   };
 
-  const handleAddToCart = async () => {
+  const getStockStatusColor = () => {
+    if (inventoryLoading) return 'bg-gray-100 text-gray-800';
+    if (!inventory) return 'bg-gray-100 text-gray-800';
+    return inventoryUtils.getStockStatusColor(inventory);
+  };
+
+  const getAvailableStock = () => {
+    if (inventoryLoading) return 0;
+    if (!inventory) return p.stock || 0;
+    return inventory.availableStock;
+  };
+
+  const canAddToCart = (requestedQuantity = 1) => {
+    if (inventoryLoading) return false;
+    if (!inventory) return (p.stock || 0) >= requestedQuantity;
+    return inventoryUtils.canAddToCart(inventory, requestedQuantity);
+  };
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // Evitar navegación al detalle del producto
+
     if (!cartContext) {
       alert('Funcionalidad de carrito no disponible');
       return;
@@ -41,8 +65,18 @@ export default function ProductCard({ p }) {
       return;
     }
 
-    if (p.stock === 0) {
-      alert('Este producto está agotado');
+    if (inventoryLoading) {
+      alert('Cargando información del producto...');
+      return;
+    }
+
+    if (!canAddToCart(1)) {
+      const availableStock = getAvailableStock();
+      if (availableStock === 0) {
+        alert('Este producto está agotado');
+      } else {
+        alert(`Stock insuficiente. Disponible: ${availableStock} unidades`);
+      }
       return;
     }
 
@@ -58,7 +92,9 @@ export default function ProductCard({ p }) {
     }
   };
 
-  const handleUpdateQuantity = async (newQuantity) => {
+  const handleUpdateQuantity = async (newQuantity, e) => {
+    e.stopPropagation(); // Evitar navegación al detalle del producto
+
     if (!cartContext) {
       alert('Funcionalidad de carrito no disponible');
       return;
@@ -67,6 +103,17 @@ export default function ProductCard({ p }) {
     if (newQuantity < 1) {
       // Si la cantidad es 0, eliminar del carrito
       await cartContext.updateQuantity(p._id, 0);
+      return;
+    }
+
+    if (inventoryLoading) {
+      alert('Cargando información del producto...');
+      return;
+    }
+
+    if (!canAddToCart(newQuantity)) {
+      const availableStock = getAvailableStock();
+      alert(`Stock insuficiente. Disponible: ${availableStock} unidades`);
       return;
     }
 
@@ -80,8 +127,12 @@ export default function ProductCard({ p }) {
     }
   };
 
+  const handleProductClick = () => {
+    navigate(`/product/${p._id}`);
+  };
+
   return (
-    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
+    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer" onClick={handleProductClick}>
       {p.imageUrl && (
         <div className="mb-3">
           <img
@@ -108,14 +159,15 @@ export default function ProductCard({ p }) {
       </div>
 
       <div className="text-xs text-gray-500 mb-2">
-        Stock: {p.stock || 0} unidades
+        {inventoryLoading ? (
+          <span className="text-gray-400">Cargando stock...</span>
+        ) : (
+          `Stock: ${getAvailableStock()} unidades`
+        )}
       </div>
 
-      <div className={`text-xs px-2 py-1 rounded-full inline-block ${p.stock === 0 ? 'bg-red-100 text-red-800' :
-        p.stock < 10 ? 'bg-yellow-100 text-yellow-800' :
-          'bg-green-100 text-green-800'
-        }`}>
-        {getStockStatus(p.stock)}
+      <div className={`text-xs px-2 py-1 rounded-full inline-block ${getStockStatusColor()}`}>
+        {getStockStatus()}
       </div>
 
       {p.description && (
@@ -144,8 +196,8 @@ export default function ProductCard({ p }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1)}
-                  disabled={p.stock === 0}
+                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1, e)}
+                  disabled={inventoryLoading || !canAddToCart(1)}
                   className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
                 >
                   -
@@ -154,8 +206,8 @@ export default function ProductCard({ p }) {
                   {cartContext.getCartItemQuantity(p._id)}
                 </span>
                 <button
-                  onClick={() => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1)}
-                  disabled={p.stock === 0}
+                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1, e)}
+                  disabled={inventoryLoading || !canAddToCart(cartContext.getCartItemQuantity(p._id) + 1)}
                   className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
                 >
                   +
@@ -166,10 +218,11 @@ export default function ProductCard({ p }) {
           ) : (
             <button
               onClick={handleAddToCart}
-              disabled={p.stock === 0}
+              disabled={inventoryLoading || !canAddToCart(1)}
               className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-              {p.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+              {inventoryLoading ? 'Cargando...' :
+                !canAddToCart(1) ? 'Agotado' : 'Agregar al carrito'}
             </button>
           )}
         </div>
