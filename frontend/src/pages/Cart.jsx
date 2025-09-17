@@ -1,5 +1,5 @@
-import { useAuth } from '../hooks/useAuth';
-import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
 import { useMultipleInventory, inventoryUtils } from '../hooks/useInventory';
 
 export default function Cart() {

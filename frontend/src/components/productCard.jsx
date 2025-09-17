@@ -1,7 +1,7 @@
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CartContext } from '../contexts/CartContext';
+import { CartContext } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
 
 // Hook seguro para usar el carrito

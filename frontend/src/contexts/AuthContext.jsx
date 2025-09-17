@@ -1,144 +1,97 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
-import {
-    saveAuthData,
-    clearAuthData,
-    getAuthData,
-    hasValidTokens,
-    getRefreshToken,
-    saveAccessToken
-} from '../utils/tokenUtils';
-import { AuthContext } from './AuthContext.js';
+import { createContext, useContext, useState, useEffect } from 'react';
+
+// Contexto de Autenticación
+export const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe ser usado dentro de AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Verificar si hay tokens válidos al cargar la aplicación
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                if (hasValidTokens()) {
-                    // Verificar si el token sigue siendo válido
-                    const response = await api.get('/users/token-status');
+  useEffect(() => {
+    // Verificar si hay un usuario guardado en localStorage
+    const savedUser = localStorage.getItem('supergains_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, []);
 
-                    if (response.data.success) {
-                        const authData = getAuthData();
-                        setUser(authData.user);
-                        setIsAuthenticated(true);
-                    } else {
-                        // Token inválido, limpiar localStorage
-                        clearAuthData();
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking auth:', error);
-                // Error al verificar token, limpiar localStorage
-                clearAuthData();
-            } finally {
-                setLoading(false);
-            }
-        };
+  const login = async (email, password) => {
+    try {
+      // Simular llamada a API
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-        checkAuth();
-    }, []);
+      // Usuario mock para desarrollo
+      const mockUser = {
+        id: '1',
+        email: email,
+        firstName: 'Usuario',
+        lastName: 'SuperGains',
+        avatar: '👤'
+      };
 
-    const login = async (email, contraseña) => {
-        try {
-            const response = await api.post('/users/login', { email, contraseña });
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('supergains_user', JSON.stringify(mockUser));
 
-            if (response.data.success) {
-                const { user: userData, tokens } = response.data.data;
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Error al iniciar sesión' };
+    }
+  };
 
-                // Guardar en localStorage usando utilidades
-                saveAuthData({
-                    accessToken: tokens.accessToken,
-                    refreshToken: tokens.refreshToken,
-                    user: userData
-                });
+  const register = async (userData) => {
+    try {
+      // Simular llamada a API
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-                // Actualizar estado
-                setUser(userData);
-                setIsAuthenticated(true);
+      // Usuario mock para desarrollo
+      const mockUser = {
+        id: '1',
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        avatar: '👤'
+      };
 
-                return { success: true };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: error.response?.data?.error || 'Error al iniciar sesión'
-            };
-        }
-    };
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('supergains_user', JSON.stringify(mockUser));
 
-    const register = async (userData) => {
-        try {
-            const response = await api.post('/users/register', userData);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Error al crear la cuenta' };
+    }
+  };
 
-            if (response.data.success) {
-                return { success: true };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: error.response?.data?.error || 'Error al registrar usuario',
-                details: error.response?.data?.details || []
-            };
-        }
-    };
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('supergains_user');
+  };
 
-    const logout = async () => {
-        try {
-            const refreshToken = getRefreshToken();
-            if (refreshToken) {
-                await api.post('/users/logout', { refreshToken });
-            }
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-        } finally {
-            // Limpiar localStorage y estado usando utilidades
-            clearAuthData();
-            setUser(null);
-            setIsAuthenticated(false);
-        }
-    };
+  const value = {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    register,
+    logout
+  };
 
-    const refreshToken = async () => {
-        try {
-            const refreshTokenValue = getRefreshToken();
-            if (!refreshTokenValue) {
-                throw new Error('No hay refresh token');
-            }
-
-            const response = await api.post('/users/refresh', {
-                refreshToken: refreshTokenValue
-            });
-
-            if (response.data.success) {
-                saveAccessToken(response.data.data.accessToken);
-                return { success: true };
-            }
-        } catch {
-            // Si el refresh falla, hacer logout
-            logout();
-            return { success: false };
-        }
-    };
-
-    const value = {
-        user,
-        isAuthenticated,
-        loading,
-        login,
-        register,
-        logout,
-        refreshToken
-    };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
