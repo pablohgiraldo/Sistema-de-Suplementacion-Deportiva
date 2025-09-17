@@ -1,3 +1,4 @@
+
 # Product Requirements Document (PRD) - SuperGains Website
 
 ##  Información del Proyecto
