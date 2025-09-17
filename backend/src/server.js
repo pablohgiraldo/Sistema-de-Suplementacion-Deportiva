@@ -16,7 +16,7 @@ const app = express();
 // Configuración de rate limiting (solo en producción)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // más permisivo en desarrollo
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // muy permisivo en desarrollo
   message: {
     success: false,
     message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo en 15 minutos.'
@@ -27,7 +27,16 @@ const limiter = rateLimit({
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(limiter);
+
+// Rate limiting solo para rutas de autenticación y carrito
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para auth
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes de autenticación, intenta de nuevo en 15 minutos.'
+  }
+});
 
 // Configuración CORS
 app.use(
@@ -94,10 +103,10 @@ app.get("/", (_req, res) => {
 });
 
 // Rutas
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/inventory", inventoryRoutes);
+app.use("/api/products", productRoutes); // Sin rate limiting para productos
+app.use("/api/users", authLimiter, userRoutes); // Rate limiting para autenticación
+app.use("/api/cart", authLimiter, cartRoutes); // Rate limiting para carrito
+app.use("/api/inventory", authLimiter, inventoryRoutes); // Rate limiting para inventario
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

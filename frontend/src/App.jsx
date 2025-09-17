@@ -1,7 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext.jsx';
-import { CartProvider } from './contexts/CartContext';
+import { CartProvider } from './contexts/CartContext.jsx';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import HeroBanner from './components/HeroBanner';
+import ProductCarousel from './components/ProductCarousel';
+import ProductModal from './components/ProductModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProductCard from './components/productCard';
 import Login from './pages/Login';
@@ -64,17 +68,25 @@ function HomePage() {
   }
 
   return (
-    <main className="w-full p-6">
-      <div className="max-w-6xl mx-auto">
+    <main className="w-full">
+      <HeroBanner />
+      <div className="max-w-6xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">Catálogo SuperGains</h1>
         {products.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             No hay productos disponibles
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {products.map(p => <ProductCard key={p._id} p={p} />)}
-          </div>
+          <>
+            <ProductCarousel
+              products={products.slice(0, 6)}
+              title="Productos Destacados"
+              subtitle="Los mejores suplementos para tu rendimiento"
+            />
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+              {products.map(p => <ProductCard key={p._id} p={p} />)}
+            </div>
+          </>
         )}
       </div>
     </main>
@@ -124,6 +136,7 @@ export default function App() {
               }
             />
           </Routes>
+          <Footer />
         </div>
       </Router>
     </AuthProvider>
