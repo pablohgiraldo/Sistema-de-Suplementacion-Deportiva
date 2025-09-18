@@ -41,7 +41,7 @@ const authLimiter = rateLimit({
 // Rate limiting más permisivo para carrito
 const cartLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 200 : 5000, // más permisivo para carrito
+  max: process.env.NODE_ENV === 'production' ? 200 : 50000, // muy permisivo para carrito en desarrollo
   message: {
     success: false,
     message: 'Demasiadas solicitudes de carrito, intenta de nuevo en 15 minutos.'

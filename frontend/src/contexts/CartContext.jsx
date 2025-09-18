@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 export const CartContext = createContext();
@@ -15,13 +15,13 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
-    useEffect(() => {
-        // Cargar carrito desde el backend solo una vez
-        loadCartFromBackend();
-    }, []);
+    // No cargar el carrito automáticamente - se cargará cuando el usuario se autentique
 
-    const loadCartFromBackend = async () => {
+    const loadCartFromBackend = useCallback(async () => {
         try {
+            // Agregar un pequeño delay para evitar solicitudes excesivas
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             const response = await api.get('/cart');
             if (response.data.success) {
                 const backendItems = response.data.data.items || [];
@@ -37,13 +37,19 @@ export const CartProvider = ({ children }) => {
                 localStorage.removeItem('supergains_cart');
                 return;
             }
+            // Si es error 429, esperar un poco antes de reintentar
+            if (error.response?.status === 429) {
+                console.log('Rate limited, waiting before retry...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return;
+            }
             // Fallback a localStorage para otros errores
             const savedCart = localStorage.getItem('supergains_cart');
             if (savedCart) {
                 setCartItems(JSON.parse(savedCart));
             }
         }
-    };
+    }, []); // Sin dependencias para que sea estable
 
     // Solo guardar en localStorage cuando el carrito cambie por acciones del usuario
     // No guardar cuando se carga desde el backend
@@ -183,7 +189,8 @@ export const CartProvider = ({ children }) => {
         openCart,
         closeCart,
         isInCart,
-        getCartItemQuantity
+        getCartItemQuantity,
+        loadCartFromBackend // Exponer la función para cargar el carrito
     };
 
     return (

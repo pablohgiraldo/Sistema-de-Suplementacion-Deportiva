@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { CartProvider, useCart } from './contexts/CartContext.jsx';
 import Header from './components/Header';
@@ -17,13 +17,15 @@ import { useEffect, useState } from 'react';
 import api from './services/api';
 
 function AppContent() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const { cartItems, openCart, getCartItemsCount } = useCart();
+  const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState("Todos los Productos");
   const [selectedFilter, setSelectedFilter] = useState("Todos los Productos");
   const [searchQuery, setSearchQuery] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  // No mostrar header en carrito, login y registro
+  const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -48,6 +50,48 @@ function AppContent() {
     setShowLogin(false);
   };
 
+  return (
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
+      <AuthenticatedApp
+        shouldShowHeader={shouldShowHeader}
+        onCategoryClick={handleCategoryClick}
+        onFilterClick={handleFilterClick}
+        selectedCategory={selectedCategory}
+        selectedFilter={selectedFilter}
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onShowLogin={handleShowLogin}
+        onShowRegister={handleShowRegister}
+        setShowLogin={setShowLogin}
+        setShowRegister={setShowRegister}
+      />
+    </div>
+  );
+}
+
+function AuthenticatedApp({
+  shouldShowHeader,
+  onCategoryClick,
+  onFilterClick,
+  selectedCategory,
+  selectedFilter,
+  onSearch,
+  searchQuery,
+  onShowLogin,
+  onShowRegister,
+  setShowLogin,
+  setShowRegister
+}) {
+  const { user, isAuthenticated, logout } = useAuth();
+  const { cartItems, openCart, getCartItemsCount, loadCartFromBackend } = useCart();
+
+  // Cargar carrito cuando el usuario se autentique
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCartFromBackend();
+    }
+  }, [isAuthenticated]); // Solo depende de isAuthenticated
+
   const handleLogout = () => {
     logout();
     setShowLogin(false);
@@ -55,22 +99,24 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
-      <Header
-        onCategoryClick={handleCategoryClick}
-        onFilterClick={handleFilterClick}
-        selectedCategory={selectedCategory}
-        selectedFilter={selectedFilter}
-        user={user}
-        isAuthenticated={isAuthenticated}
-        onShowLogin={handleShowLogin}
-        onShowRegister={handleShowRegister}
-        onLogout={handleLogout}
-        onOpenCart={openCart}
-        cartItemsCount={getCartItemsCount()}
-        onSearch={handleSearch}
-        searchQuery={searchQuery}
-      />
+    <>
+      {shouldShowHeader && (
+        <Header
+          onCategoryClick={onCategoryClick}
+          onFilterClick={onFilterClick}
+          selectedCategory={selectedCategory}
+          selectedFilter={selectedFilter}
+          user={user}
+          isAuthenticated={isAuthenticated}
+          onShowLogin={onShowLogin}
+          onShowRegister={onShowRegister}
+          onLogout={handleLogout}
+          onOpenCart={openCart}
+          cartItemsCount={getCartItemsCount()}
+          onSearch={onSearch}
+          searchQuery={searchQuery}
+        />
+      )}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
@@ -97,7 +143,7 @@ function AppContent() {
         />
       </Routes>
       <Footer />
-    </div>
+    </>
   );
 }
 

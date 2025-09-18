@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 // Componente Header según PRD - SuperGains
 export default function Header({
@@ -81,10 +82,10 @@ export default function Header({
             </div>
 
             {/* Logo SPG + SUPERGAINS */}
-            <div className="flex flex-col cursor-pointer">
+            <Link to="/" className="flex flex-col cursor-pointer">
               <div className="text-3xl font-bold text-black">SPG</div>
               <div className="text-xs font-bold text-black tracking-wider">SUPERGAINS</div>
-            </div>
+            </Link>
 
             {/* Barra de búsqueda - Solo visible en desktop */}
             <div className="hidden md:flex flex-1 max-w-lg mx-4 lg:mx-8 min-w-0">
@@ -122,18 +123,18 @@ export default function Header({
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={onShowLogin}
+                  <Link
+                    to="/login"
                     className="text-sm font-medium text-gray-700 hover:text-black transition-colors px-2 py-1"
                   >
                     Iniciar sesión
-                  </button>
-                  <button
-                    onClick={onShowRegister}
+                  </Link>
+                  <Link
+                    to="/register"
                     className="text-sm font-medium text-gray-700 hover:text-black transition-colors px-2 py-1"
                   >
                     Registrarse
-                  </button>
+                  </Link>
                 </div>
               )}
 
@@ -144,9 +145,9 @@ export default function Header({
 
               {/* Carrito con contador */}
               <div className="relative">
-                <button
-                  onClick={onOpenCart}
-                  className="w-5 h-5 cursor-pointer hover:text-gray-600 relative"
+                <Link
+                  to="/cart"
+                  className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -156,7 +157,7 @@ export default function Header({
                       {cartItemsCount}
                     </span>
                   )}
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -287,18 +288,18 @@ export default function Header({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={onShowLogin}
+                    <Link
+                      to="/login"
                       className="text-sm font-medium text-gray-700 hover:text-black transition-colors px-2 py-1"
                     >
                       Iniciar sesión
-                    </button>
-                    <button
-                      onClick={onShowRegister}
+                    </Link>
+                    <Link
+                      to="/register"
                       className="text-sm font-medium text-gray-700 hover:text-black transition-colors px-2 py-1"
                     >
                       Registrarse
-                    </button>
+                    </Link>
                   </div>
                 )}
 
@@ -309,9 +310,9 @@ export default function Header({
 
                 {/* Carrito móvil */}
                 <div className="relative">
-                  <button
-                    onClick={onOpenCart}
-                    className="w-5 h-5 cursor-pointer hover:text-gray-600 relative"
+                  <Link
+                    to="/cart"
+                    className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -321,7 +322,7 @@ export default function Header({
                         {cartItemsCount}
                       </span>
                     )}
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
