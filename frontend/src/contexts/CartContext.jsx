@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 export const CartContext = createContext();
 
@@ -15,50 +16,135 @@ export const CartProvider = ({ children }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     useEffect(() => {
-        // Cargar carrito desde localStorage
-        const savedCart = localStorage.getItem('supergains_cart');
-        if (savedCart) {
-            setCartItems(JSON.parse(savedCart));
-        }
+        // Cargar carrito desde el backend solo una vez
+        loadCartFromBackend();
     }, []);
 
+    const loadCartFromBackend = async () => {
+        try {
+            const response = await api.get('/cart');
+            if (response.data.success) {
+                const backendItems = response.data.data.items || [];
+                setCartItems(backendItems);
+                // Limpiar localStorage cuando se carga desde el backend
+                localStorage.removeItem('supergains_cart');
+            }
+        } catch (error) {
+            console.error('Error loading cart from backend:', error);
+            // Si es error 401, el usuario no está autenticado
+            if (error.response?.status === 401) {
+                setCartItems([]);
+                localStorage.removeItem('supergains_cart');
+                return;
+            }
+            // Fallback a localStorage para otros errores
+            const savedCart = localStorage.getItem('supergains_cart');
+            if (savedCart) {
+                setCartItems(JSON.parse(savedCart));
+            }
+        }
+    };
+
+    // Solo guardar en localStorage cuando el carrito cambie por acciones del usuario
+    // No guardar cuando se carga desde el backend
     useEffect(() => {
-        // Guardar carrito en localStorage cuando cambie
-        localStorage.setItem('supergains_cart', JSON.stringify(cartItems));
+        // Solo guardar si el carrito no está vacío y no es la carga inicial
+        if (cartItems.length > 0) {
+            localStorage.setItem('supergains_cart', JSON.stringify(cartItems));
+        }
     }, [cartItems]);
 
-    const addToCart = (product) => {
-        setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item._id === product._id);
+    const addToCart = async (product) => {
+        try {
+            const response = await api.post('/cart/add', {
+                productId: product._id,
+                quantity: 1
+            });
 
-            if (existingItem) {
-                return prevItems.map(item =>
-                    item._id === product._id
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
-                );
-            } else {
-                return [...prevItems, { ...product, quantity: 1 }];
+            if (response.data.success) {
+                // Actualizar el estado local
+                setCartItems(prevItems => {
+                    const existingItem = prevItems.find(item => item._id === product._id);
+
+                    if (existingItem) {
+                        return prevItems.map(item =>
+                            item._id === product._id
+                                ? { ...item, quantity: item.quantity + 1 }
+                                : item
+                        );
+                    } else {
+                        return [...prevItems, { ...product, quantity: 1 }];
+                    }
+                });
             }
-        });
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            // Fallback a localStorage si falla la API
+            setCartItems(prevItems => {
+                const existingItem = prevItems.find(item => item._id === product._id);
+
+                if (existingItem) {
+                    return prevItems.map(item =>
+                        item._id === product._id
+                            ? { ...item, quantity: item.quantity + 1 }
+                            : item
+                    );
+                } else {
+                    return [...prevItems, { ...product, quantity: 1 }];
+                }
+            });
+        }
     };
 
-    const removeFromCart = (productId) => {
-        setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+    const removeFromCart = async (productId) => {
+        try {
+            const response = await api.delete(`/cart/item/${productId}`);
+            if (response.data.success) {
+                setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+            }
+        } catch (error) {
+            console.error('Error removing from cart:', error);
+            // Fallback a actualización local
+            setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+        }
     };
 
-    const updateQuantity = (productId, quantity) => {
-        setCartItems(prevItems =>
-            prevItems.map(item =>
-                item._id === productId
-                    ? { ...item, quantity }
-                    : item
-            )
-        );
+    const updateQuantity = async (productId, quantity) => {
+        try {
+            const response = await api.put(`/cart/item/${productId}`, { quantity });
+            if (response.data.success) {
+                setCartItems(prevItems =>
+                    prevItems.map(item =>
+                        item._id === productId
+                            ? { ...item, quantity }
+                            : item
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            // Fallback a actualización local
+            setCartItems(prevItems =>
+                prevItems.map(item =>
+                    item._id === productId
+                        ? { ...item, quantity }
+                        : item
+                )
+            );
+        }
     };
 
-    const clearCart = () => {
-        setCartItems([]);
+    const clearCart = async () => {
+        try {
+            const response = await api.delete('/cart/clear');
+            if (response.data.success) {
+                setCartItems([]);
+            }
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            // Fallback a actualización local
+            setCartItems([]);
+        }
     };
 
     const getCartItemsCount = () => {
@@ -81,6 +167,9 @@ export const CartProvider = ({ children }) => {
         return item ? item.quantity : 0;
     };
 
+    // Alias para compatibilidad
+    const getCartItemCount = getCartItemsCount;
+
     const value = {
         cartItems,
         isCartOpen,
@@ -89,6 +178,7 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         clearCart,
         getCartItemsCount,
+        getCartItemCount, // Alias
         getCartTotal,
         openCart,
         closeCart,

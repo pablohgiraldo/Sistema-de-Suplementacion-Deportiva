@@ -51,7 +51,10 @@ export const useMultipleInventory = (productIds) => {
     const [error, setError] = useState(null);
 
     const fetchInventories = useCallback(async () => {
-        if (!productIds || productIds.length === 0) return;
+        if (!productIds || productIds.length === 0) {
+            setInventories({});
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -84,7 +87,12 @@ export const useMultipleInventory = (productIds) => {
     }, [productIds]);
 
     useEffect(() => {
-        fetchInventories();
+        // Debounce para evitar llamadas excesivas
+        const timeoutId = setTimeout(() => {
+            fetchInventories();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
     }, [fetchInventories]);
 
     const refreshInventories = useCallback(() => {

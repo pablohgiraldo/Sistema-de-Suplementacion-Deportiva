@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
+import { saveAuthData, clearAuthData, getAuthData } from '../utils/tokenUtils';
 
 // Contexto de Autenticación
 export const AuthContext = createContext();
@@ -17,10 +19,10 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay un usuario guardado en localStorage
-    const savedUser = localStorage.getItem('supergains_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    // Cargar datos de autenticación desde localStorage
+    const authData = getAuthData();
+    if (authData.user && authData.accessToken) {
+      setUser(authData.user);
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -28,56 +30,70 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await api.post('/users/login', {
+        email,
+        contraseña: password
+      });
 
-      // Usuario mock para desarrollo
-      const mockUser = {
-        id: '1',
-        email: email,
-        firstName: 'Usuario',
-        lastName: 'SuperGains',
-        avatar: '👤'
-      };
+      if (response.data.success) {
+        const { user, tokens } = response.data.data;
+        const { accessToken, refreshToken } = tokens;
 
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('supergains_user', JSON.stringify(mockUser));
+        // Guardar datos de autenticación
+        saveAuthData({ accessToken, refreshToken, user });
 
-      return { success: true };
+        setUser(user);
+        setIsAuthenticated(true);
+
+        return { success: true };
+      } else {
+        return { success: false, error: response.data.message || 'Error al iniciar sesión' };
+      }
     } catch (error) {
-      return { success: false, error: 'Error al iniciar sesión' };
+      console.error('Error en login:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al iniciar sesión'
+      };
     }
   };
 
   const register = async (userData) => {
     try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Usuario mock para desarrollo
-      const mockUser = {
-        id: '1',
+      const response = await api.post('/users/register', {
+        nombre: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        avatar: '👤'
-      };
+        contraseña: userData.password,
+        rol: 'usuario'
+      });
 
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('supergains_user', JSON.stringify(mockUser));
+      if (response.data.success) {
+        const { user, tokens } = response.data.data;
+        const { accessToken, refreshToken } = tokens;
 
-      return { success: true };
+        // Guardar datos de autenticación
+        saveAuthData({ accessToken, refreshToken, user });
+
+        setUser(user);
+        setIsAuthenticated(true);
+
+        return { success: true };
+      } else {
+        return { success: false, error: response.data.message || 'Error al registrar usuario' };
+      }
     } catch (error) {
-      return { success: false, error: 'Error al crear la cuenta' };
+      console.error('Error en registro:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al registrar usuario'
+      };
     }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('supergains_user');
+    clearAuthData();
   };
 
   const value = {

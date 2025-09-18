@@ -28,13 +28,23 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Rate limiting solo para rutas de autenticación y carrito
+// Rate limiting solo para rutas de autenticación
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para auth
   message: {
     success: false,
     message: 'Demasiadas solicitudes de autenticación, intenta de nuevo en 15 minutos.'
+  }
+});
+
+// Rate limiting más permisivo para carrito
+const cartLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 200 : 5000, // más permisivo para carrito
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes de carrito, intenta de nuevo en 15 minutos.'
   }
 });
 
@@ -105,8 +115,10 @@ app.get("/", (_req, res) => {
 // Rutas
 app.use("/api/products", productRoutes); // Sin rate limiting para productos
 app.use("/api/users", authLimiter, userRoutes); // Rate limiting para autenticación
-app.use("/api/cart", authLimiter, cartRoutes); // Rate limiting para carrito
-app.use("/api/inventory", authLimiter, inventoryRoutes); // Rate limiting para inventario
+app.use("/api/cart", cartLimiter, cartRoutes); // Rate limiting más permisivo para carrito
+
+// Rutas de inventario - sin rate limiting para consultas públicas
+app.use("/api/inventory", inventoryRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

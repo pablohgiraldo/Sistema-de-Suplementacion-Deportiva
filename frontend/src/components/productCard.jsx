@@ -81,13 +81,10 @@ export default function ProductCard({ p }) {
     }
 
     try {
-      const result = await cartContext.addToCart(p._id, 1);
-      if (result.success) {
-        // El estado se actualizará automáticamente
-      } else {
-        alert(result.error || 'Error al agregar al carrito');
-      }
-    } catch {
+      cartContext.addToCart(p);
+      // El estado se actualizará automáticamente
+    } catch (error) {
+      console.error('Error al agregar al carrito:', error);
       alert('Error al agregar al carrito');
     }
   };
@@ -102,7 +99,7 @@ export default function ProductCard({ p }) {
 
     if (newQuantity < 1) {
       // Si la cantidad es 0, eliminar del carrito
-      await cartContext.updateQuantity(p._id, 0);
+      cartContext.removeFromCart(p._id);
       return;
     }
 
@@ -118,11 +115,10 @@ export default function ProductCard({ p }) {
     }
 
     try {
-      const result = await cartContext.updateQuantity(p._id, newQuantity);
-      if (!result.success) {
-        alert(result.error || 'Error al actualizar cantidad');
-      }
-    } catch {
+      cartContext.updateQuantity(p._id, newQuantity);
+      // El estado se actualizará automáticamente
+    } catch (error) {
+      console.error('Error al actualizar cantidad:', error);
       alert('Error al actualizar cantidad');
     }
   };
