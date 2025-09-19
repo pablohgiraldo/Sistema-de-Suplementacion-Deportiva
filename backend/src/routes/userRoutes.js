@@ -6,7 +6,8 @@ import {
     actualizarPerfil,
     refrescarToken,
     cerrarSesion,
-    verificarEstadoToken
+    verificarEstadoToken,
+    listarUsuarios
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
@@ -32,5 +33,8 @@ router.post('/logout', validateLogout, cerrarSesion);
 router.get('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateGetProfile, obtenerPerfil);
 router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateUpdateProfile, actualizarPerfil);
 router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateTokenStatus, verificarEstadoToken);
+
+// Ruta de administración (solo para administradores)
+router.get('/', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, listarUsuarios);
 
 export default router;

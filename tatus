@@ -1,0 +1,39 @@
+warning: in the working copy of 'backend/src/controllers/userController.js', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/backend/src/controllers/userController.js b/backend/src/controllers/userController.js[m
+[1mindex b7212fa..d7f636a 100644[m
+[1m--- a/backend/src/controllers/userController.js[m
+[1m+++ b/backend/src/controllers/userController.js[m
+[36m@@ -330,3 +330,32 @@[m [mexport const verificarEstadoToken = async (req, res) => {[m
+         });[m
+     }[m
+ };[m
+[32m+[m
+[32m+[m[32m// GET /api/users - Listar todos los usuarios (solo para administradores)[m
+[32m+[m[32mexport const listarUsuarios = async (req, res) => {[m
+[32m+[m[32m    try {[m
+[32m+[m[32m        // Verificar que el usuario sea administrador[m
+[32m+[m[32m        if (req.user.rol !== 'admin') {[m
+[32m+[m[32m            return res.status(403).json({[m
+[32m+[m[32m                success: false,[m
+[32m+[m[32m                message: 'Acceso denegado. Solo administradores pueden ver la lista de usuarios.'[m
+[32m+[m[32m            });[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // Obtener todos los usuarios (sin contraseñas)[m
+[32m+[m[32m        const usuarios = await User.find({}, '-contraseña').sort({ fechaCreacion: -1 });[m
+[32m+[m
+[32m+[m[32m        res.json({[m
+[32m+[m[32m            success: true,[m
+[32m+[m[32m            message: 'Usuarios obtenidos exitosamente',[m
+[32m+[m[32m            data: usuarios[m
+[32m+[m[32m        });[m
+[32m+[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m        console.error('Error al listar usuarios:', error);[m
+[32m+[m[32m        res.status(500).json({[m
+[32m+[m[32m            success: false,[m
+[32m+[m[32m            message: 'Error interno del servidor'[m
+[32m+[m[32m        });[m
+[32m+[m[32m    }[m
+[32m+[m[32m};[m
+\ No newline at end of file[m

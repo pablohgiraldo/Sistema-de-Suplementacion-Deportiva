@@ -330,3 +330,32 @@ export const verificarEstadoToken = async (req, res) => {
         });
     }
 };
+
+// GET /api/users - Listar todos los usuarios (solo para administradores)
+export const listarUsuarios = async (req, res) => {
+    try {
+        // Verificar que el usuario sea administrador
+        if (req.user.rol !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado. Solo administradores pueden ver la lista de usuarios.'
+            });
+        }
+
+        // Obtener todos los usuarios (sin contraseñas)
+        const usuarios = await User.find({}, '-contraseña').sort({ fechaCreacion: -1 });
+
+        res.json({
+            success: true,
+            message: 'Usuarios obtenidos exitosamente',
+            data: usuarios
+        });
+
+    } catch (error) {
+        console.error('Error al listar usuarios:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};

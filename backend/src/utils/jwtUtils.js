@@ -22,7 +22,7 @@ export async function generateAuthTokens(user) {
                     id: user._id,
                     email: user.email,
                     nombre: user.nombre,
-                    role: user.rol || 'usuario',
+                    rol: user.rol || 'usuario',
                     activo: user.activo,
                     lastLogin: new Date()
                 },
@@ -59,7 +59,7 @@ export async function refreshAccessToken(refreshToken) {
         const newAccessToken = generateToken({
             userId: user._id,
             email: user.email,
-            role: user.rol || 'usuario'
+            rol: user.rol || 'usuario'
         }, 'access');
 
         return {
@@ -100,7 +100,7 @@ export async function validateToken(token) {
             data: {
                 userId: user._id,
                 email: user.email,
-                role: user.rol || 'usuario',
+                rol: user.rol || 'usuario',
                 nombre: user.nombre
             }
         };
