@@ -14,7 +14,15 @@ export function requireRole(allowedRoles) {
                 });
             }
 
-            const userRole = req.userRole || req.user.role || 'user';
+            // Verificar que el usuario esté activo
+            if (!req.user.activo) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Usuario inactivo. Contacta al administrador'
+                });
+            }
+
+            const userRole = req.userRole || req.user.role || req.user.rol || 'user';
             const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
             if (!roles.includes(userRole)) {
@@ -22,9 +30,18 @@ export function requireRole(allowedRoles) {
                     success: false,
                     message: 'Acceso denegado. Rol insuficiente',
                     required: roles,
-                    current: userRole
+                    current: userRole,
+                    user: {
+                        id: req.user._id,
+                        email: req.user.email,
+                        nombre: req.user.nombre
+                    }
                 });
             }
+
+            // Agregar información del rol al request para uso posterior
+            req.userRole = userRole;
+            req.allowedRoles = roles;
 
             next();
         } catch (error) {
@@ -61,7 +78,7 @@ export function requireOwnershipOrAdmin(userIdParam = 'userId') {
                 });
             }
 
-            const userRole = req.userRole || req.user.role || 'user';
+            const userRole = req.userRole || req.user.role || req.user.rol || 'user';
             const resourceUserId = req.params[userIdParam] || req.body[userIdParam];
             const currentUserId = req.userId || req.user._id.toString();
 
@@ -79,6 +96,103 @@ export function requireOwnershipOrAdmin(userIdParam = 'userId') {
             res.status(500).json({
                 success: false,
                 message: 'Error del servidor en verificación de ownership'
+            });
+        }
+    };
+}
+
+/**
+ * Middleware específico para operaciones de stock
+ * Verifica que el usuario sea administrador y registra la operación
+ */
+export function requireStockAccess() {
+    return (req, res, next) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Usuario no autenticado'
+                });
+            }
+
+            const userRole = req.userRole || req.user.role || req.user.rol || 'user';
+
+            if (userRole !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Acceso denegado. Solo administradores pueden realizar operaciones de stock',
+                    required: 'admin',
+                    current: userRole
+                });
+            }
+
+            // Registrar la operación de stock para auditoría
+            const operation = {
+                user: req.user._id,
+                userEmail: req.user.email,
+                action: req.method,
+                endpoint: req.originalUrl,
+                timestamp: new Date(),
+                ip: req.ip || req.connection.remoteAddress
+            };
+
+            // Agregar información de la operación al request
+            req.stockOperation = operation;
+
+            console.log(`Operación de stock: ${operation.action} ${operation.endpoint} por ${operation.userEmail}`);
+
+            next();
+        } catch (error) {
+            console.error('Error en middleware de stock access:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error del servidor en verificación de acceso a stock'
+            });
+        }
+    };
+}
+
+/**
+ * Middleware para verificar permisos de administración avanzada
+ * Incluye validaciones adicionales de seguridad
+ */
+export function requireAdvancedAdmin() {
+    return (req, res, next) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Usuario no autenticado'
+                });
+            }
+
+            const userRole = req.userRole || req.user.role || req.user.rol || 'user';
+
+            if (userRole !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Acceso denegado. Se requieren permisos de administrador avanzado'
+                });
+            }
+
+            // Verificar que el usuario tenga permisos especiales (si se implementa en el futuro)
+            // Por ahora, solo verificar que sea admin activo
+            if (!req.user.activo) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Usuario inactivo. No se pueden realizar operaciones administrativas'
+                });
+            }
+
+            // Registrar operación administrativa
+            console.log(`Operación administrativa avanzada: ${req.method} ${req.originalUrl} por ${req.user.email}`);
+
+            next();
+        } catch (error) {
+            console.error('Error en middleware de admin avanzado:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error del servidor en verificación de permisos administrativos'
             });
         }
     };

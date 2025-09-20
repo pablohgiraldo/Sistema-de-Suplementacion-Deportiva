@@ -1,5 +1,8 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { requireAdmin, requireStockAccess } from "../middleware/roleMiddleware.js";
+import { adminAuditMiddleware, stockAuditMiddleware, unauthorizedAccessMiddleware } from "../middleware/adminAuditMiddleware.js";
 import {
     getInventories,
     getInventoryById,
@@ -18,6 +21,10 @@ import {
 
 const router = express.Router();
 
+// Aplicar middleware de auditoría a todas las rutas
+router.use(adminAuditMiddleware());
+router.use(unauthorizedAccessMiddleware());
+
 // Rate limiting para operaciones de administración
 const adminLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
@@ -31,20 +38,20 @@ const adminLimiter = rateLimit({
 // Rutas públicas (sin autenticación) - para mostrar stock en frontend
 router.get("/product/:productId", getInventoryByProductId); // GET /api/inventory/product/:productId
 
-// Rutas que requieren autenticación (administración) - con rate limiting
-router.get("/", adminLimiter, getInventories);                    // GET /api/inventory
-router.get("/stats", adminLimiter, getInventoryStats);            // GET /api/inventory/stats
-router.get("/low-stock", adminLimiter, getLowStockProducts);      // GET /api/inventory/low-stock
-router.get("/out-of-stock", adminLimiter, getOutOfStockProducts); // GET /api/inventory/out-of-stock
-router.get("/:id", adminLimiter, getInventoryById);               // GET /api/inventory/:id
-router.post("/", adminLimiter, createInventory);                  // POST /api/inventory
-router.put("/:id", adminLimiter, updateInventory);                // PUT /api/inventory/:id
-router.delete("/:id", adminLimiter, deleteInventory);             // DELETE /api/inventory/:id
+// Rutas que requieren autenticación y rol de administrador - con rate limiting
+router.get("/", authMiddleware, requireAdmin, adminLimiter, getInventories);                    // GET /api/inventory
+router.get("/stats", authMiddleware, requireAdmin, adminLimiter, getInventoryStats);            // GET /api/inventory/stats
+router.get("/low-stock", authMiddleware, requireAdmin, adminLimiter, getLowStockProducts);      // GET /api/inventory/low-stock
+router.get("/out-of-stock", authMiddleware, requireAdmin, adminLimiter, getOutOfStockProducts); // GET /api/inventory/out-of-stock
+router.get("/:id", authMiddleware, requireAdmin, adminLimiter, getInventoryById);               // GET /api/inventory/:id
+router.post("/", authMiddleware, requireAdmin, adminLimiter, createInventory);                  // POST /api/inventory
+router.put("/:id", authMiddleware, requireAdmin, adminLimiter, updateInventory);                // PUT /api/inventory/:id
+router.delete("/:id", authMiddleware, requireAdmin, adminLimiter, deleteInventory);             // DELETE /api/inventory/:id
 
-// Rutas de operaciones de stock (requieren autenticación) - con rate limiting
-router.post("/:id/restock", adminLimiter, restockInventory);      // POST /api/inventory/:id/restock
-router.post("/:id/reserve", adminLimiter, reserveStock);          // POST /api/inventory/:id/reserve
-router.post("/:id/release", adminLimiter, releaseStock);          // POST /api/inventory/:id/release
-router.post("/:id/sell", adminLimiter, sellStock);                // POST /api/inventory/:id/sell
+// Rutas de operaciones de stock (requieren autenticación y permisos específicos de stock) - con rate limiting
+router.post("/:id/restock", authMiddleware, requireStockAccess, stockAuditMiddleware(), adminLimiter, restockInventory);      // POST /api/inventory/:id/restock
+router.post("/:id/reserve", authMiddleware, requireStockAccess, stockAuditMiddleware(), adminLimiter, reserveStock);          // POST /api/inventory/:id/reserve
+router.post("/:id/release", authMiddleware, requireStockAccess, stockAuditMiddleware(), adminLimiter, releaseStock);          // POST /api/inventory/:id/release
+router.post("/:id/sell", authMiddleware, requireStockAccess, stockAuditMiddleware(), adminLimiter, sellStock);                // POST /api/inventory/:id/sell
 
 export default router;

@@ -10,7 +10,9 @@ import {
     listarUsuarios
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import { requireAdmin } from '../middleware/roleMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
+import { adminAuditMiddleware, unauthorizedAccessMiddleware } from '../middleware/adminAuditMiddleware.js';
 import {
     validateRegister,
     validateLogin,
@@ -22,6 +24,10 @@ import {
 } from '../validators/userValidators.js';
 
 const router = express.Router();
+
+// Aplicar middleware de auditoría a todas las rutas
+router.use(adminAuditMiddleware());
+router.use(unauthorizedAccessMiddleware());
 
 // Rutas públicas (no requieren autenticación)
 router.post('/register', validateRegister, registrarUsuario);
@@ -35,6 +41,6 @@ router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSu
 router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateTokenStatus, verificarEstadoToken);
 
 // Ruta de administración (solo para administradores)
-router.get('/', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, listarUsuarios);
+router.get('/', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, listarUsuarios);
 
 export default router;
