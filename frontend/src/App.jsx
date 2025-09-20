@@ -7,12 +7,14 @@ import HeroBanner from './components/HeroBanner';
 import ProductCarousel from './components/ProductCarousel';
 import ProductModal from './components/ProductModal';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import ProductCard from './components/productCard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 import ProductDetail from './pages/ProductDetail';
+import Admin from './pages/Admin';
 import { useEffect, useState } from 'react';
 import api from './services/api';
 
@@ -24,8 +26,8 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  // No mostrar header en carrito, login y registro
-  const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
+  // No mostrar header en carrito, login, registro y admin
+  const shouldShowHeader = !['/cart', '/login', '/register', '/admin'].includes(location.pathname);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -140,6 +142,14 @@ function AuthenticatedApp({
         <Route
           path="/product/:productId"
           element={<ProductDetail />}
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
+          }
         />
       </Routes>
       <Footer />

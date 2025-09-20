@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api';
+import InventoryTable from '../components/InventoryTable';
+import InventoryStats from '../components/InventoryStats';
 
 const AdminDashboard = () => {
     const { user, isAuthenticated } = useAuth();
@@ -229,6 +231,16 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Estadísticas de Inventario */}
+                <div className="mt-8">
+                    <InventoryStats />
+                </div>
+
+                {/* Tabla de Inventario */}
+                <div className="mt-8">
+                    <InventoryTable />
                 </div>
 
                 {/* Acciones Rápidas */}
