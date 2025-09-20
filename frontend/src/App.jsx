@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { CartProvider, useCart } from './contexts/CartContext.jsx';
 import Header from './components/Header';
+import AdminHeader from './components/AdminHeader';
 import Footer from './components/Footer';
 import HeroBanner from './components/HeroBanner';
 import ProductCarousel from './components/ProductCarousel';
@@ -26,8 +27,9 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  // No mostrar header en carrito, login, registro y admin
-  const shouldShowHeader = !['/cart', '/login', '/register', '/admin'].includes(location.pathname);
+  // Determinar qué header mostrar
+  const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
+  const isAdminPage = location.pathname === '/admin';
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -56,6 +58,7 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <AuthenticatedApp
         shouldShowHeader={shouldShowHeader}
+        isAdminPage={isAdminPage}
         onCategoryClick={handleCategoryClick}
         onFilterClick={handleFilterClick}
         selectedCategory={selectedCategory}
@@ -73,6 +76,7 @@ function AppContent() {
 
 function AuthenticatedApp({
   shouldShowHeader,
+  isAdminPage,
   onCategoryClick,
   onFilterClick,
   selectedCategory,
@@ -103,21 +107,33 @@ function AuthenticatedApp({
   return (
     <>
       {shouldShowHeader && (
-        <Header
-          onCategoryClick={onCategoryClick}
-          onFilterClick={onFilterClick}
-          selectedCategory={selectedCategory}
-          selectedFilter={selectedFilter}
-          user={user}
-          isAuthenticated={isAuthenticated}
-          onShowLogin={onShowLogin}
-          onShowRegister={onShowRegister}
-          onLogout={handleLogout}
-          onOpenCart={openCart}
-          cartItemsCount={getCartItemsCount()}
-          onSearch={onSearch}
-          searchQuery={searchQuery}
-        />
+        <>
+          {isAdminPage ? (
+            <AdminHeader
+              user={user}
+              isAuthenticated={isAuthenticated}
+              onLogout={handleLogout}
+              onSearch={onSearch}
+              searchQuery={searchQuery}
+            />
+          ) : (
+            <Header
+              onCategoryClick={onCategoryClick}
+              onFilterClick={onFilterClick}
+              selectedCategory={selectedCategory}
+              selectedFilter={selectedFilter}
+              user={user}
+              isAuthenticated={isAuthenticated}
+              onShowLogin={onShowLogin}
+              onShowRegister={onShowRegister}
+              onLogout={handleLogout}
+              onOpenCart={openCart}
+              cartItemsCount={getCartItemsCount()}
+              onSearch={onSearch}
+              searchQuery={searchQuery}
+            />
+          )}
+        </>
       )}
       <Routes>
         <Route path="/" element={<HomePage />} />

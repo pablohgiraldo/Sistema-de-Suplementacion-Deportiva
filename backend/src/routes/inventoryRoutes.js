@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { requireAdmin, requireStockAccess } from "../middleware/roleMiddleware.js";
 import { adminAuditMiddleware, stockAuditMiddleware, unauthorizedAccessMiddleware } from "../middleware/adminAuditMiddleware.js";
+import { rateLimitHandler, rateLimitLogger } from "../middleware/rateLimitHandler.js";
 import {
     getInventories,
     getInventoryById,
@@ -21,29 +22,49 @@ import {
 
 const router = express.Router();
 
-// Aplicar middleware de auditoría a todas las rutas
+// Aplicar middleware de auditoría y rate limiting a todas las rutas
 router.use(adminAuditMiddleware());
 router.use(unauthorizedAccessMiddleware());
+router.use(rateLimitHandler());
+router.use(rateLimitLogger());
 
 // Rate limiting para operaciones de administración
 const adminLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para admin
+    max: process.env.NODE_ENV === 'production' ? 200 : 1000, // Aumentado para permitir polling
     message: {
         success: false,
         message: 'Demasiadas solicitudes de administración, intenta de nuevo en 15 minutos.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+        // Saltar rate limiting para requests de polling en desarrollo
+        return process.env.NODE_ENV === 'development';
     }
+});
+
+// Rate limiting más permisivo para operaciones de lectura
+const readLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: 60, // 60 requests por minuto para operaciones de lectura
+    message: {
+        success: false,
+        message: 'Demasiadas solicitudes de lectura, intenta de nuevo en 1 minuto.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
 });
 
 // Rutas públicas (sin autenticación) - para mostrar stock en frontend
 router.get("/product/:productId", getInventoryByProductId); // GET /api/inventory/product/:productId
 
-// Rutas que requieren autenticación y rol de administrador - con rate limiting
-router.get("/", authMiddleware, requireAdmin, adminLimiter, getInventories);                    // GET /api/inventory
-router.get("/stats", authMiddleware, requireAdmin, adminLimiter, getInventoryStats);            // GET /api/inventory/stats
-router.get("/low-stock", authMiddleware, requireAdmin, adminLimiter, getLowStockProducts);      // GET /api/inventory/low-stock
-router.get("/out-of-stock", authMiddleware, requireAdmin, adminLimiter, getOutOfStockProducts); // GET /api/inventory/out-of-stock
-router.get("/:id", authMiddleware, requireAdmin, adminLimiter, getInventoryById);               // GET /api/inventory/:id
+// Rutas que requieren autenticación y rol de administrador - con rate limiting permisivo para lectura
+router.get("/", authMiddleware, requireAdmin, readLimiter, getInventories);                    // GET /api/inventory
+router.get("/stats", authMiddleware, requireAdmin, readLimiter, getInventoryStats);            // GET /api/inventory/stats
+router.get("/low-stock", authMiddleware, requireAdmin, readLimiter, getLowStockProducts);      // GET /api/inventory/low-stock
+router.get("/out-of-stock", authMiddleware, requireAdmin, readLimiter, getOutOfStockProducts); // GET /api/inventory/out-of-stock
+router.get("/:id", authMiddleware, requireAdmin, readLimiter, getInventoryById);               // GET /api/inventory/:id
 router.post("/", authMiddleware, requireAdmin, adminLimiter, createInventory);                  // POST /api/inventory
 router.put("/:id", authMiddleware, requireAdmin, adminLimiter, updateInventory);                // PUT /api/inventory/:id
 router.delete("/:id", authMiddleware, requireAdmin, adminLimiter, deleteInventory);             // DELETE /api/inventory/:id

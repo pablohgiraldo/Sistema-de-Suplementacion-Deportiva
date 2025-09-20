@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import usePolling from '../hooks/usePolling';
 
 const InventoryStats = () => {
     const [stats, setStats] = useState({
@@ -22,14 +23,6 @@ const InventoryStats = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchStats();
-
-        // Actualizar estadísticas cada 30 segundos
-        const interval = setInterval(fetchStats, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
     const fetchStats = async () => {
         try {
             setLoading(true);
@@ -45,6 +38,20 @@ const InventoryStats = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    // Polling optimizado para estadísticas
+    usePolling(fetchStats, 60000, {
+        enabled: true,
+        maxRetries: 3,
+        backoffMultiplier: 2,
+        maxInterval: 300000,
+        pauseOnError: true,
+        pauseOnFocus: true
+    });
 
     if (loading) {
         return (

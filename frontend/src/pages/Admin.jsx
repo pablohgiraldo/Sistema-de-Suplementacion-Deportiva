@@ -3,9 +3,13 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api';
 import InventoryTable from '../components/InventoryTable';
 import InventoryStats from '../components/InventoryStats';
+import StockAlerts from '../components/StockAlerts';
+import NotificationContainer from '../components/NotificationContainer';
+import useNotifications from '../hooks/useNotifications';
 
 const AdminDashboard = () => {
     const { user, isAuthenticated } = useAuth();
+    const { notifications, removeNotification, showWarning, showError } = useNotifications();
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalProducts: 0,
@@ -238,6 +242,11 @@ const AdminDashboard = () => {
                     <InventoryStats />
                 </div>
 
+                {/* Alertas de Stock */}
+                <div className="mt-8">
+                    <StockAlerts />
+                </div>
+
                 {/* Tabla de Inventario */}
                 <div className="mt-8">
                     <InventoryTable />
@@ -276,6 +285,12 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Contenedor de Notificaciones */}
+            <NotificationContainer
+                notifications={notifications}
+                onRemove={removeNotification}
+            />
         </div>
     );
 };

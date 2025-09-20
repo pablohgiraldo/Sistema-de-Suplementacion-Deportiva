@@ -21,11 +21,7 @@ const InventoryTable = () => {
         clearError
     } = useInventoryTable();
 
-    // Polling cada 30 segundos para actualizaciones en tiempo real
-    useEffect(() => {
-        const interval = setInterval(refreshData, 30000);
-        return () => clearInterval(interval);
-    }, [refreshData]);
+    // El polling ahora se maneja en el hook useInventoryTable
 
     // Manejar cambios en filtros
     const handleFilterChange = (key, value) => {
@@ -56,18 +52,46 @@ const InventoryTable = () => {
 
     // Función para obtener el color del estado del stock
     const getStockStatusColor = (item) => {
-        if (item.currentStock === 0) return 'text-red-600 bg-red-50';
-        if (item.currentStock <= item.minStock) return 'text-yellow-600 bg-yellow-50';
-        if (item.currentStock >= item.maxStock) return 'text-green-600 bg-green-50';
-        return 'text-blue-600 bg-blue-50';
+        if (item.currentStock === 0) return 'text-red-600 bg-red-50 border-red-200';
+        if (item.currentStock <= (item.minStock * 0.5)) return 'text-red-700 bg-red-100 border-red-300';
+        if (item.currentStock <= item.minStock) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        if (item.currentStock >= item.maxStock) return 'text-green-600 bg-green-50 border-green-200';
+        return 'text-blue-600 bg-blue-50 border-blue-200';
     };
 
     // Función para obtener el texto del estado del stock
     const getStockStatusText = (item) => {
         if (item.currentStock === 0) return 'Agotado';
+        if (item.currentStock <= (item.minStock * 0.5)) return 'Crítico';
         if (item.currentStock <= item.minStock) return 'Stock Bajo';
         if (item.currentStock >= item.maxStock) return 'Stock Alto';
         return 'Normal';
+    };
+
+    // Función para obtener el icono de alerta
+    const getStockAlertIcon = (item) => {
+        if (item.currentStock === 0) {
+            return (
+                <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+            );
+        }
+        if (item.currentStock <= (item.minStock * 0.5)) {
+            return (
+                <svg className="w-4 h-4 text-red-600 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+            );
+        }
+        if (item.currentStock <= item.minStock) {
+            return (
+                <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+            );
+        }
+        return null;
     };
 
     if (loading && inventory.length === 0) {
@@ -191,90 +215,103 @@ const InventoryTable = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {inventory.map((item) => (
-                            <tr key={item._id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedItems.includes(item._id)}
-                                        onChange={() => toggleItemSelection(item._id)}
-                                        className="rounded border-gray-300"
-                                    />
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 h-10 w-10">
-                                            {item.product?.imageUrl ? (
-                                                <img
-                                                    className="h-10 w-10 rounded-lg object-cover"
-                                                    src={item.product.imageUrl}
-                                                    alt={item.product.name}
-                                                />
-                                            ) : (
-                                                <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                    <span className="text-gray-400 text-xs">IMG</span>
+                        {inventory.map((item) => {
+                            const isLowStock = item.currentStock <= item.minStock;
+                            const isCriticalStock = item.currentStock <= (item.minStock * 0.5) || item.currentStock === 0;
+                            const rowClass = isCriticalStock
+                                ? "bg-red-50 hover:bg-red-100 border-l-4 border-red-400"
+                                : isLowStock
+                                    ? "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-400"
+                                    : "hover:bg-gray-50";
+
+                            return (
+                                <tr key={item._id} className={rowClass}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedItems.includes(item._id)}
+                                            onChange={() => toggleItemSelection(item._id)}
+                                            className="rounded border-gray-300"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0 h-10 w-10">
+                                                {item.product?.imageUrl ? (
+                                                    <img
+                                                        className="h-10 w-10 rounded-lg object-cover"
+                                                        src={item.product.imageUrl}
+                                                        alt={item.product.name}
+                                                    />
+                                                ) : (
+                                                    <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                                        <span className="text-gray-400 text-xs">IMG</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {item.product?.name || 'Producto no encontrado'}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {item.product?.name || 'Producto no encontrado'}
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                {item.product?.brand || 'Sin marca'}
+                                                <div className="text-sm text-gray-500">
+                                                    {item.product?.brand || 'Sin marca'}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{item.currentStock}</div>
-                                    <div className="text-xs text-gray-500">
-                                        Min: {item.minStock} | Max: {item.maxStock}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{item.availableStock}</div>
-                                    {item.reservedStock > 0 && (
-                                        <div className="text-xs text-yellow-600">
-                                            Reservado: {item.reservedStock}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900">{item.currentStock}</div>
+                                        <div className="text-xs text-gray-500">
+                                            Min: {item.minStock} | Max: {item.maxStock}
                                         </div>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStockStatusColor(item)}`}>
-                                        {getStockStatusText(item)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => {
-                                                const quantity = prompt('Cantidad a reabastecer:');
-                                                if (quantity && !isNaN(quantity) && quantity > 0) {
-                                                    handleStockAction('restock', item._id, { quantity: parseInt(quantity) });
-                                                }
-                                            }}
-                                            disabled={actionLoading[item._id]}
-                                            className="text-green-600 hover:text-green-900 disabled:opacity-50"
-                                        >
-                                            {actionLoading[item._id] ? '...' : 'Reabastecer'}
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const quantity = prompt('Cantidad a reservar:');
-                                                if (quantity && !isNaN(quantity) && quantity > 0) {
-                                                    handleStockAction('reserve', item._id, { quantity: parseInt(quantity) });
-                                                }
-                                            }}
-                                            disabled={actionLoading[item._id] || item.availableStock === 0}
-                                            className="text-yellow-600 hover:text-yellow-900 disabled:opacity-50"
-                                        >
-                                            Reservar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900">{item.availableStock}</div>
+                                        {item.reservedStock > 0 && (
+                                            <div className="text-xs text-yellow-600">
+                                                Reservado: {item.reservedStock}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center space-x-2">
+                                            {getStockAlertIcon(item)}
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStockStatusColor(item)}`}>
+                                                {getStockStatusText(item)}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => {
+                                                    const quantity = prompt('Cantidad a reabastecer:');
+                                                    if (quantity && !isNaN(quantity) && quantity > 0) {
+                                                        handleStockAction('restock', item._id, { quantity: parseInt(quantity) });
+                                                    }
+                                                }}
+                                                disabled={actionLoading[item._id]}
+                                                className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                                            >
+                                                {actionLoading[item._id] ? '...' : 'Reabastecer'}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    const quantity = prompt('Cantidad a reservar:');
+                                                    if (quantity && !isNaN(quantity) && quantity > 0) {
+                                                        handleStockAction('reserve', item._id, { quantity: parseInt(quantity) });
+                                                    }
+                                                }}
+                                                disabled={actionLoading[item._id] || item.availableStock === 0}
+                                                className="text-yellow-600 hover:text-yellow-900 disabled:opacity-50"
+                                            >
+                                                Reservar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

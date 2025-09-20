@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import usePolling from './usePolling';
 
 export const useInventoryTable = () => {
     const [inventory, setInventory] = useState([]);
@@ -53,7 +54,12 @@ export const useInventoryTable = () => {
             }
         } catch (err) {
             console.error('Error fetching inventory:', err);
-            setError(err.response?.data?.message || 'Error al cargar el inventario');
+
+            if (err.response?.status === 429) {
+                setError('Demasiadas solicitudes. Espera un momento antes de intentar nuevamente.');
+            } else {
+                setError(err.response?.data?.message || 'Error al cargar el inventario');
+            }
         } finally {
             setLoading(false);
         }
@@ -63,6 +69,16 @@ export const useInventoryTable = () => {
     useEffect(() => {
         fetchInventory();
     }, [fetchInventory]);
+
+    // Polling optimizado con backoff exponencial
+    const { pausePolling, resumePolling } = usePolling(fetchInventory, 45000, {
+        enabled: true,
+        maxRetries: 3,
+        backoffMultiplier: 2,
+        maxInterval: 300000, // 5 minutos máximo
+        pauseOnError: true,
+        pauseOnFocus: true
+    });
 
     // Función para actualizar filtros
     const updateFilters = useCallback((newFilters) => {
