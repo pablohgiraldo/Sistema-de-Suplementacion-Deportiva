@@ -61,10 +61,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await api.post('/users/register', {
-        nombre: `${userData.firstName} ${userData.lastName}`,
+        nombre: userData.nombre,
         email: userData.email,
-        contraseña: userData.password,
-        rol: 'usuario'
+        contraseña: userData.contraseña,
+        rol: userData.rol || 'usuario'
       });
 
       if (response.data.success) {

@@ -43,6 +43,20 @@ const InventoryStats = () => {
         fetchStats();
     }, []);
 
+    // Escuchar eventos de actualización de inventario
+    useEffect(() => {
+        const handleInventoryUpdate = () => {
+            console.log('InventoryStats: Recibida notificación de actualización de inventario');
+            fetchStats();
+        };
+
+        window.addEventListener('inventoryUpdated', handleInventoryUpdate);
+
+        return () => {
+            window.removeEventListener('inventoryUpdated', handleInventoryUpdate);
+        };
+    }, []);
+
     // Polling optimizado para estadísticas
     usePolling(fetchStats, 60000, {
         enabled: true,

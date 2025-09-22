@@ -36,8 +36,21 @@ export const validateRegister = [
     body('contraseña')
         .isLength({ min: 6, max: 100 })
         .withMessage('La contraseña debe tener entre 6 y 100 caracteres')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-        .withMessage('La contraseña debe contener al menos una letra minúscula, una mayúscula y un número'),
+        .custom((value) => {
+            // Verificar que tenga al menos una minúscula
+            if (!/[a-z]/.test(value)) {
+                throw new Error('La contraseña debe contener al menos una letra minúscula');
+            }
+            // Verificar que tenga al menos una mayúscula
+            if (!/[A-Z]/.test(value)) {
+                throw new Error('La contraseña debe contener al menos una letra mayúscula');
+            }
+            // Verificar que tenga al menos un número
+            if (!/\d/.test(value)) {
+                throw new Error('La contraseña debe contener al menos un número');
+            }
+            return true;
+        }),
 
     body('rol')
         .optional()

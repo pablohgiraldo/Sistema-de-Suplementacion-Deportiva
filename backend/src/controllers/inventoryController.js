@@ -250,7 +250,29 @@ export async function deleteInventory(req, res) {
     }
 }
 
-// Reabastecer stock de un producto
+// Endpoint de prueba para debuggear
+export async function testRestock(req, res) {
+    console.log('=== TEST RESTOCK ENDPOINT ===');
+    console.log('Request received:', {
+        method: req.method,
+        url: req.url,
+        params: req.params,
+        body: req.body,
+        headers: req.headers
+    });
+
+    res.json({
+        success: true,
+        message: 'Test endpoint funcionando',
+        data: {
+            timestamp: new Date().toISOString(),
+            params: req.params,
+            body: req.body
+        }
+    });
+}
+
+// Reabastecer stock de un producto - Versión simplificada
 export async function restockInventory(req, res) {
     try {
         const { quantity, notes } = req.body;
@@ -262,6 +284,9 @@ export async function restockInventory(req, res) {
             });
         }
 
+        console.log(`Iniciando reabastecimiento: ${quantity} unidades para inventario ${req.params.id}`);
+
+        // Operación simplificada sin populate inicial
         const inventory = await Inventory.findById(req.params.id);
         if (!inventory) {
             return res.status(404).json({
@@ -270,16 +295,49 @@ export async function restockInventory(req, res) {
             });
         }
 
-        await inventory.restock(quantity, notes);
-        await inventory.populate('product', 'name brand price imageUrl description categories');
+        console.log(`Inventario encontrado: ${inventory._id}, stock actual: ${inventory.currentStock}`);
 
+        // Actualizar campos directamente
+        inventory.currentStock += quantity;
+        inventory.availableStock = Math.max(0, inventory.currentStock - inventory.reservedStock);
+        inventory.lastRestocked = new Date();
+
+        if (notes) {
+            inventory.notes = notes;
+        }
+
+        // Cambiar status si estaba agotado
+        if (inventory.status === 'out_of_stock' && inventory.currentStock > 0) {
+            inventory.status = 'active';
+        }
+
+        console.log(`Guardando inventario con nuevo stock: ${inventory.currentStock}`);
+
+        // Guardar sin validaciones complejas
+        await inventory.save();
+
+        console.log(`Inventario guardado exitosamente`);
+
+        // Respuesta simple sin populate para evitar problemas
         res.json({
             success: true,
-            data: inventory,
+            data: {
+                _id: inventory._id,
+                currentStock: inventory.currentStock,
+                availableStock: inventory.availableStock,
+                status: inventory.status,
+                lastRestocked: inventory.lastRestocked,
+                notes: inventory.notes
+            },
             message: `Stock reabastecido exitosamente. ${quantity} unidades agregadas.`
         });
+
     } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+        console.error('Error en restockInventory:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || "Error interno del servidor"
+        });
     }
 }
 

@@ -44,6 +44,20 @@ const StockAlerts = () => {
         fetchAlerts();
     }, []);
 
+    // Escuchar eventos de actualización de inventario
+    useEffect(() => {
+        const handleInventoryUpdate = () => {
+            console.log('StockAlerts: Recibida notificación de actualización de inventario');
+            fetchAlerts();
+        };
+
+        window.addEventListener('inventoryUpdated', handleInventoryUpdate);
+
+        return () => {
+            window.removeEventListener('inventoryUpdated', handleInventoryUpdate);
+        };
+    }, []);
+
     // Polling optimizado para alertas
     usePolling(fetchAlerts, 60000, {
         enabled: true,

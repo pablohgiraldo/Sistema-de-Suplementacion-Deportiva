@@ -3,7 +3,7 @@ import { getAccessToken, getRefreshToken, saveAccessToken, clearAuthData } from 
 
 const api = axios.create({
   baseURL: "http://localhost:4000/api", // Forzar backend local para desarrollo
-  timeout: 10000, // 10 segundos de timeout
+  timeout: 15000, // 15 segundos de timeout para operaciones complejas
 });
 
 // Interceptor para requests - agregar token automáticamente

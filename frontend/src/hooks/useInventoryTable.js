@@ -119,10 +119,17 @@ export const useInventoryTable = () => {
             setActionLoading(prev => ({ ...prev, [itemId]: true }));
             setError(null);
 
+            console.log(`Ejecutando acción ${action} para item ${itemId} con datos:`, data);
+
             let response;
             switch (action) {
                 case 'restock':
-                    response = await api.post(`/inventory/${itemId}/restock`, data);
+                    console.log(`Iniciando reabastecimiento con timeout de 10 segundos`);
+                    // Volver al endpoint real
+                    response = await api.post(`/inventory/${itemId}/restock`, data, {
+                        timeout: 10000
+                    });
+                    console.log(`Respuesta de reabastecimiento recibida:`, response.data);
                     break;
                 case 'reserve':
                     response = await api.post(`/inventory/${itemId}/reserve`, data);
@@ -140,13 +147,33 @@ export const useInventoryTable = () => {
             if (response.data.success) {
                 // Actualizar la tabla inmediatamente
                 await fetchInventory();
+
+                // Notificar a otros componentes que se actualicen
+                if (action === 'restock') {
+                    // Disparar evento personalizado para notificar actualización
+                    window.dispatchEvent(new CustomEvent('inventoryUpdated', {
+                        detail: { action, itemId, data }
+                    }));
+                }
+
                 return { success: true, message: response.data.message };
             } else {
                 throw new Error(response.data.message || 'Error en la acción');
             }
         } catch (err) {
             console.error(`Error en acción ${action}:`, err);
-            const errorMessage = err.response?.data?.message || err.message || `Error al ejecutar ${action}`;
+
+            let errorMessage;
+            if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+                errorMessage = `La operación ${action} está tomando más tiempo del esperado. Por favor, inténtalo de nuevo.`;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            } else {
+                errorMessage = `Error al ejecutar ${action}`;
+            }
+
             setError(errorMessage);
             return { success: false, message: errorMessage };
         } finally {
