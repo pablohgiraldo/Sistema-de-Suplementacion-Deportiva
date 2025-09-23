@@ -128,12 +128,24 @@ export default function Cart() {
                                 <div className="space-y-4">
                                     {cartItems.map((item) => (
                                         <div key={item.product._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-                                            <div className="flex-shrink-0">
+                                            <div className="flex-shrink-0 relative overflow-hidden rounded-md bg-gray-100">
                                                 <img
                                                     src={item.product.imageUrl || '/placeholder-product.jpg'}
                                                     alt={item.product.name}
-                                                    className="h-20 w-20 object-cover rounded-md"
+                                                    className="h-20 w-20 object-cover transition-opacity duration-300"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onLoad={(e) => {
+                                                        e.target.style.opacity = '1';
+                                                    }}
+                                                    onError={(e) => {
+                                                        e.target.src = '/placeholder-product.jpg';
+                                                        e.target.style.opacity = '1';
+                                                    }}
+                                                    style={{ opacity: 0 }}
                                                 />
+                                                {/* Placeholder mientras carga */}
+                                                <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
                                             </div>
 
                                             <div className="flex-1 min-w-0">

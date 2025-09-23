@@ -28,14 +28,14 @@ export default function ShoppingCart({ isOpen, onClose, cartItems = [], onUpdate
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
-    
+
     try {
       // Simular proceso de checkout
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       alert('¡Compra realizada exitosamente! Te enviaremos un email de confirmación.');
       onClose();
-      
+
     } catch (error) {
       console.error('Error en el checkout:', error);
       alert('Error al procesar la compra. Inténtalo de nuevo.');
@@ -72,9 +72,9 @@ export default function ShoppingCart({ isOpen, onClose, cartItems = [], onUpdate
               <div className="text-center py-12">
                 <div className="text-6xl mb-4 text-gray-400">
                   <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    <circle cx="9" cy="21" r="1" />
+                    <circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -95,15 +95,23 @@ export default function ShoppingCart({ isOpen, onClose, cartItems = [], onUpdate
                 {cartItems.map((item) => (
                   <div key={item._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
                     {/* Imagen del producto */}
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="max-w-full max-h-full object-contain"
+                        className="max-w-full max-h-full object-contain transition-opacity duration-300"
+                        loading="lazy"
+                        decoding="async"
+                        onLoad={(e) => {
+                          e.target.style.opacity = '1';
+                        }}
                         onError={(e) => {
                           e.target.style.display = 'none';
                         }}
+                        style={{ opacity: 0 }}
                       />
+                      {/* Placeholder mientras carga */}
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
                     </div>
 
                     {/* Información del producto */}
@@ -182,7 +190,7 @@ export default function ShoppingCart({ isOpen, onClose, cartItems = [], onUpdate
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Envío</span>
                   <span className="font-medium">
@@ -193,12 +201,12 @@ export default function ShoppingCart({ isOpen, onClose, cartItems = [], onUpdate
                     )}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">IVA (19%)</span>
                   <span className="font-medium">{formatPrice(tax)}</span>
                 </div>
-                
+
                 <div className="border-t border-gray-300 pt-3">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>

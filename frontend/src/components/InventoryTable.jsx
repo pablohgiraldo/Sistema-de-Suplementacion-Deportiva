@@ -236,12 +236,21 @@ const InventoryTable = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
+                                            <div className="flex-shrink-0 h-10 w-10 relative overflow-hidden rounded-lg bg-gray-100">
                                                 {item.product?.imageUrl ? (
                                                     <img
-                                                        className="h-10 w-10 rounded-lg object-cover"
+                                                        className="h-10 w-10 rounded-lg object-cover transition-opacity duration-300"
                                                         src={item.product.imageUrl}
                                                         alt={item.product.name}
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                        onLoad={(e) => {
+                                                            e.target.style.opacity = '1';
+                                                        }}
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                        }}
+                                                        style={{ opacity: 0 }}
                                                     />
                                                 ) : (
                                                     <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">

@@ -145,11 +145,21 @@ export default function ProductDetail() {
                         {/* Imagen del producto */}
                         <div className="space-y-4">
                             {product.imageUrl ? (
-                                <img
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    className="w-full h-96 object-cover rounded-lg"
-                                />
+                                <div className="relative overflow-hidden rounded-lg bg-gray-100">
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        className="w-full h-64 sm:h-96 object-cover transition-opacity duration-300"
+                                        loading="eager"
+                                        decoding="async"
+                                        onLoad={(e) => {
+                                            e.target.style.opacity = '1';
+                                        }}
+                                        style={{ opacity: 0 }}
+                                    />
+                                    {/* Placeholder mientras carga */}
+                                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+                                </div>
                             ) : (
                                 <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
                                     <span className="text-gray-400">Sin imagen</span>

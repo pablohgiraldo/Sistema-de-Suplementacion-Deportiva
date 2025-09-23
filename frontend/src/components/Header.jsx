@@ -181,15 +181,16 @@ export default function Header({
               )}
             </div>
 
-            {/* Botón hamburger para móvil */}
+            {/* Botón hamburger para móvil - Mejorado */}
             <button
-              className={`md:hidden p-2 rounded-lg transition-all duration-200 ${isMobileMenuOpen
+              className={`md:hidden p-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
                 ? 'bg-blue-50 text-blue-600'
-                : 'hover:bg-gray-100'
+                : 'hover:bg-gray-100 text-gray-700'
                 }`}
               onClick={toggleMobileMenu}
-              aria-label="Toggle mobile menu"
+              aria-label={isMobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
               aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               <div className="w-6 h-6 flex flex-col justify-center space-y-1">
                 <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
@@ -264,21 +265,29 @@ export default function Header({
           </div>
         </nav>
 
-        {/* Menú móvil */}
-        <div className={`md:hidden bg-white border-b border-gray-200 transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-          }`}>
+        {/* Menú móvil - Mejorado */}
+        <div
+          id="mobile-menu"
+          className={`md:hidden bg-white border-b border-gray-200 transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          role="navigation"
+          aria-label="Menú de navegación móvil"
+        >
           <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            {/* Barra de búsqueda móvil */}
+            {/* Barra de búsqueda móvil - Mejorada */}
             <div className="relative mb-4">
+              <label htmlFor="mobile-search" className="sr-only">Buscar productos</label>
               <input
+                id="mobile-search"
                 type="text"
                 placeholder="Buscar proteínas, alimentos..."
                 value={searchQuery}
                 onChange={(e) => onSearch(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                aria-label="Buscar productos"
               />
-              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
                 </svg>
               </span>
@@ -367,58 +376,61 @@ export default function Header({
               </div>
             </div>
 
-            {/* Categorías móvil según PRD */}
+            {/* Categorías móvil - Mejoradas */}
             <div className="space-y-1 mb-6">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Categorías</div>
-              {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros"].map((category) => (
-                <div
-                  key={category}
-                  className={`py-3 px-3 rounded-lg cursor-pointer transition-all duration-200 ${selectedCategory === category
-                    ? 'text-blue-600 font-semibold bg-blue-50 border-l-4 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                    }`}
-                  onClick={() => {
-                    const filterMap = {
-                      "Promociones": "Más Vendidos",
-                      "Proteínas en Polvo": "Proteínas",
-                      "Vitaminas y Más": "Vitaminas y Más",
-                      "Rendimiento": "Rendimiento",
-                      "Barras y Snacks": "Alimentos y Snacks",
-                      "Accesorios": "Todos los Productos",
-                      "Outlet": "Outlet",
-                      "Objetivos": "Todos los Productos",
-                      "Nosotros": "nosotros" // Redirigir a la sección Nosotros
-                    };
-                    const filter = filterMap[category] || "Todos los Productos";
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Categorías</h3>
+              <nav role="navigation" aria-label="Categorías de productos">
+                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros"].map((category) => (
+                  <button
+                    key={category}
+                    className={`w-full text-left py-3 px-3 rounded-lg cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${selectedCategory === category
+                      ? 'text-blue-600 font-semibold bg-blue-50 border-l-4 border-blue-600'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      }`}
+                    onClick={() => {
+                      const filterMap = {
+                        "Promociones": "Más Vendidos",
+                        "Proteínas en Polvo": "Proteínas",
+                        "Vitaminas y Más": "Vitaminas y Más",
+                        "Rendimiento": "Rendimiento",
+                        "Barras y Snacks": "Alimentos y Snacks",
+                        "Accesorios": "Todos los Productos",
+                        "Outlet": "Outlet",
+                        "Objetivos": "Todos los Productos",
+                        "Nosotros": "nosotros" // Redirigir a la sección Nosotros
+                      };
+                      const filter = filterMap[category] || "Todos los Productos";
 
-                    if (category === "Nosotros") {
-                      // Scroll a la sección Nosotros
-                      setIsMobileMenuOpen(false); // Cerrar menú móvil
-                      setTimeout(() => {
-                        const nosotrosSection = document.getElementById('nosotros');
-                        if (nosotrosSection) {
-                          nosotrosSection.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }, 100);
-                    } else {
-                      onCategoryClick(filter);
-                      setIsMobileMenuOpen(false); // Cerrar menú móvil
-                    }
-                  }}
-                >
-                  <span className="text-sm font-medium">{category}</span>
-                </div>
-              ))}
+                      if (category === "Nosotros") {
+                        // Scroll a la sección Nosotros
+                        setIsMobileMenuOpen(false); // Cerrar menú móvil
+                        setTimeout(() => {
+                          const nosotrosSection = document.getElementById('nosotros');
+                          if (nosotrosSection) {
+                            nosotrosSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 100);
+                      } else {
+                        onCategoryClick(filter);
+                        setIsMobileMenuOpen(false); // Cerrar menú móvil
+                      }
+                    }}
+                    aria-label={`Ver productos de ${category}`}
+                  >
+                    <span className="text-sm font-medium">{category}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
 
-            {/* Filtros móvil */}
+            {/* Filtros móvil - Mejorados */}
             <div className="space-y-3">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Filtros Rápidos</div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Filtros Rápidos</h3>
               <div className="grid grid-cols-2 gap-2">
                 {["Todos los Productos", "Más Vendidos", "Proteínas", "Vitaminas y Más", "Rendimiento", "Alimentos y Snacks", "Barras de Proteína", "Outlet", "Muestras", "Vegano"].map((filter) => (
-                  <span
+                  <button
                     key={filter}
-                    className={`text-xs py-2 px-3 rounded-lg cursor-pointer transition-all duration-200 text-center ${selectedFilter === filter
+                    className={`text-xs py-2 px-3 rounded-lg cursor-pointer transition-all duration-200 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${selectedFilter === filter
                       ? 'text-blue-600 font-semibold bg-blue-50 border border-blue-200'
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 border border-gray-200'
                       }`}
@@ -426,9 +438,10 @@ export default function Header({
                       onFilterClick(filter);
                       setIsMobileMenuOpen(false); // Cerrar menú móvil
                     }}
+                    aria-label={`Filtrar por ${filter}`}
                   >
                     {filter}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>

@@ -58,12 +58,12 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         {/* Modal */}
-        <div 
+        <div
           className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
@@ -95,7 +95,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 text-2xl ml-4"
               >
@@ -106,17 +106,25 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Columna izquierda - Imágenes */}
               <div>
-                <div className="bg-gray-50 rounded-lg p-6 flex items-center justify-center h-80 mb-4">
+                <div className="bg-gray-50 rounded-lg p-6 flex items-center justify-center h-80 mb-4 relative overflow-hidden">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-full object-contain transition-opacity duration-300"
+                    loading="eager"
+                    decoding="async"
+                    onLoad={(e) => {
+                      e.target.style.opacity = '1';
+                    }}
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
+                    style={{ opacity: 0 }}
                   />
+                  {/* Placeholder mientras carga */}
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
                 </div>
-                
+
                 {/* Información adicional de la imagen */}
                 <div className="text-center text-sm text-gray-500">
                   Imagen del producto {product.name}
@@ -173,19 +181,19 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
                         {formatPrice(product.pricePerUnit)}/kg
                       </div>
                     )}
-                    
+
                     {/* Selector de cantidad */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <span className="text-gray-600">Cantidad:</span>
                       <div className="flex items-center gap-2">
-                        <button 
+                        <button
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
                           className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
                         >
                           -
                         </button>
                         <span className="w-8 text-center font-medium">{quantity}</span>
-                        <button 
+                        <button
                           onClick={() => setQuantity(Math.min(product.stock || 10, quantity + 1))}
                           className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
                         >
@@ -202,22 +210,22 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
                     {/* Botones de acción */}
                     <div className="flex gap-3">
                       <button
-                        onClick={() => onAddToCart && onAddToCart({...product, quantity})}
+                        onClick={() => onAddToCart && onAddToCart({ ...product, quantity })}
                         className="flex-1 bg-black text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="9" cy="21" r="1"/>
-                          <circle cx="20" cy="21" r="1"/>
-                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                          <circle cx="9" cy="21" r="1" />
+                          <circle cx="20" cy="21" r="1" />
+                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                         </svg>
                         Agregar al carrito
                       </button>
-      <button className="flex-1 bg-gray-100 text-gray-500 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        Favoritos
-      </button>
+                      <button className="flex-1 bg-gray-100 text-gray-500 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        Favoritos
+                      </button>
                     </div>
                   </div>
                 </div>

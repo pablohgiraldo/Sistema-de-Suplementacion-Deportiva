@@ -137,15 +137,22 @@ export default function AdminHeader({
                                 </div>
                             )}
 
-                            {/* Botón de menú móvil */}
+                            {/* Botón de menú móvil - Mejorado */}
                             <button
                                 onClick={toggleMobileMenu}
-                                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                                className={`md:hidden p-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
+                                    ? 'bg-blue-50 text-blue-600'
+                                    : 'hover:bg-gray-100 text-gray-700'
+                                    }`}
+                                aria-label={isMobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+                                aria-expanded={isMobileMenuOpen}
+                                aria-controls="admin-mobile-menu"
                             >
-                                <span className="sr-only">Abrir menú principal</span>
-                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
+                                <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                                    <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+                                    <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                                    <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -169,9 +176,14 @@ export default function AdminHeader({
                     </div>
                 </div>
 
-                {/* Menú móvil */}
+                {/* Menú móvil - Mejorado */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden">
+                    <div
+                        id="admin-mobile-menu"
+                        className="md:hidden"
+                        role="navigation"
+                        aria-label="Menú de navegación móvil de administración"
+                    >
                         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
                             {isAuthenticated ? (
                                 <>
@@ -186,10 +198,11 @@ export default function AdminHeader({
                                     {/* Dashboard móvil */}
                                     <Link
                                         to="/admin"
-                                        className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                        className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
+                                        aria-label="Ir al Dashboard de Administración"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                         </svg>
                                         Dashboard
@@ -198,10 +211,11 @@ export default function AdminHeader({
                                     {/* Tienda móvil */}
                                     <Link
                                         to="/"
-                                        className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                        className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
+                                        aria-label="Ir a la Tienda"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
                                         </svg>
@@ -214,9 +228,10 @@ export default function AdminHeader({
                                             onLogout();
                                             setIsMobileMenuOpen(false);
                                         }}
-                                        className="flex items-center gap-2 w-full text-left py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
+                                        className="flex items-center gap-2 w-full text-left py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                        aria-label="Cerrar sesión"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                         </svg>
                                         Cerrar Sesión

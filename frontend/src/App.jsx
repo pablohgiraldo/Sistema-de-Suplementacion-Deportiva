@@ -227,8 +227,8 @@ function HomePage() {
   return (
     <main className="w-full">
       <HeroBanner />
-      <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">Catálogo SuperGains</h1>
+      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Catálogo SuperGains</h1>
         {products.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             No hay productos disponibles
@@ -240,7 +240,7 @@ function HomePage() {
               title="Productos Destacados"
               subtitle="Los mejores suplementos para tu rendimiento"
             />
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mt-6 sm:mt-8">
               {products.map(p => <ProductCard key={p._id} p={p} />)}
             </div>
           </>

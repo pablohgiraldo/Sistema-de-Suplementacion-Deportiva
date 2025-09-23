@@ -128,33 +128,41 @@ export default function ProductCard({ p }) {
   };
 
   return (
-    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer" onClick={handleProductClick}>
+    <div className="border rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] sm:hover:scale-105 cursor-pointer bg-white" onClick={handleProductClick}>
       {p.imageUrl && (
-        <div className="mb-3">
+        <div className="mb-2 sm:mb-3 relative overflow-hidden rounded-md sm:rounded-lg bg-gray-100">
           <img
             src={p.imageUrl}
             alt={p.name}
-            className="w-full h-32 object-cover rounded-lg"
+            className="w-full h-24 sm:h-32 object-cover transition-opacity duration-300"
             onError={(e) => {
               e.target.style.display = 'none';
             }}
+            onLoad={(e) => {
+              e.target.style.opacity = '1';
+            }}
+            loading="lazy"
+            decoding="async"
+            style={{ opacity: 0 }}
           />
+          {/* Placeholder mientras carga */}
+          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
         </div>
       )}
 
-      <div className="text-lg font-semibold text-gray-800 mb-1">
+      <div className="text-base sm:text-lg font-semibold text-gray-800 mb-1 line-clamp-2">
         {p.name || 'Sin nombre'}
       </div>
 
-      <div className="text-sm text-gray-600 mb-2">
+      <div className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
         {p.brand || 'Sin marca'}
       </div>
 
-      <div className="text-lg font-bold text-green-600 mb-2">
+      <div className="text-base sm:text-lg font-bold text-green-600 mb-1 sm:mb-2">
         {formatPrice(p.price)}
       </div>
 
-      <div className="text-xs text-gray-500 mb-2">
+      <div className="text-xs text-gray-500 mb-1 sm:mb-2">
         {inventoryLoading ? (
           <span className="text-gray-400">Cargando stock...</span>
         ) : (
@@ -162,22 +170,22 @@ export default function ProductCard({ p }) {
         )}
       </div>
 
-      <div className={`text-xs px-2 py-1 rounded-full inline-block ${getStockStatusColor()}`}>
+      <div className={`text-xs px-2 py-1 rounded-full inline-block mb-2 sm:mb-3 ${getStockStatusColor()}`}>
         {getStockStatus()}
       </div>
 
       {p.description && (
-        <div className="text-xs text-gray-600 mt-2 line-clamp-2">
+        <div className="text-xs text-gray-600 mt-1 sm:mt-2 line-clamp-2 hidden sm:block">
           {p.description}
         </div>
       )}
 
       {p.categories && p.categories.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {p.categories.slice(0, 3).map((category, index) => (
+        <div className="flex flex-wrap gap-1 mt-1 sm:mt-2">
+          {p.categories.slice(0, 2).map((category, index) => (
             <span
               key={index}
-              className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+              className="text-xs bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full"
             >
               {category}
             </span>
@@ -187,24 +195,26 @@ export default function ProductCard({ p }) {
 
       {/* Botones de carrito */}
       {cartContext && (
-        <div className="mt-4">
+        <div className="mt-2 sm:mt-4">
           {cartContext.isInCart(p._id) ? (
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <button
                   onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1, e)}
                   disabled={inventoryLoading || !canAddToCart(1)}
-                  className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
+                  aria-label="Reducir cantidad"
                 >
                   -
                 </button>
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium min-w-[16px] text-center">
                   {cartContext.getCartItemQuantity(p._id)}
                 </span>
                 <button
                   onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1, e)}
                   disabled={inventoryLoading || !canAddToCart(cartContext.getCartItemQuantity(p._id) + 1)}
-                  className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
+                  aria-label="Aumentar cantidad"
                 >
                   +
                 </button>
@@ -215,10 +225,10 @@ export default function ProductCard({ p }) {
             <button
               onClick={handleAddToCart}
               disabled={inventoryLoading || !canAddToCart(1)}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-blue-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
             >
               {inventoryLoading ? 'Cargando...' :
-                !canAddToCart(1) ? 'Agotado' : 'Agregar al carrito'}
+                !canAddToCart(1) ? 'Agotado' : 'Agregar'}
             </button>
           )}
         </div>
