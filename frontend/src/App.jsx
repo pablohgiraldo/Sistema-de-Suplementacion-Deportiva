@@ -17,7 +17,7 @@ import Cart from './pages/Cart';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import { useEffect, useState } from 'react';
-import api from './services/api';
+import { useProducts } from './hooks/useProducts';
 
 function AppContent() {
   const location = useLocation();
@@ -174,30 +174,11 @@ function AuthenticatedApp({
 }
 
 function HomePage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Usar React Query para obtener productos
+  const { data: productsData, isLoading: loading, error } = useProducts();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get("/products");
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setProducts(response.data.data);
-        } else {
-          console.error("Formato de respuesta inesperado:", response.data);
-          setError("Formato de respuesta inesperado del servidor");
-        }
-      } catch (err) {
-        console.error("Error cargando productos:", err);
-        setError("Error al cargar los productos");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+  // Extraer productos de la respuesta
+  const products = productsData?.data || [];
 
   if (loading) {
     return (
@@ -217,7 +198,7 @@ function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-red-600 text-center">
             <h2 className="text-xl font-bold mb-2">Error</h2>
-            <p>{error}</p>
+            <p>{error?.message || error}</p>
           </div>
         </div>
       </main>
