@@ -80,13 +80,13 @@ const testEmailNotifications = async () => {
                 currentStock: 3, // Stock bajo para generar alerta
                 minStock: 10,
                 maxStock: 100,
-                status: 'low_stock'
+                status: 'active' // Usar status válido del enum
             });
             console.log("   ✅ Inventario de prueba creado con stock bajo");
         } else {
             // Actualizar stock a bajo
             testInventory.currentStock = 3;
-            testInventory.status = 'low_stock';
+            testInventory.status = 'active'; // Usar status válido del enum
             await testInventory.save();
             console.log("   ✅ Inventario actualizado con stock bajo");
         }
