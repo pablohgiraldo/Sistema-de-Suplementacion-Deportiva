@@ -36,6 +36,7 @@
     "test-alert-system": "node scripts/test-alert-system.js",
     "test-inventory-alerts": "node scripts/test-inventory-alerts.js",
     "test-dashboard-integration": "node scripts/test-dashboard-integration.js",
+    "test-email-notifications": "node scripts/test-email-notifications.js",
     "build": "npm install"
   },
   "engines": {
@@ -54,7 +55,8 @@
     "jsonwebtoken": "^9.0.2",
     "limit": "^0.0.1",
     "mongoose": "^7.0.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemailer": "^7.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
