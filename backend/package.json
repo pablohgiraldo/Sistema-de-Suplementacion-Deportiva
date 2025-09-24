@@ -38,6 +38,7 @@
     "test-dashboard-integration": "node scripts/test-dashboard-integration.js",
     "test-email-notifications": "node scripts/test-email-notifications.js",
     "test-scheduler": "node scripts/test-scheduler.js",
+    "cleanup-test-products": "node scripts/cleanup-test-products.js",
     "build": "npm install"
   },
   "engines": {
