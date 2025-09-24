@@ -35,6 +35,7 @@
     "create-alert-configs": "node scripts/create-default-alert-configs.js",
     "test-alert-system": "node scripts/test-alert-system.js",
     "test-inventory-alerts": "node scripts/test-inventory-alerts.js",
+    "test-dashboard-integration": "node scripts/test-dashboard-integration.js",
     "build": "npm install"
   },
   "engines": {

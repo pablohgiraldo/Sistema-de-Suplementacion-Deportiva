@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useLowStockAlerts, useAlertStats } from '../hooks/useAlerts';
+import { useInventoryAlerts, useInventoryAlertStats } from '../hooks/useInventoryAlerts';
 import AlertConfigForm from './AlertConfigForm';
 
 const StockAlerts = () => {
-    const { data: alertsData, isLoading: alertsLoading, error: alertsError } = useLowStockAlerts();
-    const { data: statsData, isLoading: statsLoading } = useAlertStats();
+    const { data: alertsData, isLoading: alertsLoading, error: alertsError } = useInventoryAlerts();
+    const { data: statsData, isLoading: statsLoading } = useInventoryAlertStats();
 
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showConfigForm, setShowConfigForm] = useState(false);
@@ -65,7 +65,7 @@ const StockAlerts = () => {
     }
 
     const alerts = alertsData?.data || [];
-    const stats = statsData?.data || {};
+    const stats = statsData || {};
 
     return (
         <div className="p-6">
@@ -77,22 +77,22 @@ const StockAlerts = () => {
             </div>
 
             {/* Estadísticas */}
-            {stats.alerts && (
+            {stats.alertCounts && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-blue-600">{stats.alerts.total}</div>
+                        <div className="text-2xl font-bold text-blue-600">{stats.alertCounts.total}</div>
                         <div className="text-sm text-gray-600">Total Alertas</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-yellow-600">{stats.alerts.lowStock}</div>
+                        <div className="text-2xl font-bold text-yellow-600">{stats.alertCounts.lowStock}</div>
                         <div className="text-sm text-gray-600">Stock Bajo</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-orange-600">{stats.alerts.criticalStock}</div>
+                        <div className="text-2xl font-bold text-orange-600">{stats.alertCounts.criticalStock}</div>
                         <div className="text-sm text-gray-600">Stock Crítico</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-red-600">{stats.alerts.outOfStock}</div>
+                        <div className="text-2xl font-bold text-red-600">{stats.alertCounts.outOfStock}</div>
                         <div className="text-sm text-gray-600">Stock Agotado</div>
                     </div>
                 </div>

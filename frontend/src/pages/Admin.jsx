@@ -9,10 +9,13 @@ import {
 } from '../components/LazyComponents';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
+import { useInventoryAlertsSummary } from '../hooks/useInventoryAlerts';
+import AlertNotification from '../components/AlertNotification';
 
 const AdminDashboard = () => {
     const { user, isAuthenticated } = useAuth();
     const { notifications, removeNotification, showWarning, showError } = useNotifications();
+    const { data: alertsSummary } = useInventoryAlertsSummary();
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalProducts: 0,
@@ -116,6 +119,65 @@ const AdminDashboard = () => {
 
             {/* Contenido Principal */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Alertas Críticas */}
+                {alertsSummary && alertsSummary.criticalAlerts > 0 && (
+                    <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">
+                                    ¡Atención! Tienes {alertsSummary.criticalAlerts} alertas críticas
+                                </h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <p>
+                                        {alertsSummary.criticalAlerts} productos tienen stock agotado o crítico.
+                                        Revisa la sección de alertas para más detalles.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Resumen de Alertas */}
+                {alertsSummary && alertsSummary.totalAlerts > 0 && (
+                    <div className="mb-8 bg-white rounded-lg shadow border">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-medium text-gray-900">Resumen de Alertas</h3>
+                            <p className="text-sm text-gray-500">Estado actual del inventario</p>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-blue-600">{alertsSummary.totalAlerts}</div>
+                                    <div className="text-sm text-gray-600">Total Alertas</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-red-600">{alertsSummary.criticalAlerts}</div>
+                                    <div className="text-sm text-gray-600">Críticas</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-orange-600">{alertsSummary.errorAlerts}</div>
+                                    <div className="text-sm text-gray-600">Errores</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-yellow-600">{alertsSummary.warningAlerts}</div>
+                                    <div className="text-sm text-gray-600">Advertencias</div>
+                                </div>
+                            </div>
+                            <div className="mt-4 text-center">
+                                <span className="text-sm text-gray-500">
+                                    Última actualización: {new Date(alertsSummary.lastUpdated).toLocaleTimeString()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Métricas Principales */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {/* Total de Usuarios */}
@@ -180,8 +242,10 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Stock Bajo</p>
-                                <p className="text-2xl font-semibold text-gray-900">{stats.lowStockProducts}</p>
+                                <p className="text-sm font-medium text-gray-500">Alertas Activas</p>
+                                <p className="text-2xl font-semibold text-gray-900">
+                                    {alertsSummary ? alertsSummary.totalAlerts : stats.lowStockProducts}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -198,17 +262,38 @@ const AdminDashboard = () => {
                         <div className="p-6">
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600">Productos con stock bajo</span>
-                                    <span className="text-sm font-medium text-red-600">{stats.lowStockProducts}</span>
+                                    <span className="text-sm text-gray-600">Alertas activas</span>
+                                    <span className="text-sm font-medium text-red-600">
+                                        {alertsSummary ? alertsSummary.totalAlerts : stats.lowStockProducts}
+                                    </span>
                                 </div>
+                                {alertsSummary && (
+                                    <>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Alertas críticas</span>
+                                            <span className="text-sm font-medium text-red-600">{alertsSummary.criticalAlerts}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Alertas de error</span>
+                                            <span className="text-sm font-medium text-orange-600">{alertsSummary.errorAlerts}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-600">Alertas de advertencia</span>
+                                            <span className="text-sm font-medium text-yellow-600">{alertsSummary.warningAlerts}</span>
+                                        </div>
+                                    </>
+                                )}
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-600">Total de productos</span>
                                     <span className="text-sm font-medium text-gray-900">{stats.totalProducts}</span>
                                 </div>
                             </div>
-                            <div className="mt-6">
+                            <div className="mt-6 space-y-2">
                                 <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                                     Ver Inventario Completo
+                                </button>
+                                <button className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                                    Ver Alertas Detalladas
                                 </button>
                             </div>
                         </div>
@@ -248,7 +333,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Alertas de Stock */}
-                <div className="mt-8">
+                <div className="mt-8" data-section="alerts">
                     <Suspense fallback={<LoadingSpinner text="Cargando alertas..." />}>
                         <LazyStockAlerts />
                     </Suspense>
@@ -302,6 +387,9 @@ const AdminDashboard = () => {
                     onRemove={removeNotification}
                 />
             </Suspense>
+
+            {/* Notificación de Alertas Críticas */}
+            <AlertNotification />
         </div>
     );
 };

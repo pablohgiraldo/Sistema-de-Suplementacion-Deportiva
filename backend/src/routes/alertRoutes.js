@@ -9,13 +9,13 @@ import {
     createDefaultAlertConfig,
     getAlertStats
 } from '../controllers/alertController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
 // Todas las rutas requieren autenticación
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // Rutas públicas para administradores
 router.get('/stats', requireAdmin, getAlertStats);
