@@ -10,6 +10,7 @@ import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
+import alertRoutes from "./routes/alertRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 
 const app = express();
@@ -121,6 +122,9 @@ app.use("/api/cart", cartLimiter, cartRoutes); // Rate limiting más permisivo p
 // Rutas de inventario - sin rate limiting para consultas públicas
 app.use("/api/inventory", inventoryRoutes);
 
+// Rutas de alertas - solo para administradores
+app.use("/api/alerts", alertRoutes);
+
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
 
@@ -167,6 +171,7 @@ const startServer = async () => {
       console.log(`   - GET  /api/users/profile`);
       console.log(`   - *    /api/cart/*`);
       console.log(`   - *    /api/inventory/*`);
+      console.log(`   - *    /api/alerts/*`);
       console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {

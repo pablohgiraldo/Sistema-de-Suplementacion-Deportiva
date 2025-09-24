@@ -1,10 +1,17 @@
 import { useState } from 'react';
-import { useLowStockAlerts, useAlertStats } from '../hooks/useAlerts';
+import { useInventoryAlerts, useInventoryAlertStats } from '../hooks/useInventoryAlerts';
 import AlertConfigForm from './AlertConfigForm';
 
-const StockAlerts = () => {
-    const { data: alertsData, isLoading: alertsLoading, error: alertsError } = useLowStockAlerts();
-    const { data: statsData, isLoading: statsLoading } = useAlertStats();
+const InventoryAlerts = () => {
+    const [filters, setFilters] = useState({
+        severity: '',
+        sortBy: 'severity',
+        sortOrder: 'desc',
+        limit: 20
+    });
+
+    const { data: alertsData, isLoading, error } = useInventoryAlerts(filters);
+    const { data: statsData } = useInventoryAlertStats();
 
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showConfigForm, setShowConfigForm] = useState(false);
@@ -35,6 +42,26 @@ const StockAlerts = () => {
         }
     };
 
+    const getSeverityText = (severity) => {
+        switch (severity) {
+            case 'critical':
+                return 'Crítico';
+            case 'error':
+                return 'Error';
+            case 'warning':
+                return 'Advertencia';
+            default:
+                return 'Info';
+        }
+    };
+
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
     const handleConfigureAlerts = (product) => {
         setSelectedProduct(product);
         setShowConfigForm(true);
@@ -45,58 +72,127 @@ const StockAlerts = () => {
         setSelectedProduct(null);
     };
 
-    if (alertsLoading || statsLoading) {
+    if (isLoading) {
         return (
             <div className="flex justify-center items-center p-8">
-                <div className="text-lg">Cargando alertas...</div>
+                <div className="text-lg">Cargando alertas de inventario...</div>
             </div>
         );
     }
 
-    if (alertsError) {
+    if (error) {
         return (
             <div className="p-6">
                 <div className="text-red-600 text-center">
                     <h2 className="text-xl font-bold mb-2">Error</h2>
-                    <p>{alertsError.message}</p>
+                    <p>{error.message}</p>
                 </div>
             </div>
         );
     }
 
     const alerts = alertsData?.data || [];
-    const stats = statsData?.data || {};
+    const stats = statsData || {};
 
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Alertas de Stock</h1>
+                <h1 className="text-2xl font-bold">Alertas de Inventario</h1>
                 <div className="text-sm text-gray-600">
                     Última actualización: {new Date().toLocaleTimeString()}
                 </div>
             </div>
 
             {/* Estadísticas */}
-            {stats.alerts && (
+            {stats.alertCounts && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-blue-600">{stats.alerts.total}</div>
+                        <div className="text-2xl font-bold text-blue-600">{stats.alertCounts.total}</div>
                         <div className="text-sm text-gray-600">Total Alertas</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-yellow-600">{stats.alerts.lowStock}</div>
+                        <div className="text-2xl font-bold text-yellow-600">{stats.alertCounts.lowStock}</div>
                         <div className="text-sm text-gray-600">Stock Bajo</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-orange-600">{stats.alerts.criticalStock}</div>
+                        <div className="text-2xl font-bold text-orange-600">{stats.alertCounts.criticalStock}</div>
                         <div className="text-sm text-gray-600">Stock Crítico</div>
                     </div>
                     <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-2xl font-bold text-red-600">{stats.alerts.outOfStock}</div>
+                        <div className="text-2xl font-bold text-red-600">{stats.alertCounts.outOfStock}</div>
                         <div className="text-sm text-gray-600">Stock Agotado</div>
                     </div>
                 </div>
             )}
+
+            {/* Filtros */}
+            <div className="bg-white p-4 rounded-lg shadow border mb-6">
+                <h3 className="text-lg font-semibold mb-4">Filtros</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Severidad
+                        </label>
+                        <select
+                            value={filters.severity}
+                            onChange={(e) => handleFilterChange('severity', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Todas</option>
+                            <option value="warning">Advertencia</option>
+                            <option value="error">Error</option>
+                            <option value="critical">Crítico</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ordenar por
+                        </label>
+                        <select
+                            value={filters.sortBy}
+                            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="severity">Severidad</option>
+                            <option value="stock">Stock</option>
+                            <option value="product">Producto</option>
+                            <option value="alerts">Número de Alertas</option>
+                            <option value="lastRestocked">Último Reabastecimiento</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Orden
+                        </label>
+                        <select
+                            value={filters.sortOrder}
+                            onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="desc">Descendente</option>
+                            <option value="asc">Ascendente</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Límite
+                        </label>
+                        <select
+                            value={filters.limit}
+                            onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             {/* Lista de Alertas */}
             {alerts.length === 0 ? (
@@ -106,7 +202,7 @@ const StockAlerts = () => {
                         ¡Excelente! No hay alertas activas
                     </h2>
                     <p className="text-gray-500">
-                        Todos los productos tienen stock suficiente
+                        Todos los productos tienen stock suficiente según sus configuraciones
                     </p>
                 </div>
             ) : (
@@ -130,12 +226,17 @@ const StockAlerts = () => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => handleConfigureAlerts(alert.product)}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                                    >
-                                        Configurar Alertas
-                                    </button>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => handleConfigureAlerts(alert.product)}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                        >
+                                            Configurar Alertas
+                                        </button>
+                                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${getSeverityColor(alert.alerts[0]?.severity || 'info')}`}>
+                                            {getSeverityText(alert.alerts[0]?.severity || 'info')}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Alertas específicas */}
@@ -204,6 +305,33 @@ const StockAlerts = () => {
                 </div>
             )}
 
+            {/* Paginación */}
+            {alertsData?.pagination && (
+                <div className="mt-6 flex justify-between items-center">
+                    <div className="text-sm text-gray-600">
+                        Mostrando {alertsData.pagination.showing}
+                    </div>
+                    <div className="flex space-x-2">
+                        {alertsData.pagination.hasPrevPage && (
+                            <button
+                                onClick={() => handleFilterChange('page', alertsData.pagination.prevPage)}
+                                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                            >
+                                Anterior
+                            </button>
+                        )}
+                        {alertsData.pagination.hasNextPage && (
+                            <button
+                                onClick={() => handleFilterChange('page', alertsData.pagination.nextPage)}
+                                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                            >
+                                Siguiente
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Modal de Configuración */}
             {showConfigForm && selectedProduct && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -232,4 +360,4 @@ const StockAlerts = () => {
     );
 };
 
-export default StockAlerts;
+export default InventoryAlerts;

@@ -18,7 +18,8 @@ import {
     sellStock,
     getLowStockProducts,
     getOutOfStockProducts,
-    getInventoryStats
+    getInventoryStats,
+    getInventoryAlerts
 } from "../controllers/inventoryController.js";
 
 const router = express.Router();
@@ -63,6 +64,7 @@ router.get("/product/:productId", getInventoryByProductId); // GET /api/inventor
 // Rutas que requieren autenticación y rol de administrador - con rate limiting permisivo para lectura
 router.get("/", authMiddleware, requireAdmin, readLimiter, getInventories);                    // GET /api/inventory
 router.get("/stats", authMiddleware, requireAdmin, readLimiter, getInventoryStats);            // GET /api/inventory/stats
+router.get("/alerts", authMiddleware, requireAdmin, readLimiter, getInventoryAlerts);          // GET /api/inventory/alerts
 router.get("/low-stock", authMiddleware, requireAdmin, readLimiter, getLowStockProducts);      // GET /api/inventory/low-stock
 router.get("/out-of-stock", authMiddleware, requireAdmin, readLimiter, getOutOfStockProducts); // GET /api/inventory/out-of-stock
 router.get("/:id", authMiddleware, requireAdmin, readLimiter, getInventoryById);               // GET /api/inventory/:id

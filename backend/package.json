@@ -32,6 +32,9 @@
     "stress-test:database": "npx artillery run artillery-database.yml",
     "performance-monitor": "node scripts/performance-monitor.js",
     "test-stress-endpoints": "node scripts/test-stress-endpoints.js",
+    "create-alert-configs": "node scripts/create-default-alert-configs.js",
+    "test-alert-system": "node scripts/test-alert-system.js",
+    "test-inventory-alerts": "node scripts/test-inventory-alerts.js",
     "build": "npm install"
   },
   "engines": {

@@ -1,5 +1,6 @@
 import Inventory from "../models/Inventory.js";
 import Product from "../models/Product.js";
+import AlertConfig from "../models/AlertConfig.js";
 
 // Obtener todos los registros de inventario con filtros
 export async function getInventories(req, res) {
@@ -521,5 +522,208 @@ export async function getInventoryStats(req, res) {
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+// Obtener alertas de inventario con configuraciones de alertas
+export async function getInventoryAlerts(req, res) {
+    try {
+        const {
+            severity,
+            includeInactive = false,
+            limit = 50,
+            page = 1,
+            sortBy = 'severity',
+            sortOrder = 'desc'
+        } = req.query;
+
+        // Construir query para configuraciones de alertas
+        const configQuery = includeInactive === 'true' ? {} : { status: 'active' };
+
+        // Obtener configuraciones de alertas activas
+        const alertConfigs = await AlertConfig.find(configQuery)
+            .populate('product', 'name brand price imageUrl description categories');
+
+        const alerts = [];
+        const alertCounts = {
+            lowStock: 0,
+            criticalStock: 0,
+            outOfStock: 0,
+            total: 0
+        };
+
+        // Procesar cada configuración de alerta
+        for (const config of alertConfigs) {
+            const inventory = await Inventory.findOne({ product: config.product._id });
+            if (!inventory) continue;
+
+            const currentStock = inventory.currentStock;
+            const productAlerts = [];
+
+            // Verificar stock bajo
+            if (currentStock <= config.lowStockThreshold && currentStock > config.criticalStockThreshold) {
+                const alert = {
+                    type: 'low_stock',
+                    threshold: config.lowStockThreshold,
+                    currentStock,
+                    severity: 'warning',
+                    shouldAlert: config.shouldSendAlert('low_stock', currentStock),
+                    priority: 3
+                };
+                productAlerts.push(alert);
+                alertCounts.lowStock++;
+            }
+
+            // Verificar stock crítico
+            if (currentStock <= config.criticalStockThreshold && currentStock > config.outOfStockThreshold) {
+                const alert = {
+                    type: 'critical_stock',
+                    threshold: config.criticalStockThreshold,
+                    currentStock,
+                    severity: 'error',
+                    shouldAlert: config.shouldSendAlert('critical_stock', currentStock),
+                    priority: 2
+                };
+                productAlerts.push(alert);
+                alertCounts.criticalStock++;
+            }
+
+            // Verificar stock agotado
+            if (currentStock <= config.outOfStockThreshold) {
+                const alert = {
+                    type: 'out_of_stock',
+                    threshold: config.outOfStockThreshold,
+                    currentStock,
+                    severity: 'critical',
+                    shouldAlert: config.shouldSendAlert('out_of_stock', currentStock),
+                    priority: 1
+                };
+                productAlerts.push(alert);
+                alertCounts.outOfStock++;
+            }
+
+            // Si hay alertas para este producto, agregarlo a la lista
+            if (productAlerts.length > 0) {
+                // Filtrar por severidad si se especifica
+                let filteredAlerts = productAlerts;
+                if (severity) {
+                    filteredAlerts = productAlerts.filter(alert => alert.severity === severity);
+                }
+
+                if (filteredAlerts.length > 0) {
+                    alerts.push({
+                        product: {
+                            _id: config.product._id,
+                            name: config.product.name,
+                            brand: config.product.brand,
+                            price: config.product.price,
+                            imageUrl: config.product.imageUrl,
+                            description: config.product.description,
+                            categories: config.product.categories
+                        },
+                        inventory: {
+                            _id: inventory._id,
+                            currentStock: inventory.currentStock,
+                            minStock: inventory.minStock,
+                            maxStock: inventory.maxStock,
+                            availableStock: inventory.availableStock,
+                            reservedStock: inventory.reservedStock,
+                            status: inventory.status,
+                            lastRestocked: inventory.lastRestocked,
+                            lastSold: inventory.lastSold,
+                            totalSold: inventory.totalSold
+                        },
+                        config: {
+                            _id: config._id,
+                            lowStockThreshold: config.lowStockThreshold,
+                            criticalStockThreshold: config.criticalStockThreshold,
+                            outOfStockThreshold: config.outOfStockThreshold,
+                            emailAlerts: config.emailAlerts,
+                            appAlerts: config.appAlerts,
+                            alertFrequency: config.alertFrequency,
+                            status: config.status
+                        },
+                        alerts: filteredAlerts,
+                        highestSeverity: Math.min(...filteredAlerts.map(a => a.priority)),
+                        alertCount: filteredAlerts.length
+                    });
+                }
+            }
+        }
+
+        // Ordenar alertas
+        const sortOptions = {
+            'severity': (a, b) => a.highestSeverity - b.highestSeverity,
+            'stock': (a, b) => a.inventory.currentStock - b.inventory.currentStock,
+            'product': (a, b) => a.product.name.localeCompare(b.product.name),
+            'alerts': (a, b) => b.alertCount - a.alertCount,
+            'lastRestocked': (a, b) => new Date(b.inventory.lastRestocked) - new Date(a.inventory.lastRestocked)
+        };
+
+        const sortFunction = sortOptions[sortBy] || sortOptions['severity'];
+        alerts.sort(sortFunction);
+
+        if (sortOrder === 'desc' && sortBy !== 'severity') {
+            alerts.reverse();
+        }
+
+        // Aplicar paginación
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+        const paginatedAlerts = alerts.slice(skip, skip + limitNum);
+
+        // Calcular metadatos de paginación
+        const totalCount = alerts.length;
+        const totalPages = Math.ceil(totalCount / limitNum);
+        const hasNextPage = pageNum < totalPages;
+        const hasPrevPage = pageNum > 1;
+
+        // Calcular estadísticas adicionales
+        const activeAlerts = alerts.filter(alert =>
+            alert.alerts.some(a => a.shouldAlert)
+        ).length;
+
+        const criticalAlerts = alerts.filter(alert =>
+            alert.alerts.some(a => a.severity === 'critical' && a.shouldAlert)
+        ).length;
+
+        res.json({
+            success: true,
+            count: paginatedAlerts.length,
+            totalCount,
+            data: paginatedAlerts,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage,
+                hasPrevPage,
+                nextPage: hasNextPage ? pageNum + 1 : null,
+                prevPage: hasPrevPage ? pageNum - 1 : null,
+                limit: limitNum,
+                showing: `${skip + 1}-${Math.min(skip + limitNum, totalCount)} de ${totalCount} alertas`
+            },
+            statistics: {
+                alertCounts,
+                activeAlerts,
+                criticalAlerts,
+                totalProducts: alertConfigs.length,
+                lastUpdated: new Date().toISOString()
+            },
+            filters: {
+                severity: severity || null,
+                includeInactive: includeInactive === 'true',
+                sortBy,
+                sortOrder
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting inventory alerts:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener alertas de inventario'
+        });
     }
 }
