@@ -13,6 +13,8 @@ import inventoryRoutes from "./routes/inventoryRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
+import schedulerRoutes from "./routes/schedulerRoutes.js";
+import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
 
@@ -129,6 +131,9 @@ app.use("/api/alerts", alertRoutes);
 // Rutas de notificaciones - solo para administradores
 app.use("/api/notifications", notificationRoutes);
 
+// Rutas del scheduler - solo para administradores
+app.use("/api/scheduler", schedulerRoutes);
+
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
 
@@ -177,7 +182,14 @@ const startServer = async () => {
       console.log(`   - *    /api/inventory/*`);
       console.log(`   - *    /api/alerts/*`);
       console.log(`   - *    /api/notifications/*`);
+      console.log(`   - *    /api/scheduler/*`);
       console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+
+      // Iniciar scheduler de alertas automáticas
+      simpleAlertScheduler.start();
+      console.log(`🔔 Sistema de alertas automáticas: ACTIVADO`);
+      console.log(`   ⏰ Verificando alertas cada 5 minutos`);
+      console.log(`   📧 Notificaciones por email: ${process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true' ? 'ACTIVADO' : 'DESACTIVADO'}`);
     });
   } catch (error) {
     console.error("❌ Error al conectar con la base de datos:", error);

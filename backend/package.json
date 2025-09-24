@@ -37,6 +37,7 @@
     "test-inventory-alerts": "node scripts/test-inventory-alerts.js",
     "test-dashboard-integration": "node scripts/test-dashboard-integration.js",
     "test-email-notifications": "node scripts/test-email-notifications.js",
+    "test-scheduler": "node scripts/test-scheduler.js",
     "build": "npm install"
   },
   "engines": {
@@ -56,6 +57,7 @@
     "limit": "^0.0.1",
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.6"
   },
   "devDependencies": {
