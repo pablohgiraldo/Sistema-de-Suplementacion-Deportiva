@@ -2,7 +2,7 @@ import axios from "axios";
 import { getAccessToken, getRefreshToken, saveAccessToken, clearAuthData } from '../utils/tokenUtils';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
+  baseURL: "https://supergains-backend.onrender.com/api",
   timeout: 15000, // 15 segundos de timeout para operaciones complejas
 });
 
@@ -13,6 +13,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('Making request to:', config.baseURL + config.url);
     return config;
   },
   (error) => {
@@ -68,5 +69,10 @@ api.interceptors.response.use(
 );
 
 console.log('API Base URL:', import.meta.env.VITE_API_URL || "http://localhost:4000/api");
+console.log('Environment variables:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  NODE_ENV: import.meta.env.NODE_ENV,
+  MODE: import.meta.env.MODE
+});
 
 export default api;
