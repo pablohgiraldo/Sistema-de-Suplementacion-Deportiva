@@ -26,6 +26,12 @@
     "cleanup-indexes": "node scripts/cleanup-indexes.js",
     "performance-test": "node scripts/performance-test.js",
     "monitor-performance": "node scripts/monitor-performance.js",
+    "stress-test": "node scripts/run-stress-tests.js",
+    "stress-test:basic": "npx artillery run artillery.config.yml",
+    "stress-test:intensive": "npx artillery run artillery-stress.yml",
+    "stress-test:database": "npx artillery run artillery-database.yml",
+    "performance-monitor": "node scripts/performance-monitor.js",
+    "test-stress-endpoints": "node scripts/test-stress-endpoints.js",
     "build": "npm install"
   },
   "engines": {
@@ -50,6 +56,7 @@
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
     "@types/jest": "^30.0.0",
+    "artillery": "^2.0.25",
     "babel-jest": "^30.1.2",
     "jest": "^30.1.3",
     "nodemon": "^3.1.10",

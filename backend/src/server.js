@@ -10,6 +10,7 @@ import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
 
 const app = express();
 
@@ -119,6 +120,9 @@ app.use("/api/cart", cartLimiter, cartRoutes); // Rate limiting más permisivo p
 
 // Rutas de inventario - sin rate limiting para consultas públicas
 app.use("/api/inventory", inventoryRoutes);
+
+// Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
+app.use("/api/health", healthRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

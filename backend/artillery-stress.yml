@@ -1,0 +1,172 @@
+# Configuración de Artillery para pruebas de estrés intensivas
+# SuperGains - Pruebas de rendimiento bajo carga extrema
+
+config:
+  target: 'http://localhost:4000'
+  phases:
+    # Fase de calentamiento rápido
+    - duration: 30
+      arrivalRate: 10
+      name: "Calentamiento rápido"
+    # Fase de carga sostenida
+    - duration: 180
+      arrivalRate: 20
+      name: "Carga sostenida"
+    # Fase de estrés máximo
+    - duration: 120
+      arrivalRate: 50
+      name: "Estrés máximo"
+    # Fase de pico extremo
+    - duration: 60
+      arrivalRate: 100
+      name: "Pico extremo"
+    # Fase de recuperación
+    - duration: 60
+      arrivalRate: 10
+      name: "Recuperación"
+  
+  # Configuración HTTP agresiva
+  http:
+    timeout: 15
+    pool: 20
+  
+  # Plugins para métricas detalladas
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+    publish-metrics:
+      - type: cloudwatch
+        region: us-east-1
+  
+  # Variables
+  variables:
+    baseUrl: "http://localhost:4000"
+    apiUrl: "http://localhost:4000/api"
+
+# Escenarios de estrés intensivo
+scenarios:
+  # Escenario 1: Bombardeo de productos
+  - name: "Bombardeo de productos"
+    weight: 40
+    flow:
+      - loop:
+          - get:
+              url: "/api/products"
+              name: "Carga masiva de productos"
+          - get:
+              url: "/api/products/search?q={{ $randomString() }}"
+              name: "Búsqueda masiva"
+          - get:
+              url: "/api/products/categories"
+              name: "Categorías masivas"
+        count: 5
+      - think: 1
+
+  # Escenario 2: Autenticación masiva
+  - name: "Autenticación masiva"
+    weight: 30
+    flow:
+      - loop:
+          - post:
+              url: "/api/users/login"
+              json:
+                email: "test{{ $randomInt(1, 100) }}@example.com"
+                password: "password123"
+              name: "Login masivo"
+          - post:
+              url: "/api/users/login"
+              json:
+                email: "admin@supergains.com"
+                password: "admin123"
+              name: "Login admin masivo"
+        count: 3
+      - think: 2
+
+  # Escenario 3: Operaciones de carrito intensivas
+  - name: "Carrito intensivo"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          name: "Login para carrito intensivo"
+          capture:
+            - json: "$.data.accessToken"
+              as: "accessToken"
+      - get:
+          url: "/api/products"
+          name: "Obtener productos para carrito intensivo"
+          capture:
+            - json: "$.data[0]._id"
+              as: "productId"
+      - loop:
+          - post:
+              url: "/api/cart"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              json:
+                productId: "{{ productId }}"
+                quantity: "{{ $randomInt(1, 5) }}"
+              name: "Agregar al carrito intensivo"
+          - get:
+              url: "/api/cart"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              name: "Verificar carrito intensivo"
+          - put:
+              url: "/api/cart/{{ productId }}"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              json:
+                quantity: "{{ $randomInt(1, 10) }}"
+              name: "Actualizar carrito intensivo"
+        count: 10
+      - delete:
+          url: "/api/cart/{{ productId }}"
+          headers:
+            Authorization: "Bearer {{ accessToken }}"
+          name: "Eliminar del carrito intensivo"
+
+  # Escenario 4: Operaciones de inventario intensivas
+  - name: "Inventario intensivo"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "admin@supergains.com"
+            password: "admin123"
+          name: "Login admin para inventario intensivo"
+          capture:
+            - json: "$.data.accessToken"
+              as: "adminToken"
+      - get:
+          url: "/api/inventory"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          name: "Obtener inventario intensivo"
+          capture:
+            - json: "$.data[0]._id"
+              as: "inventoryId"
+      - loop:
+          - get:
+              url: "/api/inventory/stats"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              name: "Estadísticas de inventario intensivo"
+          - get:
+              url: "/api/inventory/alerts"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              name: "Alertas de inventario intensivo"
+          - post:
+              url: "/api/inventory/{{ inventoryId }}/restock"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              json:
+                quantity: "{{ $randomInt(1, 20) }}"
+                notes: "Restock de prueba {{ $randomString() }}"
+              name: "Restock intensivo"
+        count: 5

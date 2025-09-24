@@ -1,0 +1,156 @@
+# Configuración de Artillery para pruebas de estrés de base de datos
+# SuperGains - Pruebas de rendimiento de MongoDB
+
+config:
+  target: 'http://localhost:4000'
+  phases:
+    # Fase de calentamiento de DB
+    - duration: 60
+      arrivalRate: 5
+      name: "Calentamiento de DB"
+    # Fase de carga de DB
+    - duration: 180
+      arrivalRate: 15
+      name: "Carga de DB"
+    # Fase de estrés de DB
+    - duration: 120
+      arrivalRate: 30
+      name: "Estrés de DB"
+    # Fase de pico de DB
+    - duration: 60
+      arrivalRate: 50
+      name: "Pico de DB"
+    # Fase de recuperación de DB
+    - duration: 60
+      arrivalRate: 5
+      name: "Recuperación de DB"
+  
+  # Configuración HTTP para DB
+  http:
+    timeout: 20
+    pool: 15
+  
+  # Variables
+  variables:
+    baseUrl: "http://localhost:4000"
+    apiUrl: "http://localhost:4000/api"
+
+# Escenarios específicos para pruebas de base de datos
+scenarios:
+  # Escenario 1: Consultas complejas de productos
+  - name: "Consultas complejas de productos"
+    weight: 35
+    flow:
+      - loop:
+          - get:
+              url: "/api/products?category={{ $randomString() }}&price={{ $randomInt(10, 1000) }}"
+              name: "Consulta compleja productos"
+          - get:
+              url: "/api/products/search?q={{ $randomString() }}&category={{ $randomString() }}"
+              name: "Búsqueda compleja productos"
+          - get:
+              url: "/api/products?brand={{ $randomString() }}&isActive=true"
+              name: "Filtro complejo productos"
+        count: 8
+      - think: 2
+
+  # Escenario 2: Operaciones CRUD intensivas de usuarios
+  - name: "CRUD intensivo de usuarios"
+    weight: 25
+    flow:
+      - loop:
+          - post:
+              url: "/api/users/register"
+              json:
+                nombre: "Usuario{{ $randomInt(1, 10000) }}"
+                email: "usuario{{ $randomInt(1, 10000) }}@test.com"
+                contraseña: "password123"
+                rol: "usuario"
+              name: "Registro masivo de usuarios"
+          - post:
+              url: "/api/users/login"
+              json:
+                email: "usuario{{ $randomInt(1, 100) }}@test.com"
+                password: "password123"
+              name: "Login masivo de usuarios"
+        count: 5
+      - think: 3
+
+  # Escenario 3: Operaciones de inventario complejas
+  - name: "Inventario complejo"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "admin@supergains.com"
+            password: "admin123"
+          name: "Login admin para inventario complejo"
+          capture:
+            - json: "$.data.accessToken"
+              as: "adminToken"
+      - loop:
+          - get:
+              url: "/api/inventory?status={{ $randomString() }}&currentStock={{ $randomInt(0, 100) }}"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              name: "Consulta compleja inventario"
+          - get:
+              url: "/api/inventory/stats"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              name: "Estadísticas complejas inventario"
+          - get:
+              url: "/api/inventory/alerts"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+              name: "Alertas complejas inventario"
+        count: 6
+      - think: 2
+
+  # Escenario 4: Operaciones de carrito con base de datos
+  - name: "Carrito con DB intensivo"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          name: "Login para carrito DB intensivo"
+          capture:
+            - json: "$.data.accessToken"
+              as: "accessToken"
+      - get:
+          url: "/api/products"
+          name: "Obtener productos para carrito DB"
+          capture:
+            - json: "$.data[0]._id"
+              as: "productId"
+      - loop:
+          - post:
+              url: "/api/cart"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              json:
+                productId: "{{ productId }}"
+                quantity: "{{ $randomInt(1, 10) }}"
+              name: "Agregar al carrito DB intensivo"
+          - get:
+              url: "/api/cart"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              name: "Consultar carrito DB intensivo"
+          - put:
+              url: "/api/cart/{{ productId }}"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              json:
+                quantity: "{{ $randomInt(1, 20) }}"
+              name: "Actualizar carrito DB intensivo"
+          - delete:
+              url: "/api/cart/{{ productId }}"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+              name: "Eliminar del carrito DB intensivo"
+        count: 5

@@ -1,0 +1,160 @@
+# Configuración de Artillery para pruebas de estrés
+# SuperGains - Pruebas de rendimiento y carga
+
+config:
+  target: 'http://localhost:4000'
+  phases:
+    # Fase de calentamiento - usuarios graduales
+    - duration: 60
+      arrivalRate: 5
+      name: "Fase de calentamiento"
+    # Fase de carga normal - usuarios sostenidos
+    - duration: 120
+      arrivalRate: 10
+      name: "Carga normal"
+    # Fase de estrés - pico de usuarios
+    - duration: 60
+      arrivalRate: 25
+      name: "Pico de estrés"
+    # Fase de recuperación - reducción gradual
+    - duration: 60
+      arrivalRate: 5
+      name: "Recuperación"
+  
+  # Configuración de HTTP
+  http:
+    timeout: 30
+    pool: 10
+  
+  # Configuración de métricas
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+  
+  # Variables de entorno
+  variables:
+    baseUrl: "http://localhost:4000"
+    apiUrl: "http://localhost:4000/api"
+
+# Escenarios de prueba
+scenarios:
+  # Escenario 1: Navegación básica (usuarios anónimos)
+  - name: "Navegación básica"
+    weight: 30
+    flow:
+      - get:
+          url: "/"
+          name: "Página principal"
+      - think: 2
+      - get:
+          url: "/api/products"
+          name: "Lista de productos"
+      - think: 1
+      - get:
+          url: "/api/products/categories"
+          name: "Categorías de productos"
+
+  # Escenario 2: Búsqueda de productos
+  - name: "Búsqueda de productos"
+    weight: 25
+    flow:
+      - get:
+          url: "/api/products"
+          name: "Cargar productos"
+      - think: 1
+      - get:
+          url: "/api/products/search?q={{ $randomString() }}"
+          name: "Búsqueda aleatoria"
+      - think: 2
+      - get:
+          url: "/api/products?category={{ $randomString() }}"
+          name: "Filtro por categoría"
+
+  # Escenario 3: Autenticación y perfil
+  - name: "Autenticación de usuario"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          name: "Login de usuario"
+          capture:
+            - json: "$.data.accessToken"
+              as: "accessToken"
+      - think: 1
+      - get:
+          url: "/api/users/profile"
+          headers:
+            Authorization: "Bearer {{ accessToken }}"
+          name: "Obtener perfil"
+      - think: 2
+      - get:
+          url: "/api/cart"
+          headers:
+            Authorization: "Bearer {{ accessToken }}"
+          name: "Obtener carrito"
+
+  # Escenario 4: Operaciones de carrito
+  - name: "Operaciones de carrito"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          name: "Login para carrito"
+          capture:
+            - json: "$.data.accessToken"
+              as: "accessToken"
+      - get:
+          url: "/api/products"
+          name: "Obtener productos para carrito"
+          capture:
+            - json: "$.data[0]._id"
+              as: "productId"
+      - post:
+          url: "/api/cart"
+          headers:
+            Authorization: "Bearer {{ accessToken }}"
+          json:
+            productId: "{{ productId }}"
+            quantity: 1
+          name: "Agregar al carrito"
+      - think: 1
+      - get:
+          url: "/api/cart"
+          headers:
+            Authorization: "Bearer {{ accessToken }}"
+          name: "Verificar carrito"
+
+  # Escenario 5: Operaciones de administrador
+  - name: "Operaciones de administrador"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "admin@supergains.com"
+            password: "admin123"
+          name: "Login de administrador"
+          capture:
+            - json: "$.data.accessToken"
+              as: "adminToken"
+      - get:
+          url: "/api/users"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          name: "Listar usuarios"
+      - get:
+          url: "/api/inventory"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          name: "Obtener inventario"
+      - get:
+          url: "/api/inventory/stats"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          name: "Estadísticas de inventario"
