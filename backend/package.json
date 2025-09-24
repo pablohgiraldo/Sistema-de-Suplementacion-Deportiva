@@ -22,6 +22,10 @@
     "test:cart": "node scripts/test-cart.js",
     "create-test-user": "node scripts/create-test-user.js",
     "test-login-simple": "node scripts/test-login-simple.js",
+    "create-indexes": "node scripts/create-indexes.js",
+    "cleanup-indexes": "node scripts/cleanup-indexes.js",
+    "performance-test": "node scripts/performance-test.js",
+    "monitor-performance": "node scripts/monitor-performance.js",
     "build": "npm install"
   },
   "engines": {
