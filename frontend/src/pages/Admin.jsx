@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api';
-import InventoryTable from '../components/InventoryTable';
-import InventoryStats from '../components/InventoryStats';
-import StockAlerts from '../components/StockAlerts';
-import NotificationContainer from '../components/NotificationContainer';
+import {
+    LazyInventoryTable,
+    LazyInventoryStats,
+    LazyStockAlerts,
+    LazyNotificationContainer
+} from '../components/LazyComponents';
+import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 
 const AdminDashboard = () => {
@@ -239,17 +242,23 @@ const AdminDashboard = () => {
 
                 {/* Estadísticas de Inventario */}
                 <div className="mt-8">
-                    <InventoryStats />
+                    <Suspense fallback={<LoadingSpinner text="Cargando estadísticas..." />}>
+                        <LazyInventoryStats />
+                    </Suspense>
                 </div>
 
                 {/* Alertas de Stock */}
                 <div className="mt-8">
-                    <StockAlerts />
+                    <Suspense fallback={<LoadingSpinner text="Cargando alertas..." />}>
+                        <LazyStockAlerts />
+                    </Suspense>
                 </div>
 
                 {/* Tabla de Inventario */}
                 <div className="mt-8">
-                    <InventoryTable />
+                    <Suspense fallback={<LoadingSpinner text="Cargando tabla de inventario..." />}>
+                        <LazyInventoryTable />
+                    </Suspense>
                 </div>
 
                 {/* Acciones Rápidas */}
@@ -287,10 +296,12 @@ const AdminDashboard = () => {
             </div>
 
             {/* Contenedor de Notificaciones */}
-            <NotificationContainer
-                notifications={notifications}
-                onRemove={removeNotification}
-            />
+            <Suspense fallback={null}>
+                <LazyNotificationContainer
+                    notifications={notifications}
+                    onRemove={removeNotification}
+                />
+            </Suspense>
         </div>
     );
 };

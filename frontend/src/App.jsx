@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { CartProvider, useCart } from './contexts/CartContext.jsx';
 import Header from './components/Header';
@@ -10,14 +11,18 @@ import ProductModal from './components/ProductModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import ProductCard from './components/productCard';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Profile from './pages/Profile';
-import Cart from './pages/Cart';
-import ProductDetail from './pages/ProductDetail';
-import Admin from './pages/Admin';
-import { useEffect, useState } from 'react';
+import PageLoader from './components/PageLoader';
+import LazyErrorBoundary from './components/LazyErrorBoundary';
 import { useProducts } from './hooks/useProducts';
+import { preloadCriticalComponents, preloadAdminComponents, preloadProductComponents } from './utils/preloadComponents';
+
+// Lazy loading de páginas
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Cart = lazy(() => import('./pages/Cart'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 function AppContent() {
   const location = useLocation();
@@ -30,6 +35,19 @@ function AppContent() {
   // Determinar qué header mostrar
   const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
   const isAdminPage = location.pathname === '/admin';
+
+  // Preload de componentes según la ruta actual
+  useEffect(() => {
+    // Preload de componentes críticos siempre
+    preloadCriticalComponents();
+
+    // Preload específico según la ruta
+    if (location.pathname === '/') {
+      preloadProductComponents();
+    } else if (location.pathname === '/admin') {
+      preloadAdminComponents();
+    }
+  }, [location.pathname]);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -135,39 +153,43 @@ function AuthenticatedApp({
           )}
         </>
       )}
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/product/:productId"
-          element={<ProductDetail />}
-        />
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <Admin />
-            </AdminRoute>
-          }
-        />
-      </Routes>
+      <LazyErrorBoundary>
+        <Suspense fallback={<PageLoader message="Cargando página..." />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/product/:productId"
+              element={<ProductDetail />}
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </LazyErrorBoundary>
       <Footer />
     </>
   );
