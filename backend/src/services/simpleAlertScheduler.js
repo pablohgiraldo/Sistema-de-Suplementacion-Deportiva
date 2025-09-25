@@ -110,12 +110,12 @@ class SimpleAlertScheduler {
             console.log(`📊 Resumen: ${alertsSent} alertas enviadas, ${alertsSkipped} omitidas`);
 
             // Enviar resumen si hay alertas críticas
-            if (alertsSent > 0) {
-                const summaryResult = await notificationService.sendSummaryAlert();
-                if (summaryResult.success) {
-                    console.log('✅ Resumen de alertas enviado');
-                }
-            }
+            // if (alertsSent > 0) {
+            //     const summaryResult = await notificationService.sendSummaryAlert();
+            //     if (summaryResult.success) {
+            //         console.log('✅ Resumen de alertas enviado');
+            //     }
+            // }
 
         } catch (error) {
             console.error('❌ Error en verificación automática de alertas:', error);

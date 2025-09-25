@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useAuth } from './AuthContext.jsx';
 import api from '../services/api';
 
 export const CartContext = createContext();
@@ -14,14 +15,28 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const { isAuthenticated, user } = useAuth();
 
-    // No cargar el carrito automáticamente - se cargará cuando el usuario se autentique
+    // Cargar el carrito cuando el usuario se autentique
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            loadCartFromBackend();
+        } else {
+            // Limpiar carrito cuando el usuario se desautentica
+            setCartItems([]);
+            setError(null);
+        }
+    }, [isAuthenticated, user]);
 
     const loadCartFromBackend = useCallback(async () => {
-        try {
-            // Agregar un pequeño delay para evitar solicitudes excesivas
-            await new Promise(resolve => setTimeout(resolve, 100));
+        if (!isAuthenticated) return;
 
+        setLoading(true);
+        setError(null);
+
+        try {
             const response = await api.get('/cart');
             if (response.data.success) {
                 const backendItems = response.data.data.items || [];
@@ -31,6 +46,8 @@ export const CartProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Error loading cart from backend:', error);
+            setError('Error al cargar el carrito');
+
             // Si es error 401, el usuario no está autenticado
             if (error.response?.status === 401) {
                 setCartItems([]);
@@ -48,8 +65,10 @@ export const CartProvider = ({ children }) => {
             if (savedCart) {
                 setCartItems(JSON.parse(savedCart));
             }
+        } finally {
+            setLoading(false);
         }
-    }, []); // Sin dependencias para que sea estable
+    }, [isAuthenticated]);
 
     // Solo guardar en localStorage cuando el carrito cambie por acciones del usuario
     // No guardar cuando se carga desde el backend
@@ -61,6 +80,14 @@ export const CartProvider = ({ children }) => {
     }, [cartItems]);
 
     const addToCart = async (product) => {
+        if (!isAuthenticated) {
+            setError('Debes iniciar sesión para agregar productos al carrito');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
         try {
             const response = await api.post('/cart/add', {
                 productId: product._id,
@@ -68,79 +95,75 @@ export const CartProvider = ({ children }) => {
             });
 
             if (response.data.success) {
-                // Actualizar el estado local
-                setCartItems(prevItems => {
-                    const existingItem = prevItems.find(item => item._id === product._id);
-
-                    if (existingItem) {
-                        return prevItems.map(item =>
-                            item._id === product._id
-                                ? { ...item, quantity: item.quantity + 1 }
-                                : item
-                        );
-                    } else {
-                        return [...prevItems, { ...product, quantity: 1 }];
-                    }
-                });
+                // Recargar el carrito desde el backend para mantener sincronización
+                await loadCartFromBackend();
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
-            // Fallback a localStorage si falla la API
-            setCartItems(prevItems => {
-                const existingItem = prevItems.find(item => item._id === product._id);
+            setError('Error al agregar producto al carrito');
 
-                if (existingItem) {
-                    return prevItems.map(item =>
-                        item._id === product._id
-                            ? { ...item, quantity: item.quantity + 1 }
-                            : item
-                    );
-                } else {
-                    return [...prevItems, { ...product, quantity: 1 }];
-                }
-            });
+            // Si es error 401, el usuario no está autenticado
+            if (error.response?.status === 401) {
+                setError('Sesión expirada. Por favor, inicia sesión nuevamente');
+                return;
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     const removeFromCart = async (productId) => {
+        if (!isAuthenticated) return;
+
+        setLoading(true);
+        setError(null);
+
         try {
             const response = await api.delete(`/cart/item/${productId}`);
             if (response.data.success) {
-                setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+                await loadCartFromBackend();
             }
         } catch (error) {
             console.error('Error removing from cart:', error);
-            // Fallback a actualización local
-            setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+            setError('Error al eliminar producto del carrito');
+
+            if (error.response?.status === 401) {
+                setError('Sesión expirada. Por favor, inicia sesión nuevamente');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     const updateQuantity = async (productId, quantity) => {
+        if (!isAuthenticated) return;
+
+        setLoading(true);
+        setError(null);
+
         try {
             const response = await api.put(`/cart/item/${productId}`, { quantity });
             if (response.data.success) {
-                setCartItems(prevItems =>
-                    prevItems.map(item =>
-                        item._id === productId
-                            ? { ...item, quantity }
-                            : item
-                    )
-                );
+                await loadCartFromBackend();
             }
         } catch (error) {
             console.error('Error updating quantity:', error);
-            // Fallback a actualización local
-            setCartItems(prevItems =>
-                prevItems.map(item =>
-                    item._id === productId
-                        ? { ...item, quantity }
-                        : item
-                )
-            );
+            setError('Error al actualizar cantidad');
+
+            if (error.response?.status === 401) {
+                setError('Sesión expirada. Por favor, inicia sesión nuevamente');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     const clearCart = async () => {
+        if (!isAuthenticated) return;
+
+        setLoading(true);
+        setError(null);
+
         try {
             const response = await api.delete('/cart/clear');
             if (response.data.success) {
@@ -148,8 +171,13 @@ export const CartProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Error clearing cart:', error);
-            // Fallback a actualización local
-            setCartItems([]);
+            setError('Error al vaciar carrito');
+
+            if (error.response?.status === 401) {
+                setError('Sesión expirada. Por favor, inicia sesión nuevamente');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -179,6 +207,8 @@ export const CartProvider = ({ children }) => {
     const value = {
         cartItems,
         isCartOpen,
+        loading,
+        error,
         addToCart,
         removeFromCart,
         updateQuantity,

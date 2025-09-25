@@ -69,9 +69,7 @@ export const validateLogin = [
 
     body('contraseña')
         .notEmpty()
-        .withMessage('La contraseña es obligatoria')
-        .isLength({ min: 1, max: 100 })
-        .withMessage('La contraseña no puede estar vacía'),
+        .withMessage('La contraseña es obligatoria'),
 
     handleValidationErrors
 ];

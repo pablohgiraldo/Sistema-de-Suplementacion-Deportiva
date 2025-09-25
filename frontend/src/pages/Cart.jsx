@@ -16,7 +16,7 @@ export default function Cart() {
     } = useCart();
 
     // Obtener inventarios de todos los productos en el carrito
-    const productIds = cartItems.map(item => item.product._id);
+    const productIds = cartItems.map(item => item._id);
     // Temporalmente deshabilitado para evitar loop infinito
     // const { inventories, loading: inventoryLoading } = useMultipleInventory(productIds);
     const inventories = {};
@@ -127,11 +127,11 @@ export default function Cart() {
                                 {/* Cart Items */}
                                 <div className="space-y-4">
                                     {cartItems.map((item) => (
-                                        <div key={item.product._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                                        <div key={item._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                                             <div className="flex-shrink-0 relative overflow-hidden rounded-md bg-gray-100">
                                                 <img
-                                                    src={item.product.imageUrl || '/placeholder-product.jpg'}
-                                                    alt={item.product.name}
+                                                    src={item.imageUrl || '/placeholder-product.jpg'}
+                                                    alt={item.name}
                                                     className="h-20 w-20 object-cover transition-opacity duration-300"
                                                     loading="lazy"
                                                     decoding="async"
@@ -150,27 +150,27 @@ export default function Cart() {
 
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-lg font-medium text-gray-900 truncate">
-                                                    {item.product.name}
+                                                    {item.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-500">{item.product.brand}</p>
+                                                <p className="text-sm text-gray-500">{item.brand}</p>
                                                 <p className="text-lg font-semibold text-green-600">
-                                                    ${item.product.price.toFixed(2)}
+                                                    ${item.price.toFixed(2)}
                                                 </p>
 
                                                 {/* Información de stock */}
                                                 <div className="mt-2 flex items-center space-x-2">
                                                     <span className="text-xs text-gray-500">
-                                                        Stock: {getAvailableStock(item.product._id)} unidades
+                                                        Stock: {getAvailableStock(item._id)} unidades
                                                     </span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${getStockStatusColor(item.product._id)}`}>
-                                                        {getStockStatus(item.product._id)}
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${getStockStatusColor(item._id)}`}>
+                                                        {getStockStatus(item._id)}
                                                     </span>
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center space-x-2">
                                                 <button
-                                                    onClick={() => handleUpdateQuantityWithValidation(item.product._id, item.quantity - 1)}
+                                                    onClick={() => handleUpdateQuantityWithValidation(item._id, item.quantity - 1)}
                                                     disabled={loading}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
@@ -180,8 +180,8 @@ export default function Cart() {
                                                     {item.quantity}
                                                 </span>
                                                 <button
-                                                    onClick={() => handleUpdateQuantityWithValidation(item.product._id, item.quantity + 1)}
-                                                    disabled={loading || !canUpdateQuantity(item.product._id, item.quantity + 1)}
+                                                    onClick={() => handleUpdateQuantityWithValidation(item._id, item.quantity + 1)}
+                                                    disabled={loading || !canUpdateQuantity(item._id, item.quantity + 1)}
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50"
                                                 >
                                                     +
@@ -190,10 +190,10 @@ export default function Cart() {
 
                                             <div className="text-right">
                                                 <p className="text-lg font-semibold text-gray-900">
-                                                    ${(item.product.price * item.quantity).toFixed(2)}
+                                                    ${(item.price * item.quantity).toFixed(2)}
                                                 </p>
                                                 <button
-                                                    onClick={() => removeFromCart(item.product._id)}
+                                                    onClick={() => removeFromCart(item._id)}
                                                     disabled={loading}
                                                     className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
                                                 >

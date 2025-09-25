@@ -39,6 +39,9 @@
     "test-email-notifications": "node scripts/test-email-notifications.js",
     "test-scheduler": "node scripts/test-scheduler.js",
     "cleanup-test-products": "node scripts/cleanup-test-products.js",
+    "test-cart-fix": "node scripts/test-cart-fix.js",
+    "test-simple-login": "node scripts/test-simple-login.js",
+    "fix-test-user": "node scripts/fix-test-user.js",
     "build": "npm install"
   },
   "engines": {
