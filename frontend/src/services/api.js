@@ -37,7 +37,7 @@ api.interceptors.response.use(
         const refreshTokenValue = getRefreshToken();
         if (refreshTokenValue) {
           const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/users/refresh`,
+            "https://supergains-backend.onrender.com/api/users/refresh",
             { refreshToken: refreshTokenValue }
           );
 
@@ -48,9 +48,10 @@ api.interceptors.response.use(
           }
         }
       } catch (refreshError) {
-        // Si el refresh falla, limpiar localStorage y redirigir al login
+        console.log('Refresh token falló, limpiando sesión');
+        // Si el refresh falla, limpiar localStorage
         clearAuthData();
-        window.location.href = '/login';
+        // No redirigir automáticamente, dejar que el componente maneje el estado
         return Promise.reject(refreshError);
       }
     }

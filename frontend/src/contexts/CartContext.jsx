@@ -4,10 +4,77 @@ import api from '../services/api';
 
 export const CartContext = createContext();
 
+// Hook seguro que nunca falla
+export const useCartSafe = () => {
+    try {
+        const context = useContext(CartContext);
+        if (!context) {
+            return {
+                cartItems: [],
+                isCartOpen: false,
+                loading: false,
+                error: null,
+                addToCart: () => { },
+                removeFromCart: () => { },
+                updateQuantity: () => { },
+                clearCart: () => { },
+                getCartItemsCount: () => 0,
+                getCartItemCount: () => 0,
+                getCartTotal: () => 0,
+                openCart: () => { },
+                closeCart: () => { },
+                isInCart: () => false,
+                getCartItemQuantity: () => 0,
+                loadCartFromBackend: () => { }
+            };
+        }
+        return context;
+    } catch (error) {
+        console.warn('Error en useCartSafe:', error);
+        return {
+            cartItems: [],
+            isCartOpen: false,
+            loading: false,
+            error: null,
+            addToCart: () => { },
+            removeFromCart: () => { },
+            updateQuantity: () => { },
+            clearCart: () => { },
+            getCartItemsCount: () => 0,
+            getCartItemCount: () => 0,
+            getCartTotal: () => 0,
+            openCart: () => { },
+            closeCart: () => { },
+            isInCart: () => false,
+            getCartItemQuantity: () => 0,
+            loadCartFromBackend: () => { }
+        };
+    }
+};
+
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) {
-        throw new Error('useCart debe ser usado dentro de CartProvider');
+        // Retornar valores por defecto en lugar de lanzar error
+        console.warn('useCart está siendo usado fuera de CartProvider, retornando valores por defecto');
+        return {
+            cartItems: [],
+            isCartOpen: false,
+            loading: false,
+            error: null,
+            addToCart: () => console.warn('addToCart no disponible fuera de CartProvider'),
+            removeFromCart: () => console.warn('removeFromCart no disponible fuera de CartProvider'),
+            updateQuantity: () => console.warn('updateQuantity no disponible fuera de CartProvider'),
+            clearCart: () => console.warn('clearCart no disponible fuera de CartProvider'),
+            getCartItemsCount: () => 0,
+            getCartItemCount: () => 0,
+            getCartTotal: () => 0,
+            openCart: () => console.warn('openCart no disponible fuera de CartProvider'),
+            closeCart: () => console.warn('closeCart no disponible fuera de CartProvider'),
+            isInCart: () => false,
+            getCartItemQuantity: () => 0,
+            loadCartFromBackend: () => console.warn('loadCartFromBackend no disponible fuera de CartProvider')
+        };
     }
     return context;
 };
@@ -17,6 +84,7 @@ export const CartProvider = ({ children }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     const { isAuthenticated, user } = useAuth();
 
     // Cargar el carrito cuando el usuario se autentique
@@ -27,6 +95,9 @@ export const CartProvider = ({ children }) => {
             // Limpiar carrito cuando el usuario se desautentica
             setCartItems([]);
             setError(null);
+            // Limpiar localStorage también
+            localStorage.removeItem('supergains_cart');
+            localStorage.removeItem('supergains_auth');
         }
     }, [isAuthenticated, user]);
 
@@ -38,9 +109,36 @@ export const CartProvider = ({ children }) => {
 
         try {
             const response = await api.get('/cart');
+            console.log('🛒 CartContext: Respuesta completa del backend:', response.data);
             if (response.data.success) {
                 const backendItems = response.data.data.items || [];
-                setCartItems(backendItems);
+                console.log('🛒 CartContext: Items del backend:', backendItems);
+
+                // Transformar items si tienen estructura anidada
+                const transformedItems = backendItems.map(item => {
+                    // Si tiene estructura anidada (product: {...})
+                    if (item.product && item.product._id) {
+                        return {
+                            _id: item.product._id,
+                            name: item.product.name,
+                            price: item.product.price,
+                            imageUrl: item.product.imageUrl,
+                            brand: item.product.brand,
+                            quantity: item.quantity
+                        };
+                    }
+                    // Si ya tiene estructura plana
+                    return item;
+                });
+
+                console.log('🛒 CartContext: Items transformados:', transformedItems);
+                console.log('🛒 CartContext: ¿Tienen nombres?', transformedItems.map(item => ({
+                    id: item._id,
+                    name: item.name,
+                    hasName: !!item.name
+                })));
+
+                setCartItems(transformedItems);
                 // Limpiar localStorage cuando se carga desde el backend
                 localStorage.removeItem('supergains_cart');
             }
@@ -60,30 +158,27 @@ export const CartProvider = ({ children }) => {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 return;
             }
-            // Fallback a localStorage para otros errores
-            const savedCart = localStorage.getItem('supergains_cart');
-            if (savedCart) {
-                setCartItems(JSON.parse(savedCart));
-            }
+            // NO usar localStorage como fallback - mantener carrito vacío
+            console.log('🚫 CartContext: No usando localStorage como fallback');
         } finally {
             setLoading(false);
+            // Marcar que la carga inicial ha terminado
+            setIsInitialLoad(false);
         }
     }, [isAuthenticated]);
 
-    // Solo guardar en localStorage cuando el carrito cambie por acciones del usuario
-    // No guardar cuando se carga desde el backend
-    useEffect(() => {
-        // Solo guardar si el carrito no está vacío y no es la carga inicial
-        if (cartItems.length > 0) {
-            localStorage.setItem('supergains_cart', JSON.stringify(cartItems));
-        }
-    }, [cartItems]);
+    // NO guardar en localStorage - solo usar el backend como fuente de verdad
+    // useEffect(() => {
+    //     // Comentado para evitar problemas de sincronización
+    // }, [cartItems]);
 
     const addToCart = async (product) => {
         if (!isAuthenticated) {
             setError('Debes iniciar sesión para agregar productos al carrito');
             return;
         }
+
+        console.log('➕ CartContext: Agregando producto al carrito:', product);
 
         setLoading(true);
         setError(null);
@@ -109,6 +204,8 @@ export const CartProvider = ({ children }) => {
                         return [...prevItems, { ...product, quantity: 1 }];
                     }
                 });
+                // Marcar que ya no es carga inicial después de agregar producto
+                setIsInitialLoad(false);
             }
         } catch (error) {
             console.error('Error adding to cart:', error);

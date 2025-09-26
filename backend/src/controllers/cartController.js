@@ -19,10 +19,20 @@ export async function getCart(req, res) {
             });
         }
 
+        // Transformar los items para que tengan la estructura esperada por el frontend
+        const transformedItems = cart.items.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            quantity: item.quantity
+        }));
+
         res.json({
             success: true,
             data: {
-                items: cart.items,
+                items: transformedItems,
                 total: cart.total
             }
         });
@@ -101,13 +111,24 @@ export async function addToCart(req, res) {
 
         // Obtener carrito actualizado con productos poblados
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand');
+            .populate('items.product', 'name price imageUrl brand')
+            .lean();
+
+        // Transformar los items para que tengan la estructura esperada por el frontend
+        const transformedItems = updatedCart.items.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            quantity: item.quantity
+        }));
 
         res.json({
             success: true,
             message: 'Producto agregado al carrito',
             data: {
-                items: updatedCart.items,
+                items: transformedItems,
                 total: updatedCart.total
             }
         });
@@ -176,13 +197,24 @@ export async function updateCartItem(req, res) {
 
         // Obtener carrito actualizado
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand');
+            .populate('items.product', 'name price imageUrl brand')
+            .lean();
+
+        // Transformar los items para que tengan la estructura esperada por el frontend
+        const transformedItems = updatedCart.items.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            quantity: item.quantity
+        }));
 
         res.json({
             success: true,
             message: 'Carrito actualizado',
             data: {
-                items: updatedCart.items,
+                items: transformedItems,
                 total: updatedCart.total
             }
         });
@@ -211,13 +243,24 @@ export async function removeFromCart(req, res) {
 
         // Obtener carrito actualizado
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand');
+            .populate('items.product', 'name price imageUrl brand')
+            .lean();
+
+        // Transformar los items para que tengan la estructura esperada por el frontend
+        const transformedItems = updatedCart.items.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            quantity: item.quantity
+        }));
 
         res.json({
             success: true,
             message: 'Producto removido del carrito',
             data: {
-                items: updatedCart.items,
+                items: transformedItems,
                 total: updatedCart.total
             }
         });

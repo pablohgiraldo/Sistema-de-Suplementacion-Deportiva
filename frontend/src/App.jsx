@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
-import { CartProvider, useCart } from './contexts/CartContext.jsx';
+import { CartProvider, useCartSafe } from './contexts/CartContext.jsx';
 import Header from './components/Header';
 import AdminHeader from './components/AdminHeader';
 import Footer from './components/Footer';
@@ -26,6 +26,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 
 function AppContent() {
   const location = useLocation();
+  const { isLoading: authLoading } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("Todos los Productos");
   const [selectedFilter, setSelectedFilter] = useState("Todos los Productos");
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +49,11 @@ function AppContent() {
       preloadAdminComponents();
     }
   }, [location.pathname]);
+
+  // Mostrar loading mientras se valida la autenticación
+  if (authLoading) {
+    return <PageLoader />;
+  }
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -107,7 +113,7 @@ function AuthenticatedApp({
   setShowRegister
 }) {
   const { user, isAuthenticated, logout } = useAuth();
-  const { cartItems, openCart, getCartItemsCount, loadCartFromBackend } = useCart();
+  const { cartItems, openCart, getCartItemsCount, loadCartFromBackend } = useCartSafe();
 
   // Cargar carrito cuando el usuario se autentique
   useEffect(() => {

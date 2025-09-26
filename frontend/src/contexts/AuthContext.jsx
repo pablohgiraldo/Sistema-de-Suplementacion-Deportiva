@@ -22,11 +22,39 @@ export const AuthProvider = ({ children }) => {
     // Cargar datos de autenticación desde localStorage
     const authData = getAuthData();
     if (authData.user && authData.accessToken) {
-      setUser(authData.user);
-      setIsAuthenticated(true);
+      // Verificar si el token sigue siendo válido
+      validateToken(authData.accessToken, authData.user);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  const validateToken = async (token, userData) => {
+    try {
+      // Hacer una petición simple para verificar si el token es válido
+      const response = await api.get('/users/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        // Token inválido, limpiar datos
+        clearAuthData();
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.log('Token expirado o inválido, limpiando sesión');
+      // Token expirado o inválido, limpiar datos
+      clearAuthData();
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     try {

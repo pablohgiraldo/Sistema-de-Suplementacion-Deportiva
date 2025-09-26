@@ -15,6 +15,9 @@ export default function Cart() {
         getCartItemCount
     } = useCart();
 
+    // Debug: Log cart items
+    console.log('🛒 Cart.jsx: cartItems recibidos:', cartItems);
+
     // Obtener inventarios de todos los productos en el carrito
     const productIds = cartItems.map(item => item._id);
     // Temporalmente deshabilitado para evitar loop infinito
@@ -126,11 +129,11 @@ export default function Cart() {
                             <div className="space-y-6">
                                 {/* Cart Items */}
                                 <div className="space-y-4">
-                                    {cartItems.map((item) => (
-                                        <div key={item._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                                    {cartItems.map((item, index) => (
+                                        <div key={item._id || `cart-item-${index}`} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                                             <div className="flex-shrink-0 relative overflow-hidden rounded-md bg-gray-100">
                                                 <img
-                                                    src={item.imageUrl || '/placeholder-product.jpg'}
+                                                    src={item.imageUrl || '/placeholder-product.svg'}
                                                     alt={item.name}
                                                     className="h-20 w-20 object-cover transition-opacity duration-300"
                                                     loading="lazy"
@@ -139,7 +142,10 @@ export default function Cart() {
                                                         e.target.style.opacity = '1';
                                                     }}
                                                     onError={(e) => {
-                                                        e.target.src = '/placeholder-product.jpg';
+                                                        // Evitar loop infinito - solo cambiar si no es ya el placeholder
+                                                        if (!e.target.src.includes('placeholder-product.svg')) {
+                                                            e.target.src = '/placeholder-product.svg';
+                                                        }
                                                         e.target.style.opacity = '1';
                                                     }}
                                                     style={{ opacity: 0 }}
