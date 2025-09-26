@@ -95,8 +95,20 @@ export const CartProvider = ({ children }) => {
             });
 
             if (response.data.success) {
-                // Recargar el carrito desde el backend para mantener sincronización
-                await loadCartFromBackend();
+                // Actualizar estado local inmediatamente para mejor UX
+                setCartItems(prevItems => {
+                    const existingItem = prevItems.find(item => item._id === product._id);
+
+                    if (existingItem) {
+                        return prevItems.map(item =>
+                            item._id === product._id
+                                ? { ...item, quantity: item.quantity + 1 }
+                                : item
+                        );
+                    } else {
+                        return [...prevItems, { ...product, quantity: 1 }];
+                    }
+                });
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
@@ -115,16 +127,24 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (productId) => {
         if (!isAuthenticated) return;
 
+        console.log('🗑️ Intentando eliminar producto del carrito:', productId);
+        console.log('🔍 Tipo de productId:', typeof productId);
+        console.log('🔍 Valor de productId:', productId);
+
         setLoading(true);
         setError(null);
 
         try {
             const response = await api.delete(`/cart/item/${productId}`);
+            console.log('✅ Respuesta del servidor:', response.data);
             if (response.data.success) {
-                await loadCartFromBackend();
+                // Actualizar estado local inmediatamente
+                setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
             }
         } catch (error) {
-            console.error('Error removing from cart:', error);
+            console.error('❌ Error removing from cart:', error);
+            console.error('❌ Error response:', error.response?.data);
+            console.error('❌ Error status:', error.response?.status);
             setError('Error al eliminar producto del carrito');
 
             if (error.response?.status === 401) {
@@ -144,7 +164,14 @@ export const CartProvider = ({ children }) => {
         try {
             const response = await api.put(`/cart/item/${productId}`, { quantity });
             if (response.data.success) {
-                await loadCartFromBackend();
+                // Actualizar estado local inmediatamente
+                setCartItems(prevItems =>
+                    prevItems.map(item =>
+                        item._id === productId
+                            ? { ...item, quantity }
+                            : item
+                    )
+                );
             }
         } catch (error) {
             console.error('Error updating quantity:', error);

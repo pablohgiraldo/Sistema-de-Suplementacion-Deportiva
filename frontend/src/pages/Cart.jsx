@@ -193,7 +193,10 @@ export default function Cart() {
                                                     ${(item.price * item.quantity).toFixed(2)}
                                                 </p>
                                                 <button
-                                                    onClick={() => removeFromCart(item._id)}
+                                                    onClick={() => {
+                                                        console.log('🗑️ Cart: Eliminando producto:', item._id);
+                                                        removeFromCart(item._id);
+                                                    }}
                                                     disabled={loading}
                                                     className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
                                                 >

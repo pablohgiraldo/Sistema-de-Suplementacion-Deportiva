@@ -1,21 +1,11 @@
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CartContext } from '../contexts/CartContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
-
-// Hook seguro para usar el carrito
-function useCartSafe() {
-  try {
-    return useContext(CartContext);
-  } catch {
-    return null;
-  }
-}
 
 export default function ProductCard({ p }) {
   const { isAuthenticated } = useAuth();
-  const cartContext = useCartSafe();
+  const cartContext = useCart();
   const navigate = useNavigate();
   const { inventory, loading: inventoryLoading } = useInventory(p._id);
 
@@ -55,11 +45,6 @@ export default function ProductCard({ p }) {
   const handleAddToCart = async (e) => {
     e.stopPropagation(); // Evitar navegación al detalle del producto
 
-    if (!cartContext) {
-      alert('Funcionalidad de carrito no disponible');
-      return;
-    }
-
     if (!isAuthenticated) {
       alert('Necesitas iniciar sesión para agregar productos al carrito');
       return;
@@ -81,8 +66,7 @@ export default function ProductCard({ p }) {
     }
 
     try {
-      cartContext.addToCart(p);
-      // El estado se actualizará automáticamente
+      await cartContext.addToCart(p);
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
       alert('Error al agregar al carrito');
@@ -92,14 +76,15 @@ export default function ProductCard({ p }) {
   const handleUpdateQuantity = async (newQuantity, e) => {
     e.stopPropagation(); // Evitar navegación al detalle del producto
 
-    if (!cartContext) {
-      alert('Funcionalidad de carrito no disponible');
-      return;
-    }
-
     if (newQuantity < 1) {
       // Si la cantidad es 0, eliminar del carrito
-      cartContext.removeFromCart(p._id);
+      console.log('🗑️ ProductCard: Eliminando producto del carrito:', p._id);
+      try {
+        await cartContext.removeFromCart(p._id);
+      } catch (error) {
+        console.error('Error al eliminar del carrito:', error);
+        alert('Error al eliminar del carrito');
+      }
       return;
     }
 
@@ -115,8 +100,7 @@ export default function ProductCard({ p }) {
     }
 
     try {
-      cartContext.updateQuantity(p._id, newQuantity);
-      // El estado se actualizará automáticamente
+      await cartContext.updateQuantity(p._id, newQuantity);
     } catch (error) {
       console.error('Error al actualizar cantidad:', error);
       alert('Error al actualizar cantidad');
@@ -194,45 +178,43 @@ export default function ProductCard({ p }) {
       )}
 
       {/* Botones de carrito */}
-      {cartContext && (
-        <div className="mt-2 sm:mt-4">
-          {cartContext.isInCart(p._id) ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <button
-                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1, e)}
-                  disabled={inventoryLoading || !canAddToCart(1)}
-                  className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
-                  aria-label="Reducir cantidad"
-                >
-                  -
-                </button>
-                <span className="text-xs sm:text-sm font-medium min-w-[16px] text-center">
-                  {cartContext.getCartItemQuantity(p._id)}
-                </span>
-                <button
-                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1, e)}
-                  disabled={inventoryLoading || !canAddToCart(cartContext.getCartItemQuantity(p._id) + 1)}
-                  className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
-                  aria-label="Aumentar cantidad"
-                >
-                  +
-                </button>
-              </div>
-              <span className="text-xs text-green-600 font-medium">En carrito</span>
+      <div className="mt-2 sm:mt-4">
+        {cartContext.isInCart(p._id) ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <button
+                onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1, e)}
+                disabled={inventoryLoading || !canAddToCart(1)}
+                className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
+                aria-label="Reducir cantidad"
+              >
+                -
+              </button>
+              <span className="text-xs sm:text-sm font-medium min-w-[16px] text-center">
+                {cartContext.getCartItemQuantity(p._id)}
+              </span>
+              <button
+                onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1, e)}
+                disabled={inventoryLoading || !canAddToCart(cartContext.getCartItemQuantity(p._id) + 1)}
+                className="bg-gray-200 text-gray-600 px-1.5 sm:px-2 py-1 rounded-md hover:bg-gray-300 disabled:opacity-50 text-xs sm:text-sm min-w-[24px] sm:min-w-[32px] h-6 sm:h-8 flex items-center justify-center"
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </button>
             </div>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              disabled={inventoryLoading || !canAddToCart(1)}
-              className="w-full bg-blue-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
-            >
-              {inventoryLoading ? 'Cargando...' :
-                !canAddToCart(1) ? 'Agotado' : 'Agregar'}
-            </button>
-          )}
-        </div>
-      )}
+            <span className="text-xs text-green-600 font-medium">En carrito</span>
+          </div>
+        ) : (
+          <button
+            onClick={handleAddToCart}
+            disabled={inventoryLoading || !canAddToCart(1)}
+            className="w-full bg-blue-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+          >
+            {inventoryLoading ? 'Cargando...' :
+              !canAddToCart(1) ? 'Agotado' : 'Agregar'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

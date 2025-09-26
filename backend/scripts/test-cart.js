@@ -11,7 +11,7 @@ async function login() {
         console.log("🔐 Iniciando sesión...");
         const response = await axios.post(`${API_BASE_URL}/users/login`, {
             email: "test@supergains.com",
-            contraseña: "password123"
+            contraseña: "TestPassword123"
         });
 
         if (response.data.success) {
