@@ -9,6 +9,7 @@ import { connectDB } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
@@ -121,6 +122,7 @@ app.get("/", (_req, res) => {
 app.use("/api/products", productRoutes); // Sin rate limiting para productos
 app.use("/api/users", authLimiter, userRoutes); // Rate limiting para autenticación
 app.use("/api/cart", cartLimiter, cartRoutes); // Rate limiting más permisivo para carrito
+app.use("/api/orders", orderRoutes); // Rutas de órdenes
 
 // Rutas de inventario - sin rate limiting para consultas públicas
 app.use("/api/inventory", inventoryRoutes);
@@ -179,6 +181,7 @@ const startServer = async () => {
       console.log(`   - POST /api/users/login`);
       console.log(`   - GET  /api/users/profile`);
       console.log(`   - *    /api/cart/*`);
+      console.log(`   - *    /api/orders/*`);
       console.log(`   - *    /api/inventory/*`);
       console.log(`   - *    /api/alerts/*`);
       console.log(`   - *    /api/notifications/*`);

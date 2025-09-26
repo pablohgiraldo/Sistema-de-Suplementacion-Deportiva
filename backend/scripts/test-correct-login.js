@@ -5,13 +5,13 @@ dotenv.config();
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:4000/api';
 
-async function testSimpleLogin() {
+async function testCorrectLogin() {
     try {
-        console.log("🔐 Probando login simple...");
-        
+        console.log("🔐 Probando login con credenciales correctas...");
+
         const loginData = {
-            email: 'admin@supergains.com',
-            contraseña: 'admin123'
+            email: 'admin@test.com',
+            contraseña: 'Admin123!'
         };
 
         console.log("Datos enviados:", JSON.stringify(loginData, null, 2));
@@ -22,12 +22,14 @@ async function testSimpleLogin() {
             }
         });
 
-        console.log("✅ Respuesta exitosa:", response.data);
-        return response.data;
+        console.log("✅ Login exitoso!");
+        console.log("Respuesta completa:", JSON.stringify(response.data, null, 2));
+
+        return response.data.token;
     } catch (error) {
         console.error("❌ Error:", error.response?.data || error.message);
         return null;
     }
 }
 
-testSimpleLogin();
+testCorrectLogin();
