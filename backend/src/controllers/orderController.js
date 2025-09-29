@@ -464,6 +464,113 @@ export async function getTopSellingProducts(req, res) {
     }
 }
 
+// Obtener resumen básico de ventas (solo admin)
+export async function getOrdersSummary(req, res) {
+    try {
+        const { startDate, endDate } = req.query;
+
+        // Construir filtro de fecha si se proporciona
+        const dateFilter = {};
+        if (startDate || endDate) {
+            dateFilter.createdAt = {};
+            if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+            if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+        }
+
+        // Obtener estadísticas básicas
+        const [
+            totalOrders,
+            totalRevenue,
+            ordersByStatus,
+            ordersByPaymentStatus,
+            recentOrders
+        ] = await Promise.all([
+            // Total de órdenes
+            Order.countDocuments(dateFilter),
+
+            // Ingresos totales
+            Order.aggregate([
+                { $match: dateFilter },
+                { $group: { _id: null, total: { $sum: '$total' } } }
+            ]),
+
+            // Órdenes por estado
+            Order.aggregate([
+                { $match: dateFilter },
+                { $group: { _id: '$status', count: { $sum: 1 } } },
+                { $sort: { count: -1 } }
+            ]),
+
+            // Órdenes por estado de pago
+            Order.aggregate([
+                { $match: dateFilter },
+                { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
+                { $sort: { count: -1 } }
+            ]),
+
+            // Órdenes recientes (últimas 5)
+            Order.find(dateFilter)
+                .populate('user', 'nombre email')
+                .populate('items.product', 'name brand')
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .select('orderNumber user total status paymentStatus createdAt')
+        ]);
+
+        // Calcular ingresos totales
+        const revenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
+
+        // Calcular promedio por orden
+        const averageOrderValue = totalOrders > 0 ? revenue / totalOrders : 0;
+
+        // Formatear datos de estado
+        const statusSummary = ordersByStatus.reduce((acc, item) => {
+            acc[item._id] = item.count;
+            return acc;
+        }, {});
+
+        const paymentStatusSummary = ordersByPaymentStatus.reduce((acc, item) => {
+            acc[item._id] = item.count;
+            return acc;
+        }, {});
+
+        res.json({
+            success: true,
+            data: {
+                summary: {
+                    totalOrders,
+                    totalRevenue: revenue,
+                    averageOrderValue: Math.round(averageOrderValue * 100) / 100
+                },
+                statusBreakdown: {
+                    orders: statusSummary,
+                    payments: paymentStatusSummary
+                },
+                recentOrders: recentOrders.map(order => ({
+                    orderNumber: order.orderNumber,
+                    customer: order.user.nombre,
+                    total: order.total,
+                    status: order.status,
+                    paymentStatus: order.paymentStatus,
+                    createdAt: order.createdAt,
+                    itemCount: order.items.length
+                })),
+                period: {
+                    startDate: startDate || null,
+                    endDate: endDate || null
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener resumen de órdenes:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor al obtener el resumen de órdenes'
+        });
+    }
+}
+
 // Cancelar orden (usuario o admin)
 export async function cancelOrder(req, res) {
     try {

@@ -204,6 +204,21 @@ export const validateGetTopSellingProducts = [
     handleValidationErrors
 ];
 
+// Validaciones para obtener resumen de órdenes
+export const validateGetOrdersSummary = [
+    query('startDate')
+        .optional()
+        .matches(/^\d{4}-\d{2}-\d{2}$/)
+        .withMessage('Fecha de inicio debe ser válida (YYYY-MM-DD)'),
+
+    query('endDate')
+        .optional()
+        .matches(/^\d{4}-\d{2}-\d{2}$/)
+        .withMessage('Fecha de fin debe ser válida (YYYY-MM-DD)'),
+
+    handleValidationErrors
+];
+
 // Validaciones para cancelar orden
 export const validateCancelOrder = [
     param('id')

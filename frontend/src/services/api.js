@@ -2,7 +2,7 @@ import axios from "axios";
 import { getAccessToken, getRefreshToken, saveAccessToken, clearAuthData } from '../utils/tokenUtils';
 
 const api = axios.create({
-  baseURL: "https://supergains-backend.onrender.com/api",
+  baseURL: "http://localhost:4000/api",
   timeout: 15000, // 15 segundos de timeout para operaciones complejas
 });
 
@@ -37,7 +37,7 @@ api.interceptors.response.use(
         const refreshTokenValue = getRefreshToken();
         if (refreshTokenValue) {
           const response = await axios.post(
-            "https://supergains-backend.onrender.com/api/users/refresh",
+            "http://localhost:4000/api/users/refresh",
             { refreshToken: refreshTokenValue }
           );
 

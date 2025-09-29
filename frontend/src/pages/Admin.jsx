@@ -5,7 +5,8 @@ import {
     LazyInventoryTable,
     LazyInventoryStats,
     LazyStockAlerts,
-    LazyNotificationContainer
+    LazyNotificationContainer,
+    LazySalesChart
 } from '../components/LazyComponents';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
@@ -323,6 +324,13 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Gráfico de Ventas */}
+                <div className="mt-8">
+                    <Suspense fallback={<LoadingSpinner text="Cargando gráfico de ventas..." />}>
+                        <LazySalesChart />
+                    </Suspense>
                 </div>
 
                 {/* Estadísticas de Inventario */}

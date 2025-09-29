@@ -14,3 +14,4 @@ export const LazyRegisterForm = lazy(() => import('./RegisterForm'));
 
 // Componentes de admin
 export const LazyAdminHeader = lazy(() => import('./AdminHeader'));
+export const LazySalesChart = lazy(() => import('./SalesChart'));
