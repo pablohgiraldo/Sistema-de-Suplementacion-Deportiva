@@ -3,6 +3,7 @@ import Product from '../models/Product.js';
 import User from '../models/User.js';
 import Cart from '../models/Cart.js';
 import Inventory from '../models/Inventory.js';
+import mongoose from 'mongoose';
 
 // Crear una nueva orden desde el carrito
 export async function createOrder(req, res) {
@@ -522,6 +523,7 @@ export async function getOrdersSummary(req, res) {
 
         // Calcular promedio por orden
         const averageOrderValue = totalOrders > 0 ? revenue / totalOrders : 0;
+
 
         // Formatear datos de estado
         const statusSummary = ordersByStatus.reduce((acc, item) => {

@@ -41,7 +41,9 @@ const useSalesData = (dateRange = '7') => {
         queryFn: async () => {
             if (!startDate || !endDate) return null;
 
+            console.log(`🔍 Fetching data for ${startDate} to ${endDate}`);
             const response = await api.get(`/orders/summary?startDate=${startDate}&endDate=${endDate}`);
+            console.log('🔍 API Response:', response.data);
 
             if (!response.data.success) {
                 throw new Error('Error al obtener datos de ventas');
@@ -50,8 +52,8 @@ const useSalesData = (dateRange = '7') => {
             return response.data.data;
         },
         enabled: !!startDate && !!endDate,
-        staleTime: 5 * 60 * 1000, // 5 minutos
-        cacheTime: 10 * 60 * 1000, // 10 minutos
+        staleTime: 0, // Sin caché para debug
+        cacheTime: 0, // Sin caché para debug
     });
 
     // Procesar datos para el gráfico
@@ -88,6 +90,17 @@ const useSalesData = (dateRange = '7') => {
             color: '#10B981'
         }
     ];
+
+    // Debug logging (solo cuando hay datos)
+    if (salesData) {
+        console.log('🔍 useSalesData Debug:', {
+            hasData: !!salesData,
+            totalOrders: salesData.summary?.totalOrders,
+            totalRevenue: salesData.summary?.totalRevenue,
+            isLoading,
+            isError
+        });
+    }
 
     // Función para formatear moneda
     const formatCurrency = (amount) => {

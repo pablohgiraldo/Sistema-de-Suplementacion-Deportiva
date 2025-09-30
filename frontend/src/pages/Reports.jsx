@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SalesChart from '../components/SalesChart';
 import useSalesData from '../hooks/useSalesData';
 
 const Reports = () => {
@@ -24,6 +24,16 @@ const Reports = () => {
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
     const renderSalesChart = () => {
+        // Debug logging (solo cuando hay datos)
+        if (salesData) {
+            console.log('🔍 Reports Debug:', {
+                hasData: !!salesData,
+                totalOrders: salesData.summary?.totalOrders,
+                isLoading,
+                isError
+            });
+        }
+
         if (isLoading) {
             return (
                 <div className="flex items-center justify-center h-64">
@@ -52,13 +62,29 @@ const Reports = () => {
             );
         }
 
-        const chartDataForDisplay = salesData?.statusBreakdown?.orders ? Object.keys(salesData.statusBreakdown.orders).map(status => ({
-            name: status.charAt(0).toUpperCase() + status.slice(1),
-            value: salesData.statusBreakdown.orders[status],
-            color: COLORS[Object.keys(salesData.statusBreakdown.orders).indexOf(status) % COLORS.length]
-        })) : [
-            { name: 'Sin datos', value: 0, color: '#gray' }
-        ];
+        // Construir datos para el gráfico de manera más robusta
+        let chartDataForDisplay = [];
+
+        if (salesData?.statusBreakdown?.orders && Object.keys(salesData.statusBreakdown.orders).length > 0) {
+            chartDataForDisplay = Object.keys(salesData.statusBreakdown.orders).map((status, index) => ({
+                name: status.charAt(0).toUpperCase() + status.slice(1),
+                value: Number(salesData.statusBreakdown.orders[status]) || 0,
+                fill: COLORS[index % COLORS.length]
+            }));
+        } else {
+            chartDataForDisplay = [
+                { name: 'Sin datos', value: 0, fill: '#gray' }
+            ];
+        }
+
+        // Validar que todos los datos sean válidos
+        chartDataForDisplay = chartDataForDisplay.filter(item =>
+            item &&
+            typeof item.name === 'string' &&
+            typeof item.value === 'number' &&
+            !isNaN(item.value)
+        );
+
 
         return (
             <div className="space-y-6">
@@ -155,105 +181,7 @@ const Reports = () => {
                     </h3>
 
                     <div className="h-80">
-                        {chartDataForDisplay && chartDataForDisplay.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                {chartType === 'bar' && (
-                                    <BarChart data={chartDataForDisplay}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-gray-200" />
-                                        <XAxis dataKey="name" className="text-sm text-gray-600" />
-                                        <YAxis className="text-sm text-gray-600" />
-                                        <Tooltip
-                                            formatter={(value) => [value, 'Órdenes']}
-                                            contentStyle={{
-                                                backgroundColor: '#fff',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                padding: '0.5rem'
-                                            }}
-                                        />
-                                        <Legend />
-                                        <Bar dataKey="value" name="Órdenes" fill="#8884d8" />
-                                    </BarChart>
-                                )}
-
-                                {chartType === 'line' && (
-                                    <LineChart data={chartDataForDisplay}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-gray-200" />
-                                        <XAxis dataKey="name" className="text-sm text-gray-600" />
-                                        <YAxis className="text-sm text-gray-600" />
-                                        <Tooltip
-                                            formatter={(value) => [value, 'Órdenes']}
-                                            contentStyle={{
-                                                backgroundColor: '#fff',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                padding: '0.5rem'
-                                            }}
-                                        />
-                                        <Legend />
-                                        <Line type="monotone" dataKey="value" name="Órdenes" stroke="#8884d8" strokeWidth={2} />
-                                    </LineChart>
-                                )}
-
-                                {chartType === 'area' && (
-                                    <AreaChart data={chartDataForDisplay}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-gray-200" />
-                                        <XAxis dataKey="name" className="text-sm text-gray-600" />
-                                        <YAxis className="text-sm text-gray-600" />
-                                        <Tooltip
-                                            formatter={(value) => [value, 'Órdenes']}
-                                            contentStyle={{
-                                                backgroundColor: '#fff',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                padding: '0.5rem'
-                                            }}
-                                        />
-                                        <Legend />
-                                        <Area type="monotone" dataKey="value" name="Órdenes" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                                    </AreaChart>
-                                )}
-
-                                {chartType === 'pie' && (
-                                    <PieChart>
-                                        <Pie
-                                            data={chartDataForDisplay}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                        >
-                                            {chartDataForDisplay.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip
-                                            formatter={(value) => [value, 'Órdenes']}
-                                            contentStyle={{
-                                                backgroundColor: '#fff',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                padding: '0.5rem'
-                                            }}
-                                        />
-                                        <Legend />
-                                    </PieChart>
-                                )}
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <div className="text-center text-gray-500">
-                                    <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p className="text-lg font-medium mb-2">Sin datos disponibles</p>
-                                    <p>No hay datos de ventas para el período seleccionado.</p>
-                                </div>
-                            </div>
-                        )}
+                        <SalesChart data={chartDataForDisplay} chartType={chartType} />
                     </div>
                 </div>
 
