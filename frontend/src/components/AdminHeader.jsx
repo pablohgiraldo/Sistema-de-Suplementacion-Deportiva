@@ -97,15 +97,14 @@ export default function AdminHeader({
                                         </svg>
                                     </Link>
 
-                                    {/* Tienda */}
+                                    {/* Reportes */}
                                     <Link
-                                        to="/"
+                                        to="/admin/reports"
                                         className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
-                                        title="Ir a la Tienda"
+                                        title="Reportes de Ventas"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </Link>
 
@@ -208,18 +207,17 @@ export default function AdminHeader({
                                         Dashboard
                                     </Link>
 
-                                    {/* Tienda móvil */}
+                                    {/* Reportes móvil */}
                                     <Link
-                                        to="/"
+                                        to="/admin/reports"
                                         className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        aria-label="Ir a la Tienda"
+                                        aria-label="Ir a Reportes de Ventas"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
-                                        Tienda
+                                        Reportes
                                     </Link>
 
                                     {/* Cerrar Sesión móvil */}

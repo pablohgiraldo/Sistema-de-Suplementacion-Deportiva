@@ -41,10 +41,12 @@ const useSalesData = (dateRange = '7') => {
         queryFn: async () => {
             if (!startDate || !endDate) return null;
 
-            // Temporalmente apuntando al endpoint ultra básico
-            const response = await api.get(`/orders/test-basic`);
+            const response = await api.get(`/orders/summary?startDate=${startDate}&endDate=${endDate}`);
 
-            console.log('Respuesta del endpoint básico:', response.data);
+            if (!response.data.success) {
+                throw new Error('Error al obtener datos de ventas');
+            }
+
             return response.data.data;
         },
         enabled: !!startDate && !!endDate,
