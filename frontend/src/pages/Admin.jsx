@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api';
 import {
@@ -318,9 +319,12 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                             <div className="mt-6">
-                                <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                                <Link
+                                    to="/admin/users"
+                                    className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+                                >
                                     Ver Usuarios
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>

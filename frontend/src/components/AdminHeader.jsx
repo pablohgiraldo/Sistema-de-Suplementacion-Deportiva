@@ -108,6 +108,17 @@ export default function AdminHeader({
                                         </svg>
                                     </Link>
 
+                                    {/* Usuarios */}
+                                    <Link
+                                        to="/admin/users"
+                                        className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
+                                        title="Gestión de Usuarios"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                    </Link>
+
                                     {/* Cerrar Sesión */}
                                     <button
                                         onClick={onLogout}
@@ -218,6 +229,19 @@ export default function AdminHeader({
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         Reportes
+                                    </Link>
+
+                                    {/* Usuarios móvil */}
+                                    <Link
+                                        to="/admin/users"
+                                        className="flex items-center gap-2 py-3 px-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        aria-label="Ir a Gestión de Usuarios"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                        Usuarios
                                     </Link>
 
                                     {/* Cerrar Sesión móvil */}

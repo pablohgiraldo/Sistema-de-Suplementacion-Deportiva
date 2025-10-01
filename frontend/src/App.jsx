@@ -24,6 +24,7 @@ const Cart = lazy(() => import('./pages/Cart'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Reports = lazy(() => import('./pages/Reports'));
+const Users = lazy(() => import('./pages/Users'));
 
 function AppContent() {
   const location = useLocation();
@@ -36,7 +37,7 @@ function AppContent() {
 
   // Determinar qué header mostrar
   const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
-  const isAdminPage = location.pathname === '/admin' || location.pathname === '/admin/reports';
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   // Preload de componentes según la ruta actual
   useEffect(() => {
@@ -199,6 +200,14 @@ function AuthenticatedApp({
               element={
                 <AdminRoute>
                   <Reports />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <Users />
                 </AdminRoute>
               }
             />
