@@ -15,6 +15,7 @@ import alertRoutes from "./routes/alertRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import schedulerRoutes from "./routes/schedulerRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
@@ -123,6 +124,7 @@ app.use("/api/products", productRoutes); // Sin rate limiting para productos
 app.use("/api/users", authLimiter, userRoutes); // Rate limiting para autenticación
 app.use("/api/cart", cartLimiter, cartRoutes); // Rate limiting más permisivo para carrito
 app.use("/api/orders", orderRoutes); // Rutas de órdenes
+app.use("/api/wishlist", wishlistRoutes); // Rutas de wishlist
 
 // Rutas de inventario - sin rate limiting para consultas públicas
 app.use("/api/inventory", inventoryRoutes);
@@ -181,6 +183,7 @@ const startServer = async () => {
       console.log(`   - POST /api/users/login`);
       console.log(`   - GET  /api/users/profile`);
       console.log(`   - *    /api/cart/*`);
+      console.log(`   - *    /api/wishlist/*`);
       console.log(`   - *    /api/orders/*`);
       console.log(`   - *    /api/inventory/*`);
       console.log(`   - *    /api/alerts/*`);
