@@ -26,6 +26,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Users = lazy(() => import('./pages/Users'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Checkout = lazy(() => import('./pages/Checkout'));
 
 function AppContent() {
   const location = useLocation();
@@ -217,6 +218,14 @@ function AuthenticatedApp({
               element={
                 <ProtectedRoute>
                   <Wishlist />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <Checkout />
                 </ProtectedRoute>
               }
             />

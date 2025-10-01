@@ -1,9 +1,11 @@
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useMultipleInventory, inventoryUtils } from '../hooks/useInventory';
+import { useNavigate } from 'react-router-dom';
 
 export default function Cart() {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
     const {
         cartItems,
         loading,
@@ -231,6 +233,7 @@ export default function Cart() {
                                             Vaciar carrito
                                         </button>
                                         <button
+                                            onClick={() => navigate('/checkout')}
                                             disabled={loading}
                                             className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                                         >
