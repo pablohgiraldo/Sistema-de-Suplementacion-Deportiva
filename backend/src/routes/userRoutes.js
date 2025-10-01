@@ -12,7 +12,7 @@ import {
     cambiarRolUsuario
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
-import { requireAdmin } from '../middleware/roleMiddleware.js';
+import { requireAdmin, requireUserManagementAccess } from '../middleware/roleMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
 import { adminAuditMiddleware, unauthorizedAccessMiddleware } from '../middleware/adminAuditMiddleware.js';
 import {
@@ -47,7 +47,7 @@ router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefr
 
 // Rutas de administración (solo para administradores)
 router.get('/', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateListUsers, listarUsuarios);
-router.put('/:id/block', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateBlockUser, bloquearDesbloquearUsuario);
-router.put('/:id/role', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateChangeRole, cambiarRolUsuario);
+router.put('/:id/block', authMiddleware, requireUserManagementAccess(), tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateBlockUser, bloquearDesbloquearUsuario);
+router.put('/:id/role', authMiddleware, requireUserManagementAccess(), tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateChangeRole, cambiarRolUsuario);
 
 export default router;

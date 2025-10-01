@@ -197,3 +197,76 @@ export function requireAdvancedAdmin() {
         }
     };
 }
+
+/**
+ * Middleware específico para gestión de usuarios
+ * Verifica permisos de administrador y registra operaciones críticas
+ */
+export function requireUserManagementAccess() {
+    return (req, res, next) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Usuario no autenticado'
+                });
+            }
+
+            const userRole = req.userRole || req.user.role || req.user.rol || 'user';
+
+            // Solo administradores pueden gestionar usuarios
+            if (userRole !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Acceso denegado. Solo administradores pueden gestionar usuarios',
+                    required: 'admin',
+                    current: userRole
+                });
+            }
+
+            // Verificar que el administrador esté activo
+            if (!req.user.activo) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Cuenta de administrador inactiva'
+                });
+            }
+
+            // Prevenir que el admin se modifique a sí mismo en operaciones críticas
+            const targetUserId = req.params.id;
+            const currentUserId = req.user.id || req.user._id.toString();
+
+            if (targetUserId && targetUserId === currentUserId) {
+                const criticalOperations = ['block', 'role', 'delete'];
+                const operation = req.path.split('/').pop();
+
+                if (criticalOperations.includes(operation)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `No puedes modificar tu propia cuenta (operación: ${operation})`
+                    });
+                }
+            }
+
+            // Registrar operación de gestión de usuarios para auditoría
+            const operation = {
+                admin: req.user.email,
+                action: req.method,
+                endpoint: req.originalUrl,
+                targetUser: targetUserId,
+                timestamp: new Date(),
+                ip: req.ip || req.connection.remoteAddress
+            };
+
+            console.log(`🔐 Gestión de usuarios: ${operation.action} ${operation.endpoint} por ${operation.admin}`);
+
+            next();
+        } catch (error) {
+            console.error('Error en middleware de gestión de usuarios:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error del servidor en verificación de permisos de gestión de usuarios'
+            });
+        }
+    };
+}
