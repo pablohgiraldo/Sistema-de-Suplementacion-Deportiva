@@ -871,115 +871,191 @@ const Checkout = () => {
 
                             {/* Método de pago */}
                             <div className="bg-white rounded-lg shadow-sm p-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Método de Pago</h2>
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4">💳 Método de Pago</h2>
 
                                 <div className="space-y-4">
-                                    <div className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            id="credit_card"
-                                            name="paymentMethod"
-                                            value="credit_card"
-                                            checked={formData.paymentMethod === 'credit_card'}
-                                            onChange={handleInputChange}
-                                            className="mr-3"
-                                        />
-                                        <label htmlFor="credit_card" className="text-sm font-medium text-gray-700">
-                                            Tarjeta de Crédito/Débito
-                                        </label>
-                                    </div>
-
-                                    {formData.paymentMethod === 'credit_card' && (
-                                        <div className="ml-6 space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Número de Tarjeta *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="cardNumber"
-                                                    value={formData.cardNumber}
-                                                    onChange={handleInputChange}
-                                                    placeholder="1234 5678 9012 3456"
-                                                    maxLength="19"
-                                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'
-                                                        }`}
-                                                />
-                                                {errors.cardNumber && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>
-                                                )}
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Fecha de Vencimiento *
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="expiryDate"
-                                                        value={formData.expiryDate}
-                                                        onChange={handleInputChange}
-                                                        placeholder="MM/AA"
-                                                        maxLength="5"
-                                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'
-                                                            }`}
-                                                    />
-                                                    {errors.expiryDate && (
-                                                        <p className="text-red-500 text-sm mt-1">{errors.expiryDate}</p>
-                                                    )}
+                                    {/* Tarjeta de Crédito/Débito */}
+                                    <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                id="credit_card"
+                                                name="paymentMethod"
+                                                value="credit_card"
+                                                checked={formData.paymentMethod === 'credit_card'}
+                                                onChange={handleInputChange}
+                                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="flex items-center">
+                                                <div className="flex space-x-2 mr-3">
+                                                    <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">V</div>
+                                                    <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">M</div>
+                                                    <div className="w-8 h-5 bg-gray-800 rounded text-white text-xs flex items-center justify-center font-bold">A</div>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        CVV *
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="cvv"
-                                                        value={formData.cvv}
-                                                        onChange={handleInputChange}
-                                                        placeholder="123"
-                                                        maxLength="4"
-                                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cvv ? 'border-red-500' : 'border-gray-300'
-                                                            }`}
-                                                    />
-                                                    {errors.cvv && (
-                                                        <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Nombre del Titular *
+                                                <label htmlFor="credit_card" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                                    Tarjeta de Crédito/Débito
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    name="cardholderName"
-                                                    value={formData.cardholderName}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Nombre como aparece en la tarjeta"
-                                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cardholderName ? 'border-red-500' : 'border-gray-300'
-                                                        }`}
-                                                />
-                                                {errors.cardholderName && (
-                                                    <p className="text-red-500 text-sm mt-1">{errors.cardholderName}</p>
-                                                )}
                                             </div>
                                         </div>
-                                    )}
 
-                                    <div className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            id="paypal"
-                                            name="paymentMethod"
-                                            value="paypal"
-                                            checked={formData.paymentMethod === 'paypal'}
-                                            onChange={handleInputChange}
-                                            className="mr-3"
-                                        />
-                                        <label htmlFor="paypal" className="text-sm font-medium text-gray-700">
-                                            PayPal (Próximamente)
-                                        </label>
+                                        {formData.paymentMethod === 'credit_card' && (
+                                            <div className="mt-4 ml-7 space-y-4 border-t pt-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Número de Tarjeta *
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="cardNumber"
+                                                        value={formData.cardNumber}
+                                                        onChange={handleInputChange}
+                                                        placeholder="1234 5678 9012 3456"
+                                                        maxLength="19"
+                                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'
+                                                            }`}
+                                                    />
+                                                    {errors.cardNumber && (
+                                                        <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            Fecha de Vencimiento *
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            name="expiryDate"
+                                                            value={formData.expiryDate}
+                                                            onChange={handleInputChange}
+                                                            placeholder="MM/AA"
+                                                            maxLength="5"
+                                                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'
+                                                                }`}
+                                                        />
+                                                        {errors.expiryDate && (
+                                                            <p className="text-red-500 text-sm mt-1">{errors.expiryDate}</p>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            CVV *
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            name="cvv"
+                                                            value={formData.cvv}
+                                                            onChange={handleInputChange}
+                                                            placeholder="123"
+                                                            maxLength="4"
+                                                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cvv ? 'border-red-500' : 'border-gray-300'
+                                                                }`}
+                                                        />
+                                                        {errors.cvv && (
+                                                            <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Nombre del Titular *
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="cardholderName"
+                                                        value={formData.cardholderName}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Nombre como aparece en la tarjeta"
+                                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cardholderName ? 'border-red-500' : 'border-gray-300'
+                                                            }`}
+                                                    />
+                                                    {errors.cardholderName && (
+                                                        <p className="text-red-500 text-sm mt-1">{errors.cardholderName}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* PayPal */}
+                                    <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                id="paypal"
+                                                name="paymentMethod"
+                                                value="paypal"
+                                                checked={formData.paymentMethod === 'paypal'}
+                                                onChange={handleInputChange}
+                                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="flex items-center">
+                                                <div className="w-8 h-5 bg-blue-500 rounded mr-3 flex items-center justify-center">
+                                                    <span className="text-white text-xs font-bold">PP</span>
+                                                </div>
+                                                <label htmlFor="paypal" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                                    PayPal
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {formData.paymentMethod === 'paypal' && (
+                                            <div className="mt-4 ml-7 border-t pt-4">
+                                                <p className="text-sm text-gray-600">
+                                                    Serás redirigido a PayPal para completar tu pago de forma segura.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* PSE - Pagos Seguros en Línea */}
+                                    <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                id="pse"
+                                                name="paymentMethod"
+                                                value="pse"
+                                                checked={formData.paymentMethod === 'pse'}
+                                                onChange={handleInputChange}
+                                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="flex items-center">
+                                                <div className="w-8 h-5 bg-orange-500 rounded mr-3 flex items-center justify-center">
+                                                    <span className="text-white text-xs font-bold">PSE</span>
+                                                </div>
+                                                <label htmlFor="pse" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                                    PSE - Pagos Seguros en Línea
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {formData.paymentMethod === 'pse' && (
+                                            <div className="mt-4 ml-7 border-t pt-4">
+                                                <p className="text-sm text-gray-600 mb-3">
+                                                    Paga directamente desde tu cuenta bancaria de forma segura y rápida.
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                                    <div className="flex items-center">
+                                                        <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
+                                                        <span>Bancolombia</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
+                                                        <span>BBVA</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <div className="w-4 h-4 bg-green-600 rounded mr-2"></div>
+                                                        <span>Davivienda</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <div className="w-4 h-4 bg-purple-600 rounded mr-2"></div>
+                                                        <span>Colpatria</span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                    Y más de 20 bancos disponibles
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

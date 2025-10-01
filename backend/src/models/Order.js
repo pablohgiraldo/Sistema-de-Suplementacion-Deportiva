@@ -29,7 +29,7 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
-        required: true,
+        required: false, // Se genera automáticamente en el middleware pre-save
         unique: true,
         uppercase: true
     },

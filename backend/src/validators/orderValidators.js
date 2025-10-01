@@ -19,17 +19,104 @@ export const handleValidationErrors = (req, res, next) => {
 
 // Validaciones para crear orden
 export const validateCreateOrder = [
+    // Validación del método de pago
     body('paymentMethod')
         .notEmpty()
         .withMessage('El método de pago es obligatorio')
-        .isIn(['credit_card', 'debit_card', 'paypal', 'cash', 'bank_transfer'])
-        .withMessage('Método de pago inválido'),
+        .isIn(['credit_card', 'paypal', 'pse'])
+        .withMessage('Método de pago inválido. Debe ser: credit_card, paypal, o pse'),
+
+    // Validaciones para tarjeta de crédito (condicional)
+    body('cardNumber')
+        .if(body('paymentMethod').equals('credit_card'))
+        .notEmpty()
+        .withMessage('El número de tarjeta es obligatorio para pagos con tarjeta')
+        .matches(/^[0-9\s]{13,19}$/)
+        .withMessage('Formato de número de tarjeta inválido (13-19 dígitos)')
+        .custom((value) => {
+            // Validación básica de algoritmo de Luhn
+            const digits = value.replace(/\s/g, '');
+            let sum = 0;
+            let isEven = false;
+
+            for (let i = digits.length - 1; i >= 0; i--) {
+                let digit = parseInt(digits[i]);
+
+                if (isEven) {
+                    digit *= 2;
+                    if (digit > 9) {
+                        digit -= 9;
+                    }
+                }
+
+                sum += digit;
+                isEven = !isEven;
+            }
+
+            if (sum % 10 !== 0) {
+                throw new Error('Número de tarjeta inválido');
+            }
+
+            return true;
+        })
+        .withMessage('Número de tarjeta inválido'),
+
+    body('expiryDate')
+        .if(body('paymentMethod').equals('credit_card'))
+        .notEmpty()
+        .withMessage('La fecha de vencimiento es obligatoria para pagos con tarjeta')
+        .matches(/^(0[1-9]|1[0-2])\/\d{2}$/)
+        .withMessage('Formato de fecha inválido (MM/AA)')
+        .custom((value) => {
+            const [month, year] = value.split('/');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear() % 100;
+            const currentMonth = currentDate.getMonth() + 1;
+
+            const cardYear = parseInt(year);
+            const cardMonth = parseInt(month);
+
+            if (cardYear < currentYear || (cardYear === currentYear && cardMonth < currentMonth)) {
+                throw new Error('La tarjeta ha expirado');
+            }
+
+            return true;
+        })
+        .withMessage('La tarjeta ha expirado'),
+
+    body('cvv')
+        .if(body('paymentMethod').equals('credit_card'))
+        .notEmpty()
+        .withMessage('El CVV es obligatorio para pagos con tarjeta')
+        .matches(/^[0-9]{3,4}$/)
+        .withMessage('CVV inválido (3-4 dígitos)'),
+
+    // Validaciones de dirección de envío
+    body('shippingAddress.firstName')
+        .notEmpty()
+        .withMessage('El nombre es obligatorio')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El nombre solo puede contener letras y espacios')
+        .trim(),
+
+    body('shippingAddress.lastName')
+        .notEmpty()
+        .withMessage('El apellido es obligatorio')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El apellido debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El apellido solo puede contener letras y espacios')
+        .trim(),
 
     body('shippingAddress.street')
         .notEmpty()
         .withMessage('La dirección es obligatoria')
         .isLength({ min: 5, max: 200 })
         .withMessage('La dirección debe tener entre 5 y 200 caracteres')
+        .matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s#\-.,]+$/)
+        .withMessage('La dirección contiene caracteres inválidos')
         .trim(),
 
     body('shippingAddress.city')
@@ -37,13 +124,17 @@ export const validateCreateOrder = [
         .withMessage('La ciudad es obligatoria')
         .isLength({ min: 2, max: 50 })
         .withMessage('La ciudad debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('La ciudad solo puede contener letras y espacios')
         .trim(),
 
     body('shippingAddress.state')
         .notEmpty()
-        .withMessage('El estado es obligatorio')
+        .withMessage('El departamento es obligatorio')
         .isLength({ min: 2, max: 50 })
-        .withMessage('El estado debe tener entre 2 y 50 caracteres')
+        .withMessage('El departamento debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El departamento solo puede contener letras y espacios')
         .trim(),
 
     body('shippingAddress.zipCode')
@@ -51,6 +142,8 @@ export const validateCreateOrder = [
         .withMessage('El código postal es obligatorio')
         .isLength({ min: 3, max: 10 })
         .withMessage('El código postal debe tener entre 3 y 10 caracteres')
+        .matches(/^[0-9]+$/)
+        .withMessage('El código postal solo puede contener números')
         .trim(),
 
     body('shippingAddress.country')
@@ -58,12 +151,110 @@ export const validateCreateOrder = [
         .withMessage('El país es obligatorio')
         .isLength({ min: 2, max: 50 })
         .withMessage('El país debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El país solo puede contener letras y espacios')
         .trim(),
 
+    body('shippingAddress.phone')
+        .notEmpty()
+        .withMessage('El teléfono es obligatorio')
+        .isLength({ min: 10, max: 15 })
+        .withMessage('El teléfono debe tener entre 10 y 15 caracteres')
+        .matches(/^[0-9+\-\s()]+$/)
+        .withMessage('Formato de teléfono inválido')
+        .custom((value) => {
+            // Validar que tenga al menos 10 dígitos numéricos
+            const digits = value.replace(/[^0-9]/g, '');
+            if (digits.length < 10) {
+                throw new Error('El teléfono debe tener al menos 10 dígitos');
+            }
+            return true;
+        })
+        .withMessage('El teléfono debe tener al menos 10 dígitos')
+        .trim(),
+
+    // Validaciones opcionales
     body('notes')
         .optional()
         .isLength({ max: 500 })
         .withMessage('Las notas no pueden exceder 500 caracteres')
+        .matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,!?\-()]+$/)
+        .withMessage('Las notas contienen caracteres inválidos')
+        .trim(),
+
+    // Validación de dirección de facturación (opcional)
+    body('billingAddress.firstName')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de facturación debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El nombre de facturación solo puede contener letras y espacios')
+        .trim(),
+
+    body('billingAddress.lastName')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El apellido de facturación debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El apellido de facturación solo puede contener letras y espacios')
+        .trim(),
+
+    body('billingAddress.street')
+        .optional()
+        .isLength({ min: 5, max: 200 })
+        .withMessage('La dirección de facturación debe tener entre 5 y 200 caracteres')
+        .matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s#\-.,]+$/)
+        .withMessage('La dirección de facturación contiene caracteres inválidos')
+        .trim(),
+
+    body('billingAddress.city')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('La ciudad de facturación debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('La ciudad de facturación solo puede contener letras y espacios')
+        .trim(),
+
+    body('billingAddress.state')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El departamento de facturación debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El departamento de facturación solo puede contener letras y espacios')
+        .trim(),
+
+    body('billingAddress.zipCode')
+        .optional()
+        .isLength({ min: 3, max: 10 })
+        .withMessage('El código postal de facturación debe tener entre 3 y 10 caracteres')
+        .matches(/^[0-9]+$/)
+        .withMessage('El código postal de facturación solo puede contener números')
+        .trim(),
+
+    body('billingAddress.country')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El país de facturación debe tener entre 2 y 50 caracteres')
+        .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
+        .withMessage('El país de facturación solo puede contener letras y espacios')
+        .trim(),
+
+    body('billingAddress.phone')
+        .optional()
+        .isLength({ min: 10, max: 15 })
+        .withMessage('El teléfono de facturación debe tener entre 10 y 15 caracteres')
+        .matches(/^[0-9+\-\s()]+$/)
+        .withMessage('Formato de teléfono de facturación inválido')
+        .custom((value) => {
+            if (value) {
+                const digits = value.replace(/[^0-9]/g, '');
+                if (digits.length < 10) {
+                    throw new Error('El teléfono de facturación debe tener al menos 10 dígitos');
+                }
+            }
+            return true;
+        })
+        .withMessage('El teléfono de facturación debe tener al menos 10 dígitos')
         .trim(),
 
     handleValidationErrors

@@ -29,7 +29,7 @@ export async function createOrder(req, res) {
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'El carrito está vacío'
+                error: 'El carrito está vacío. Agrega productos al carrito antes de crear una orden.'
             });
         }
 
@@ -116,7 +116,8 @@ export async function createOrder(req, res) {
         console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: 'Error interno del servidor al crear la orden'
+            error: 'Error interno del servidor al crear la orden',
+            details: error.message
         });
     }
 }

@@ -15,6 +15,11 @@ import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
 import {
+    validateOrderBusinessRules,
+    validateColombianAddress,
+    validateUserLimits
+} from '../middleware/orderBusinessValidation.js';
+import {
     validateCreateOrder,
     validateGetOrders,
     validateGetOrderById,
@@ -35,7 +40,10 @@ router.post('/',
     authMiddleware,
     tokenExpirationMiddleware,
     tokenRefreshSuggestionMiddleware,
+    validateUserLimits,
     validateCreateOrder,
+    validateColombianAddress,
+    validateOrderBusinessRules,
     createOrder
 );
 

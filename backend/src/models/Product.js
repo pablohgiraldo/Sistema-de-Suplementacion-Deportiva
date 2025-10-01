@@ -79,6 +79,7 @@ productSchema.index({
 
 // Virtual para el precio con formato
 productSchema.virtual('formattedPrice').get(function () {
+  if (!this.price) return '$0.00';
   return `$${this.price.toFixed(2)}`;
 });
 
