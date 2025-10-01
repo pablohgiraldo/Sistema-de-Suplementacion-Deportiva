@@ -2,6 +2,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
+import WishlistButton from './WishlistButton';
 
 export default function ProductCard({ p }) {
   const { isAuthenticated } = useAuth();
@@ -114,7 +115,7 @@ export default function ProductCard({ p }) {
   return (
     <div className="border rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] sm:hover:scale-105 cursor-pointer bg-white" onClick={handleProductClick}>
       {p.imageUrl && (
-        <div className="mb-2 sm:mb-3 relative overflow-hidden rounded-md sm:rounded-lg bg-gray-100">
+        <div className="mb-2 sm:mb-3 relative overflow-hidden rounded-md sm:rounded-lg bg-gray-100 group">
           <img
             src={p.imageUrl}
             alt={p.name}
@@ -131,6 +132,15 @@ export default function ProductCard({ p }) {
           />
           {/* Placeholder mientras carga */}
           <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+
+          {/* Botón de wishlist */}
+          <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <WishlistButton
+              productId={p._id}
+              productName={p.name}
+              size="sm"
+            />
+          </div>
         </div>
       )}
 

@@ -157,9 +157,18 @@ export default function Header({
                 // Iconos para usuarios normales
                 <>
                   {/* Icono de favoritos */}
-                  <svg className="w-5 h-5 text-black cursor-pointer hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+                  {/* Wishlist con contador */}
+                  <div className="relative">
+                    <Link
+                      to="/wishlist"
+                      className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
+                      title="Mi Lista de Deseos"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </Link>
+                  </div>
 
                   {/* Carrito con contador */}
                   <div className="relative">
