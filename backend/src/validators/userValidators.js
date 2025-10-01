@@ -126,3 +126,72 @@ export const validateTokenStatus = [
     // No se necesitan validaciones de body, solo del token en middleware
     handleValidationErrors
 ];
+
+// Validaciones para listar usuarios
+export const validateListUsers = [
+    query('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('La página debe ser un número entero mayor a 0'),
+
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 100 })
+        .withMessage('El límite debe ser un número entre 1 y 100'),
+
+    query('sortBy')
+        .optional()
+        .isIn(['nombre', 'email', 'rol', 'fechaCreacion', 'activo'])
+        .withMessage('El campo de ordenamiento no es válido'),
+
+    query('sortOrder')
+        .optional()
+        .isIn(['asc', 'desc'])
+        .withMessage('El orden debe ser "asc" o "desc"'),
+
+    query('rol')
+        .optional()
+        .isIn(['admin', 'usuario', 'moderador'])
+        .withMessage('El rol debe ser "admin", "usuario" o "moderador"'),
+
+    query('activo')
+        .optional()
+        .isIn(['true', 'false'])
+        .withMessage('El estado activo debe ser "true" o "false"'),
+
+    query('search')
+        .optional()
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('La búsqueda debe tener entre 1 y 100 caracteres'),
+
+    handleValidationErrors
+];
+
+// Validaciones para bloquear/desbloquear usuario
+export const validateBlockUser = [
+    param('id')
+        .isMongoId()
+        .withMessage('ID de usuario inválido'),
+
+    body('activo')
+        .isBoolean()
+        .withMessage('El campo activo debe ser verdadero o falso'),
+
+    handleValidationErrors
+];
+
+// Validaciones para cambiar rol de usuario
+export const validateChangeRole = [
+    param('id')
+        .isMongoId()
+        .withMessage('ID de usuario inválido'),
+
+    body('rol')
+        .notEmpty()
+        .withMessage('El rol es requerido')
+        .isIn(['admin', 'usuario', 'moderador'])
+        .withMessage('El rol debe ser "admin", "usuario" o "moderador"'),
+
+    handleValidationErrors
+];

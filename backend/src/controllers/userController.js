@@ -342,17 +342,201 @@ export const listarUsuarios = async (req, res) => {
             });
         }
 
-        // Obtener todos los usuarios (sin contraseñas)
-        const usuarios = await User.find({}, '-contraseña').sort({ fechaCreacion: -1 });
+        // Parámetros de consulta
+        const {
+            page = 1,
+            limit = 10,
+            sortBy = 'fechaCreacion',
+            sortOrder = 'desc',
+            rol,
+            activo,
+            search
+        } = req.query;
+
+        // Construir filtro de búsqueda
+        const filter = {};
+
+        if (rol) {
+            filter.rol = rol;
+        }
+
+        if (activo !== undefined) {
+            filter.activo = activo === 'true';
+        }
+
+        if (search) {
+            filter.$or = [
+                { nombre: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Calcular paginación
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+        // Obtener usuarios con paginación
+        const usuarios = await User.find(filter, '-contraseña')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        // Contar total de usuarios
+        const total = await User.countDocuments(filter);
 
         res.json({
             success: true,
             message: 'Usuarios obtenidos exitosamente',
-            data: usuarios
+            data: usuarios,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
         });
 
     } catch (error) {
         console.error('Error al listar usuarios:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};
+
+// PUT /api/users/:id/block - Bloquear/desbloquear usuario (solo admin)
+export const bloquearDesbloquearUsuario = async (req, res) => {
+    try {
+        // Verificar que el usuario sea administrador
+        if (req.user.rol !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado. Solo administradores pueden bloquear usuarios.'
+            });
+        }
+
+        const { id } = req.params;
+        const { activo } = req.body;
+
+        // Validar que se proporcionó el estado
+        if (activo === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: 'El campo "activo" es requerido'
+            });
+        }
+
+        // Buscar usuario
+        const usuario = await User.findById(id);
+
+        if (!usuario) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        // No permitir que el admin se bloquee a sí mismo
+        if (usuario._id.toString() === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'No puedes bloquear tu propia cuenta'
+            });
+        }
+
+        // Actualizar estado
+        usuario.activo = activo;
+        await usuario.save();
+
+        res.json({
+            success: true,
+            message: `Usuario ${activo ? 'desbloqueado' : 'bloqueado'} exitosamente`,
+            data: {
+                _id: usuario._id,
+                nombre: usuario.nombre,
+                email: usuario.email,
+                rol: usuario.rol,
+                activo: usuario.activo
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al bloquear/desbloquear usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};
+
+// PUT /api/users/:id/role - Cambiar rol de usuario (solo admin)
+export const cambiarRolUsuario = async (req, res) => {
+    try {
+        // Verificar que el usuario sea administrador
+        if (req.user.rol !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado. Solo administradores pueden cambiar roles.'
+            });
+        }
+
+        const { id } = req.params;
+        const { rol } = req.body;
+
+        // Validar que se proporcionó el rol
+        if (!rol) {
+            return res.status(400).json({
+                success: false,
+                message: 'El campo "rol" es requerido'
+            });
+        }
+
+        // Validar que el rol sea válido
+        const rolesValidos = ['admin', 'usuario', 'moderador'];
+        if (!rolesValidos.includes(rol)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Rol inválido. Valores permitidos: admin, usuario, moderador'
+            });
+        }
+
+        // Buscar usuario
+        const usuario = await User.findById(id);
+
+        if (!usuario) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        // No permitir que el admin cambie su propio rol
+        if (usuario._id.toString() === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'No puedes cambiar tu propio rol'
+            });
+        }
+
+        // Actualizar rol
+        usuario.rol = rol;
+        await usuario.save();
+
+        res.json({
+            success: true,
+            message: 'Rol actualizado exitosamente',
+            data: {
+                _id: usuario._id,
+                nombre: usuario.nombre,
+                email: usuario.email,
+                rol: usuario.rol,
+                activo: usuario.activo
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al cambiar rol de usuario:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'

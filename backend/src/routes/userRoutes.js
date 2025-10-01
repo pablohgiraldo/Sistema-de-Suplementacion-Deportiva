@@ -7,7 +7,9 @@ import {
     refrescarToken,
     cerrarSesion,
     verificarEstadoToken,
-    listarUsuarios
+    listarUsuarios,
+    bloquearDesbloquearUsuario,
+    cambiarRolUsuario
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
@@ -20,7 +22,10 @@ import {
     validateLogout,
     validateUpdateProfile,
     validateGetProfile,
-    validateTokenStatus
+    validateTokenStatus,
+    validateListUsers,
+    validateBlockUser,
+    validateChangeRole
 } from '../validators/userValidators.js';
 
 const router = express.Router();
@@ -40,7 +45,9 @@ router.get('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSu
 router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateUpdateProfile, actualizarPerfil);
 router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateTokenStatus, verificarEstadoToken);
 
-// Ruta de administración (solo para administradores)
-router.get('/', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, listarUsuarios);
+// Rutas de administración (solo para administradores)
+router.get('/', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateListUsers, listarUsuarios);
+router.put('/:id/block', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateBlockUser, bloquearDesbloquearUsuario);
+router.put('/:id/role', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateChangeRole, cambiarRolUsuario);
 
 export default router;
