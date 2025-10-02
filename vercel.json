@@ -1,7 +1,7 @@
 {
     "buildCommand": "cd frontend && rm -rf node_modules package-lock.json && npm install && npm run build",
     "outputDirectory": "frontend/dist",
-    "installCommand": "cd frontend && npm install",
+    "installCommand": "cd frontend && npm install --ignore-scripts",
     "framework": "vite",
     "functions": {
         "frontend/dist/**": {
