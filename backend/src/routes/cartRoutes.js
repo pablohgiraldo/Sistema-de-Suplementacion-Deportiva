@@ -10,6 +10,7 @@ import {
 } from '../controllers/cartController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
+import { cartRateLimit } from '../middleware/rateLimitMiddleware.js';
 import {
     validateGetCart,
     validateAddToCart,
@@ -24,6 +25,7 @@ const router = express.Router();
 router.use(authMiddleware);
 router.use(tokenExpirationMiddleware);
 router.use(tokenRefreshSuggestionMiddleware);
+router.use(cartRateLimit);
 
 // Rutas del carrito
 router.get('/', validateGetCart, getCart);

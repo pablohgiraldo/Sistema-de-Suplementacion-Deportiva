@@ -14,6 +14,7 @@ import {
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
+import { orderCreateRateLimit, adminRateLimit } from '../middleware/rateLimitMiddleware.js';
 import {
     validateOrderBusinessRules,
     validateColombianAddress,
@@ -40,6 +41,7 @@ router.post('/',
     authMiddleware,
     tokenExpirationMiddleware,
     tokenRefreshSuggestionMiddleware,
+    orderCreateRateLimit,
     validateUserLimits,
     validateCreateOrder,
     validateColombianAddress,

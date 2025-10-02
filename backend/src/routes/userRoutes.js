@@ -15,6 +15,7 @@ import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin, requireUserManagementAccess } from '../middleware/roleMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
 import { adminAuditMiddleware, unauthorizedAccessMiddleware } from '../middleware/adminAuditMiddleware.js';
+import { authRateLimit, registerRateLimit, adminRateLimit } from '../middleware/rateLimitMiddleware.js';
 import {
     validateRegister,
     validateLogin,
@@ -35,9 +36,9 @@ router.use(adminAuditMiddleware());
 router.use(unauthorizedAccessMiddleware());
 
 // Rutas públicas (no requieren autenticación)
-router.post('/register', validateRegister, registrarUsuario);
-router.post('/login', validateLogin, iniciarSesion);
-router.post('/refresh', validateRefreshToken, refrescarToken);
+router.post('/register', registerRateLimit, validateRegister, registrarUsuario);
+router.post('/login', authRateLimit, validateLogin, iniciarSesion);
+router.post('/refresh', authRateLimit, validateRefreshToken, refrescarToken);
 router.post('/logout', validateLogout, cerrarSesion);
 
 // Rutas protegidas (requieren autenticación)
@@ -46,8 +47,8 @@ router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSu
 router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateTokenStatus, verificarEstadoToken);
 
 // Rutas de administración (solo para administradores)
-router.get('/', authMiddleware, requireAdmin, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateListUsers, listarUsuarios);
-router.put('/:id/block', authMiddleware, requireUserManagementAccess(), tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateBlockUser, bloquearDesbloquearUsuario);
-router.put('/:id/role', authMiddleware, requireUserManagementAccess(), tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateChangeRole, cambiarRolUsuario);
+router.get('/', authMiddleware, requireAdmin, adminRateLimit, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateListUsers, listarUsuarios);
+router.put('/:id/block', authMiddleware, requireUserManagementAccess(), adminRateLimit, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateBlockUser, bloquearDesbloquearUsuario);
+router.put('/:id/role', authMiddleware, requireUserManagementAccess(), adminRateLimit, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateChangeRole, cambiarRolUsuario);
 
 export default router;

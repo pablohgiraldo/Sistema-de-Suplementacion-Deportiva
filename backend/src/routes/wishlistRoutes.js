@@ -8,6 +8,7 @@ import {
 } from '../controllers/wishlistController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from '../middleware/tokenExpirationMiddleware.js';
+import { wishlistRateLimit } from '../middleware/rateLimitMiddleware.js';
 import {
     validateAddProduct,
     validateRemoveProduct,
@@ -20,6 +21,7 @@ const router = express.Router();
 router.use(authMiddleware);
 router.use(tokenExpirationMiddleware);
 router.use(tokenRefreshSuggestionMiddleware);
+router.use(wishlistRateLimit);
 
 // GET /api/wishlist - Obtener wishlist del usuario
 router.get('/', obtenerWishlist);
