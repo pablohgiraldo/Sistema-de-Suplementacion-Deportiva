@@ -114,6 +114,13 @@ export default function Header({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span className="text-sm font-medium">{user?.nombre || user?.firstName || 'Usuario'}</span>
+                  <Link
+                    to="/orders"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    title="Mis Pedidos"
+                  >
+                    Mis Pedidos
+                  </Link>
                   <button
                     onClick={onLogout}
                     className="text-xs text-gray-500 hover:text-gray-700"
@@ -323,6 +330,13 @@ export default function Header({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span className="text-sm font-medium">{user?.nombre || user?.firstName || 'Usuario'}</span>
+                    <Link
+                      to="/orders"
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      title="Mis Pedidos"
+                    >
+                      Pedidos
+                    </Link>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">

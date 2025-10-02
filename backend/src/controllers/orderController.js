@@ -5,6 +5,18 @@ import Cart from '../models/Cart.js';
 import Inventory from '../models/Inventory.js';
 import mongoose from 'mongoose';
 
+// Función helper para detectar la marca de tarjeta
+function getCardBrand(cardNumber) {
+    const number = cardNumber.replace(/\s/g, '');
+
+    if (/^4/.test(number)) return 'visa';
+    if (/^5[1-5]/.test(number)) return 'mastercard';
+    if (/^3[47]/.test(number)) return 'amex';
+    if (/^6/.test(number)) return 'discover';
+
+    return 'other';
+}
+
 // Crear una nueva orden desde el carrito
 export async function createOrder(req, res) {
     try {
@@ -54,7 +66,7 @@ export async function createOrder(req, res) {
             });
         }
 
-        // Crear la orden
+        // Crear la orden con datos completos
         const orderItems = cart.items.map(item => ({
             product: item.product._id,
             quantity: item.quantity,
@@ -67,6 +79,17 @@ export async function createOrder(req, res) {
         const shipping = subtotal > 100000 ? 0 : 5000; // Envío gratis sobre $100,000
         const total = subtotal + tax + shipping;
 
+        // Extraer datos de pago si es tarjeta de crédito
+        let paymentDetails = {};
+        if (paymentMethod === 'credit_card' && req.body.cardNumber) {
+            const cardNumber = req.body.cardNumber.replace(/\s/g, '');
+            paymentDetails = {
+                cardLastFour: cardNumber.slice(-4),
+                cardBrand: getCardBrand(cardNumber),
+                currency: 'COP'
+            };
+        }
+
         const order = new Order({
             user: userId,
             items: orderItems,
@@ -76,10 +99,22 @@ export async function createOrder(req, res) {
             total,
             paymentMethod,
             shippingAddress,
+            billingAddress: req.body.billingAddress || null, // Opcional
             notes,
+            paymentDetails,
             status: 'pending',
             paymentStatus: 'pending'
         });
+
+        // Validar datos de la orden antes de guardar
+        const validationErrors = order.validateOrderData();
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Datos de la orden inválidos',
+                details: validationErrors
+            });
+        }
 
         await order.save();
 
@@ -105,10 +140,25 @@ export async function createOrder(req, res) {
             { path: 'items.product', select: 'name brand imageUrl' }
         ]);
 
+        // Crear respuesta completa con resumen
+        const orderSummary = order.getOrderSummary();
+
         res.status(201).json({
             success: true,
             message: 'Orden creada exitosamente',
-            data: order
+            data: {
+                ...order.toObject(),
+                summary: orderSummary
+            },
+            metadata: {
+                orderNumber: order.orderNumber,
+                total: order.total,
+                itemCount: order.itemCount,
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                createdAt: order.createdAt,
+                estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) // 5 días estimados
+            }
         });
 
     } catch (error) {

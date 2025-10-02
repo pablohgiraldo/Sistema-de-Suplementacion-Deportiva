@@ -411,29 +411,71 @@ const Checkout = () => {
         setIsSubmitting(true);
 
         try {
-            // Simular procesamiento de pago
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Preparar datos para enviar al API
+            const orderData = {
+                paymentMethod: formData.paymentMethod,
+                shippingAddress: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    street: formData.address,
+                    city: formData.city,
+                    state: formData.state,
+                    zipCode: formData.zipCode,
+                    country: formData.country,
+                    phone: formData.phone
+                },
+                billingAddress: formData.sameAsShipping ? null : {
+                    firstName: formData.billingFirstName,
+                    lastName: formData.billingLastName,
+                    street: formData.billingAddress,
+                    city: formData.billingCity,
+                    state: formData.billingState,
+                    zipCode: formData.billingZipCode,
+                    country: formData.billingCountry,
+                    phone: formData.billingPhone
+                },
+                notes: formData.notes,
+                // Incluir datos de tarjeta si es necesario
+                ...(formData.paymentMethod === 'credit_card' && {
+                    cardNumber: formData.cardNumber,
+                    expiryDate: formData.expiryDate,
+                    cvv: formData.cvv
+                })
+            };
 
-            // Aquí iría la lógica real de procesamiento de pago
-            console.log('Datos del checkout:', {
-                cartItems: cartItems.map(item => ({
-                    id: item._id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity
-                })),
-                cartTotal,
-                formData
+            // Llamar al API para crear la orden
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
+                body: JSON.stringify(orderData)
             });
 
-            // Limpiar carrito y mostrar éxito
-            clearCart();
-            showSuccess('¡Pedido realizado exitosamente! Te enviaremos un email de confirmación.');
+            const result = await response.json();
 
-            // Redirigir a página de confirmación o inicio
-            navigate('/');
+            if (response.ok) {
+                // Limpiar carrito
+                clearCart();
+
+                // Redirigir a página de confirmación con datos de la orden
+                navigate('/order-confirmation', {
+                    state: {
+                        orderData: result.data
+                    }
+                });
+            } else {
+                // Manejar errores del API
+                if (result.details && Array.isArray(result.details)) {
+                    const errorMessages = result.details.map(detail => detail.message).join(', ');
+                    showError(`Error: ${errorMessages}`);
+                } else {
+                    showError(result.error || 'Error al procesar el pedido. Inténtalo de nuevo.');
+                }
+            }
         } catch (error) {
-            showError('Error al procesar el pedido. Inténtalo de nuevo.');
+            showError('Error de conexión. Verifica tu conexión a internet e inténtalo de nuevo.');
             console.error('Error en checkout:', error);
         } finally {
             setIsSubmitting(false);

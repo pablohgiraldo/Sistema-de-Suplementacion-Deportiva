@@ -71,10 +71,22 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['credit_card', 'debit_card', 'paypal', 'cash', 'bank_transfer'],
+        enum: ['credit_card', 'paypal', 'pse'],
         required: [true, 'El método de pago es requerido']
     },
     shippingAddress: {
+        firstName: {
+            type: String,
+            required: [true, 'El nombre es requerido'],
+            trim: true,
+            maxlength: [50, 'El nombre no puede exceder 50 caracteres']
+        },
+        lastName: {
+            type: String,
+            required: [true, 'El apellido es requerido'],
+            trim: true,
+            maxlength: [50, 'El apellido no puede exceder 50 caracteres']
+        },
         street: {
             type: String,
             required: [true, 'La dirección es requerida'],
@@ -104,11 +116,101 @@ const orderSchema = new mongoose.Schema({
             required: [true, 'El país es requerido'],
             trim: true,
             maxlength: [50, 'El país no puede exceder 50 caracteres']
+        },
+        phone: {
+            type: String,
+            required: [true, 'El teléfono es requerido'],
+            trim: true,
+            maxlength: [15, 'El teléfono no puede exceder 15 caracteres']
+        }
+    },
+    billingAddress: { // Opcional, si es diferente al de envío
+        firstName: {
+            type: String,
+            trim: true,
+            maxlength: [50, 'El nombre no puede exceder 50 caracteres']
+        },
+        lastName: {
+            type: String,
+            trim: true,
+            maxlength: [50, 'El apellido no puede exceder 50 caracteres']
+        },
+        street: {
+            type: String,
+            trim: true,
+            maxlength: [200, 'La dirección no puede exceder 200 caracteres']
+        },
+        city: {
+            type: String,
+            trim: true,
+            maxlength: [50, 'La ciudad no puede exceder 50 caracteres']
+        },
+        state: {
+            type: String,
+            trim: true,
+            maxlength: [50, 'El estado no puede exceder 50 caracteres']
+        },
+        zipCode: {
+            type: String,
+            trim: true,
+            maxlength: [10, 'El código postal no puede exceder 10 caracteres']
+        },
+        country: {
+            type: String,
+            trim: true,
+            maxlength: [50, 'El país no puede exceder 50 caracteres']
+        },
+        phone: {
+            type: String,
+            trim: true,
+            maxlength: [15, 'El teléfono no puede exceder 15 caracteres']
         }
     },
     notes: {
         type: String,
+        trim: true,
         maxlength: [500, 'Las notas no pueden exceder 500 caracteres']
+    },
+    paymentDetails: {
+        transactionId: {
+            type: String,
+            trim: true
+        },
+        amountPaid: {
+            type: Number,
+            min: [0, 'El monto pagado no puede ser negativo']
+        },
+        currency: {
+            type: String,
+            default: 'COP',
+            trim: true
+        },
+        paymentDate: {
+            type: Date
+        },
+        cardLastFour: {
+            type: String,
+            trim: true,
+            maxlength: [4, 'Los últimos 4 dígitos no pueden exceder 4 caracteres']
+        },
+        cardBrand: {
+            type: String,
+            trim: true,
+            enum: ['visa', 'mastercard', 'amex', 'discover', 'other']
+        }
+    },
+    deliveryDate: {
+        type: Date
+    },
+    trackingNumber: {
+        type: String,
+        trim: true,
+        maxlength: [50, 'El número de seguimiento no puede exceder 50 caracteres']
+    },
+    carrier: {
+        type: String,
+        trim: true,
+        maxlength: [50, 'La empresa de envío no puede exceder 50 caracteres']
     },
     processedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -122,6 +224,26 @@ const orderSchema = new mongoose.Schema({
     },
     deliveredAt: {
         type: Date
+    },
+    cancelledAt: {
+        type: Date
+    },
+    cancellationReason: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'La razón de cancelación no puede exceder 200 caracteres']
+    },
+    refundAmount: {
+        type: Number,
+        min: [0, 'El monto de reembolso no puede ser negativo']
+    },
+    refundDate: {
+        type: Date
+    },
+    refundReason: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'La razón de reembolso no puede exceder 200 caracteres']
     }
 }, {
     timestamps: true,
@@ -161,12 +283,66 @@ orderSchema.virtual('paymentStatusFormatted').get(function () {
 orderSchema.virtual('paymentMethodFormatted').get(function () {
     const methodMap = {
         'credit_card': 'Tarjeta de Crédito',
-        'debit_card': 'Tarjeta de Débito',
         'paypal': 'PayPal',
-        'cash': 'Efectivo',
-        'bank_transfer': 'Transferencia Bancaria'
+        'pse': 'PSE - Pagos Seguros en Línea'
     };
     return methodMap[this.paymentMethod] || this.paymentMethod;
+});
+
+// Virtual para el nombre completo del cliente
+orderSchema.virtual('customerFullName').get(function () {
+    const firstName = this.shippingAddress?.firstName || '';
+    const lastName = this.shippingAddress?.lastName || '';
+    return `${firstName} ${lastName}`.trim();
+});
+
+// Virtual para la dirección completa de envío
+orderSchema.virtual('fullShippingAddress').get(function () {
+    const { street, city, state, zipCode, country } = this.shippingAddress;
+    return `${street}, ${city}, ${state}, ${zipCode}, ${country}`;
+});
+
+// Virtual para la dirección completa de facturación
+orderSchema.virtual('fullBillingAddress').get(function () {
+    if (!this.billingAddress || !this.billingAddress.street) {
+        return this.fullShippingAddress; // Usar dirección de envío si no hay facturación
+    }
+    const { street, city, state, zipCode, country } = this.billingAddress;
+    return `${street}, ${city}, ${state}, ${zipCode}, ${country}`;
+});
+
+// Virtual para el tiempo transcurrido desde la creación
+orderSchema.virtual('timeSinceCreated').get(function () {
+    const now = new Date();
+    const created = this.createdAt;
+    const diffMs = now - created;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (diffDays > 0) return `${diffDays} días`;
+    if (diffHours > 0) return `${diffHours} horas`;
+    return `${diffMinutes} minutos`;
+});
+
+// Virtual para verificar si la orden puede ser cancelada
+orderSchema.virtual('canBeCancelled').get(function () {
+    return ['pending', 'processing'].includes(this.status);
+});
+
+// Virtual para verificar si la orden puede ser modificada
+orderSchema.virtual('canBeModified').get(function () {
+    return this.status === 'pending';
+});
+
+// Virtual para el estado de envío
+orderSchema.virtual('shippingStatus').get(function () {
+    if (this.status === 'delivered') return 'Entregado';
+    if (this.status === 'shipped') return 'En tránsito';
+    if (this.status === 'processing') return 'Preparando envío';
+    if (this.status === 'pending') return 'Pendiente de procesamiento';
+    if (this.status === 'cancelled') return 'Cancelado';
+    return 'Desconocido';
 });
 
 // Middleware para generar número de orden antes de guardar
@@ -211,9 +387,132 @@ orderSchema.methods.updateStatus = function (newStatus, userId = null) {
 };
 
 // Método para actualizar estado de pago
-orderSchema.methods.updatePaymentStatus = function (newStatus) {
+orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = {}) {
     this.paymentStatus = newStatus;
+
+    if (paymentDetails.transactionId) {
+        this.paymentDetails.transactionId = paymentDetails.transactionId;
+    }
+    if (paymentDetails.amountPaid) {
+        this.paymentDetails.amountPaid = paymentDetails.amountPaid;
+    }
+    if (paymentDetails.paymentDate) {
+        this.paymentDetails.paymentDate = paymentDetails.paymentDate;
+    }
+    if (paymentDetails.cardLastFour) {
+        this.paymentDetails.cardLastFour = paymentDetails.cardLastFour;
+    }
+    if (paymentDetails.cardBrand) {
+        this.paymentDetails.cardBrand = paymentDetails.cardBrand;
+    }
+
     return this.save();
+};
+
+// Método para cancelar orden
+orderSchema.methods.cancelOrder = function (reason, userId = null) {
+    this.status = 'cancelled';
+    this.cancelledAt = new Date();
+    this.cancellationReason = reason;
+
+    if (userId) {
+        this.processedBy = userId;
+    }
+
+    return this.save();
+};
+
+// Método para procesar orden
+orderSchema.methods.processOrder = function (userId) {
+    this.status = 'processing';
+    this.processedBy = userId;
+    this.processedAt = new Date();
+
+    return this.save();
+};
+
+// Método para marcar como enviado
+orderSchema.methods.markAsShipped = function (trackingNumber, carrier, userId = null) {
+    this.status = 'shipped';
+    this.shippedAt = new Date();
+    this.trackingNumber = trackingNumber;
+    this.carrier = carrier;
+
+    if (userId) {
+        this.processedBy = userId;
+    }
+
+    return this.save();
+};
+
+// Método para marcar como entregado
+orderSchema.methods.markAsDelivered = function (userId = null) {
+    this.status = 'delivered';
+    this.deliveredAt = new Date();
+
+    if (userId) {
+        this.processedBy = userId;
+    }
+
+    return this.save();
+};
+
+// Método para procesar reembolso
+orderSchema.methods.processRefund = function (amount, reason, userId = null) {
+    this.paymentStatus = 'refunded';
+    this.refundAmount = amount;
+    this.refundDate = new Date();
+    this.refundReason = reason;
+
+    if (userId) {
+        this.processedBy = userId;
+    }
+
+    return this.save();
+};
+
+// Método para obtener resumen de la orden
+orderSchema.methods.getOrderSummary = function () {
+    return {
+        orderNumber: this.orderNumber,
+        customerName: this.customerFullName,
+        total: this.total,
+        status: this.statusFormatted,
+        paymentStatus: this.paymentStatusFormatted,
+        paymentMethod: this.paymentMethodFormatted,
+        itemCount: this.itemCount,
+        createdAt: this.createdAt,
+        timeSinceCreated: this.timeSinceCreated,
+        canBeCancelled: this.canBeCancelled,
+        canBeModified: this.canBeModified,
+        shippingStatus: this.shippingStatus
+    };
+};
+
+// Método para validar datos de la orden antes de guardar
+orderSchema.methods.validateOrderData = function () {
+    const errors = [];
+
+    // Validar que el total sea correcto
+    const calculatedTotal = this.subtotal + this.tax + this.shipping;
+    if (Math.abs(this.total - calculatedTotal) > 0.01) {
+        errors.push('El total no coincide con la suma de subtotal, impuestos y envío');
+    }
+
+    // Validar que haya al menos un item
+    if (!this.items || this.items.length === 0) {
+        errors.push('La orden debe tener al menos un producto');
+    }
+
+    // Validar que todos los items tengan subtotal correcto
+    for (const item of this.items) {
+        const calculatedSubtotal = item.price * item.quantity;
+        if (Math.abs(item.subtotal - calculatedSubtotal) > 0.01) {
+            errors.push(`El subtotal del item ${item.product} no es correcto`);
+        }
+    }
+
+    return errors;
 };
 
 // Método estático para obtener estadísticas de ventas
@@ -304,6 +603,25 @@ orderSchema.index({ status: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ 'items.product': 1 });
+orderSchema.index({ 'shippingAddress.city': 1 });
+orderSchema.index({ 'shippingAddress.state': 1 });
+orderSchema.index({ 'shippingAddress.country': 1 });
+orderSchema.index({ paymentMethod: 1 });
+orderSchema.index({ total: 1 });
+orderSchema.index({ processedBy: 1 });
+orderSchema.index({ shippedAt: -1 });
+orderSchema.index({ deliveredAt: -1 });
+orderSchema.index({ cancelledAt: -1 });
+orderSchema.index({ 'paymentDetails.transactionId': 1 });
+orderSchema.index({ trackingNumber: 1 });
+orderSchema.index({ carrier: 1 });
+
+// Índices compuestos para consultas frecuentes
+orderSchema.index({ user: 1, status: 1 });
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, createdAt: -1 });
+orderSchema.index({ 'shippingAddress.state': 1, createdAt: -1 });
 
 // Índice compuesto para reportes de ventas
 orderSchema.index({
