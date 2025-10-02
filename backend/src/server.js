@@ -6,6 +6,14 @@ import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { connectDB } from "./config/db.js";
+import { configureSecurity } from "./middleware/securityMiddleware.js";
+import {
+  validateSecurityHeaders,
+  validatePayloadSize,
+  validateContentType,
+  detectCommonAttacks,
+  securityLogger
+} from "./middleware/securityValidation.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
@@ -16,46 +24,12 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import schedulerRoutes from "./routes/schedulerRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import securityRoutes from "./routes/securityRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
 
-// Configuración de rate limiting (solo en producción)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // muy permisivo en desarrollo
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo en 15 minutos.'
-  }
-});
-
-// Middlewares de seguridad
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
-
-// Rate limiting solo para rutas de autenticación
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para auth
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes de autenticación, intenta de nuevo en 15 minutos.'
-  }
-});
-
-// Rate limiting más permisivo para carrito
-const cartLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 200 : 50000, // muy permisivo para carrito en desarrollo
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes de carrito, intenta de nuevo en 15 minutos.'
-  }
-});
-
-// Configuración CORS
+// Configuración CORS ANTES de Helmet para evitar conflictos
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -86,6 +60,48 @@ app.use(
     optionsSuccessStatus: 200
   })
 );
+
+// Configuración de rate limiting (solo en producción)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // muy permisivo en desarrollo
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo en 15 minutos.'
+  }
+});
+
+// Configuración avanzada de seguridad con Helmet
+const isDevelopment = process.env.NODE_ENV !== 'production';
+configureSecurity(app, isDevelopment);
+
+// Middlewares adicionales de validación de seguridad
+app.use(validateSecurityHeaders);
+app.use(validatePayloadSize('10mb'));
+app.use(validateContentType(['application/json', 'multipart/form-data']));
+app.use(detectCommonAttacks);
+app.use(securityLogger);
+
+// Rate limiting solo para rutas de autenticación
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para auth
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes de autenticación, intenta de nuevo en 15 minutos.'
+  }
+});
+
+// Rate limiting más permisivo para carrito
+const cartLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 200 : 50000, // muy permisivo para carrito en desarrollo
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes de carrito, intenta de nuevo en 15 minutos.'
+  }
+});
+
 
 // Middlewares
 app.use(morgan("dev"));
@@ -131,6 +147,9 @@ app.use("/api/inventory", inventoryRoutes);
 
 // Rutas de alertas - solo para administradores
 app.use("/api/alerts", alertRoutes);
+
+// Rutas de seguridad - solo para administradores
+app.use("/api/security", securityRoutes);
 
 // Rutas de notificaciones - solo para administradores
 app.use("/api/notifications", notificationRoutes);
