@@ -194,6 +194,7 @@ export async function getOrders(req, res) {
         if (userRole !== 'admin') {
             query.user = userId;
         }
+        // Si es admin, query queda vacío para mostrar todas las órdenes
 
         // Filtros opcionales
         if (status) {
