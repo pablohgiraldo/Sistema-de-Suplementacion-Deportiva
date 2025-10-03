@@ -37,6 +37,7 @@ export const securityConfig = helmet({
             ],
             connectSrc: [
                 "'self'",
+                "*", // Permitir conexiones desde cualquier origen en producción
                 "https://api.mongodb.com", // Para MongoDB Atlas
                 "https://maps.googleapis.com",
                 "ws://localhost:*", // Para desarrollo WebSocket
@@ -156,6 +157,7 @@ export const developmentSecurityConfig = helmet({
             ],
             connectSrc: [
                 "'self'",
+                "*", // Permitir conexiones desde cualquier origen en desarrollo también
                 "https://api.mongodb.com",
                 "https://maps.googleapis.com",
                 "ws://localhost:*",
