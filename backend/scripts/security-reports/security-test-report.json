@@ -1,0 +1,99 @@
+{
+  "timestamp": "2025-10-03T02:06:25.697Z",
+  "tests": [
+    {
+      "name": "X-Content-Type-Options",
+      "description": "Verificar header X-Content-Type-Options",
+      "passed": true,
+      "status": "PASS",
+      "message": "Header configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.827Z"
+    },
+    {
+      "name": "X-Frame-Options",
+      "description": "Verificar header X-Frame-Options",
+      "passed": true,
+      "status": "PASS",
+      "message": "Header configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.830Z"
+    },
+    {
+      "name": "X-XSS-Protection",
+      "description": "Verificar header X-XSS-Protection",
+      "passed": true,
+      "status": "PASS",
+      "message": "Header configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.834Z"
+    },
+    {
+      "name": "Strict-Transport-Security",
+      "description": "Verificar header HSTS",
+      "passed": true,
+      "status": "PASS",
+      "message": "Header configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.839Z"
+    },
+    {
+      "name": "Login con credenciales inválidas",
+      "description": "Verificar que el login rechaza credenciales inválidas",
+      "passed": true,
+      "status": "PASS",
+      "message": "Autenticación funcionando correctamente",
+      "timestamp": "2025-10-03T02:06:25.882Z"
+    },
+    {
+      "name": "Acceso sin autenticación",
+      "description": "Verificar que endpoints protegidos requieren autenticación",
+      "passed": true,
+      "status": "PASS",
+      "message": "Autenticación funcionando correctamente",
+      "timestamp": "2025-10-03T02:06:25.889Z"
+    },
+    {
+      "name": "SQL Injection en productos",
+      "description": "Verificar protección contra SQL injection",
+      "passed": true,
+      "status": "PASS",
+      "message": "Validación de entrada funcionando",
+      "timestamp": "2025-10-03T02:06:25.974Z"
+    },
+    {
+      "name": "XSS en búsqueda",
+      "description": "Verificar protección contra XSS",
+      "passed": true,
+      "status": "PASS",
+      "message": "Validación de entrada funcionando",
+      "timestamp": "2025-10-03T02:06:25.981Z"
+    },
+    {
+      "name": "Validación de email",
+      "description": "Verificar validación de formato de email",
+      "passed": true,
+      "status": "PASS",
+      "message": "Validación de entrada funcionando",
+      "timestamp": "2025-10-03T02:06:25.988Z"
+    },
+    {
+      "name": "CORS desde origen no permitido",
+      "description": "Verificar que CORS bloquea orígenes no permitidos",
+      "passed": true,
+      "status": "PASS",
+      "message": "CORS configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.993Z"
+    },
+    {
+      "name": "CORS desde localhost",
+      "description": "Verificar que CORS permite localhost",
+      "passed": true,
+      "status": "PASS",
+      "message": "CORS configurado correctamente",
+      "timestamp": "2025-10-03T02:06:25.995Z"
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "warnings": 0
+  }
+}

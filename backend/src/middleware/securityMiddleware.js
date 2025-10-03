@@ -222,6 +222,13 @@ export const configureSecurity = (app, isDevelopment = false) => {
         // Server header personalizado
         res.setHeader('Server', 'SuperGains-API/1.0');
 
+        // Headers de seguridad adicionales
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self), payment=(self)');
+
         // Cache-Control para endpoints sensibles
         if (req.path.includes('/api/users/login') || req.path.includes('/api/users/register')) {
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

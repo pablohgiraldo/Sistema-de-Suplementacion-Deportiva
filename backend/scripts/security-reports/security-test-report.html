@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Pruebas de Seguridad - SuperGains</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+        .metric { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid #007bff; }
+        .metric.passed { border-left-color: #28a745; }
+        .metric.failed { border-left-color: #dc3545; }
+        .metric.warnings { border-left-color: #ffc107; }
+        .test-result { margin: 15px 0; padding: 15px; border-radius: 6px; border-left: 4px solid #ddd; }
+        .test-result.pass { background: #d4edda; border-left-color: #28a745; }
+        .test-result.fail { background: #f8d7da; border-left-color: #dc3545; }
+        .test-result.error { background: #fff3cd; border-left-color: #ffc107; }
+        .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+        .status.PASS { background: #28a745; color: white; }
+        .status.FAIL { background: #dc3545; color: white; }
+        .status.ERROR { background: #ffc107; color: black; }
+        .recommendations { background: #e7f3ff; padding: 20px; border-radius: 8px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Reporte de Pruebas de Seguridad</h1>
+            <h2>SuperGains - 2025-10-03T02:06:25.697Z</h2>
+            <p>Pruebas automatizadas de seguridad realizadas con herramientas simuladas</p>
+        </div>
+        
+        <div class="summary">
+            <div class="metric">
+                <h3>11</h3>
+                <p>Total de Pruebas</p>
+            </div>
+            <div class="metric passed">
+                <h3>11</h3>
+                <p>Exitosas</p>
+            </div>
+            <div class="metric failed">
+                <h3>0</h3>
+                <p>Fallidas</p>
+            </div>
+            <div class="metric warnings">
+                <h3>0</h3>
+                <p>Advertencias</p>
+            </div>
+        </div>
+        
+        <h2>📋 Resultados Detallados</h2>
+        
+        
+            <div class="test-result pass">
+                <h3>X-Content-Type-Options</h3>
+                <p><strong>Descripción:</strong> Verificar header X-Content-Type-Options</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Header configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.827Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>X-Frame-Options</h3>
+                <p><strong>Descripción:</strong> Verificar header X-Frame-Options</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Header configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.830Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>X-XSS-Protection</h3>
+                <p><strong>Descripción:</strong> Verificar header X-XSS-Protection</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Header configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.834Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>Strict-Transport-Security</h3>
+                <p><strong>Descripción:</strong> Verificar header HSTS</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Header configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.839Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>Login con credenciales inválidas</h3>
+                <p><strong>Descripción:</strong> Verificar que el login rechaza credenciales inválidas</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Autenticación funcionando correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.882Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>Acceso sin autenticación</h3>
+                <p><strong>Descripción:</strong> Verificar que endpoints protegidos requieren autenticación</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Autenticación funcionando correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.889Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>SQL Injection en productos</h3>
+                <p><strong>Descripción:</strong> Verificar protección contra SQL injection</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Validación de entrada funcionando</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.974Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>XSS en búsqueda</h3>
+                <p><strong>Descripción:</strong> Verificar protección contra XSS</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Validación de entrada funcionando</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.981Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>Validación de email</h3>
+                <p><strong>Descripción:</strong> Verificar validación de formato de email</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> Validación de entrada funcionando</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.988Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>CORS desde origen no permitido</h3>
+                <p><strong>Descripción:</strong> Verificar que CORS bloquea orígenes no permitidos</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> CORS configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.993Z</p>
+            </div>
+        
+            <div class="test-result pass">
+                <h3>CORS desde localhost</h3>
+                <p><strong>Descripción:</strong> Verificar que CORS permite localhost</p>
+                <p><strong>Estado:</strong> <span class="status PASS">PASS</span></p>
+                <p><strong>Mensaje:</strong> CORS configurado correctamente</p>
+                <p><strong>Timestamp:</strong> 2025-10-03T02:06:25.995Z</p>
+            </div>
+        
+        
+        <div class="recommendations">
+            <h2>💡 Recomendaciones de Seguridad</h2>
+            <ul>
+                <li>Implementar Content Security Policy (CSP) más estricta</li>
+                <li>Configurar headers de seguridad adicionales</li>
+                <li>Implementar logging de seguridad más detallado</li>
+                <li>Realizar pruebas de penetración regulares</li>
+                <li>Implementar monitoreo de seguridad en tiempo real</li>
+                <li>Configurar alertas de seguridad automáticas</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
