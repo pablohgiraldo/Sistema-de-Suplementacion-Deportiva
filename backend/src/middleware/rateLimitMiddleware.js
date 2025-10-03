@@ -9,7 +9,7 @@ const logRateLimit = (level, message, data) => {
 // Rate limiting para endpoints de autenticación (muy restrictivo)
 export const authRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // máximo 5 intentos por IP
+    max: process.env.NODE_ENV === 'production' ? 5 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiados intentos de autenticación. Intenta de nuevo en 15 minutos.',
@@ -36,7 +36,7 @@ export const authRateLimit = rateLimit({
 // Rate limiting para endpoints de registro (moderadamente restrictivo)
 export const registerRateLimit = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hora
-    max: 3, // máximo 3 registros por IP por hora
+    max: process.env.NODE_ENV === 'production' ? 3 : 100, // permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiados intentos de registro. Intenta de nuevo en 1 hora.',
@@ -45,7 +45,7 @@ export const registerRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for register endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for register endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -63,7 +63,7 @@ export const registerRateLimit = rateLimit({
 // Rate limiting para endpoints de creación de órdenes (moderadamente restrictivo)
 export const orderCreateRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // máximo 10 órdenes por IP por 15 minutos
+    max: process.env.NODE_ENV === 'production' ? 10 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiadas órdenes creadas. Intenta de nuevo en 15 minutos.',
@@ -72,7 +72,7 @@ export const orderCreateRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for order creation', {
+        logRateLimit('warn', 'Rate limit exceeded for order creation', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -91,7 +91,7 @@ export const orderCreateRateLimit = rateLimit({
 // Rate limiting para endpoints de administración (moderadamente restrictivo)
 export const adminRateLimit = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutos
-    max: 50, // máximo 50 requests por IP por 5 minutos
+    max: process.env.NODE_ENV === 'production' ? 50 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiadas solicitudes de administración. Intenta de nuevo en 5 minutos.',
@@ -100,7 +100,7 @@ export const adminRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for admin endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for admin endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -119,7 +119,7 @@ export const adminRateLimit = rateLimit({
 // Rate limiting para endpoints de wishlist (permisivo)
 export const wishlistRateLimit = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minuto
-    max: 30, // máximo 30 requests por IP por minuto
+    max: process.env.NODE_ENV === 'production' ? 30 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiadas solicitudes de wishlist. Intenta de nuevo en 1 minuto.',
@@ -128,7 +128,7 @@ export const wishlistRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for wishlist endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for wishlist endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -147,7 +147,7 @@ export const wishlistRateLimit = rateLimit({
 // Rate limiting para endpoints de carrito (permisivo)
 export const cartRateLimit = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minuto
-    max: 50, // máximo 50 requests por IP por minuto
+    max: process.env.NODE_ENV === 'production' ? 50 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiadas solicitudes de carrito. Intenta de nuevo en 1 minuto.',
@@ -156,7 +156,7 @@ export const cartRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for cart endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for cart endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -175,7 +175,7 @@ export const cartRateLimit = rateLimit({
 // Rate limiting para endpoints de productos (permisivo)
 export const productRateLimit = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minuto
-    max: 100, // máximo 100 requests por IP por minuto
+    max: process.env.NODE_ENV === 'production' ? 100 : 1000, // muy permisivo en desarrollo
     message: {
         success: false,
         error: 'Demasiadas solicitudes de productos. Intenta de nuevo en 1 minuto.',
@@ -184,7 +184,7 @@ export const productRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for product endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for product endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,
@@ -201,17 +201,17 @@ export const productRateLimit = rateLimit({
 
 // Rate limiting para endpoints de inventario (moderadamente restrictivo)
 export const inventoryRateLimit = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutos
-    max: 30, // máximo 30 requests por IP por 5 minutos
+    windowMs: 1 * 60 * 1000, // 1 minuto (reducido de 5 minutos)
+    max: process.env.NODE_ENV === 'production' ? 30 : 200, // más permisivo en desarrollo
     message: {
         success: false,
-        error: 'Demasiadas solicitudes de inventario. Intenta de nuevo en 5 minutos.',
+        error: 'Demasiadas solicitudes de inventario. Intenta de nuevo en 1 minuto.',
         code: 'INVENTORY_RATE_LIMIT_EXCEEDED'
     },
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logRateLimit('warn'('Rate limit exceeded for inventory endpoint', {
+        logRateLimit('warn', 'Rate limit exceeded for inventory endpoint', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             endpoint: req.path,

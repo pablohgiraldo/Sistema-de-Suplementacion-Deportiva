@@ -11,6 +11,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import { requireAdmin, requireModerator } from "../middleware/roleMiddleware.js";
 import { tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware } from "../middleware/tokenExpirationMiddleware.js";
 import { productRateLimit, adminRateLimit } from "../middleware/rateLimitMiddleware.js";
+import { sanitizeInput, validateContentType, detectCommonAttacks } from "../middleware/inputValidationMiddleware.js";
 import {
     validateGetProducts,
     validateGetProductById,
@@ -19,17 +20,75 @@ import {
     validateDeleteProduct,
     validateSearchProducts
 } from "../validators/productValidators.js";
+import {
+    validateProductSecurity,
+    validateProductSearchSecurity,
+    validateProductUpdateSecurity,
+    handleValidationErrors
+} from "../validators/enhancedProductValidators.js";
 
 const router = express.Router();
 
+// Aplicar middlewares de seguridad a todas las rutas
+router.use(sanitizeInput);
+router.use(detectCommonAttacks);
+
 // Rutas públicas (no requieren autenticación)
-router.get("/", productRateLimit, validateGetProducts, getProducts);
-router.get("/search", productRateLimit, validateSearchProducts, searchProducts);
-router.get("/:id", productRateLimit, validateGetProductById, getProductById);
+router.get("/",
+    productRateLimit,
+    validateProductSearchSecurity,
+    handleValidationErrors,
+    validateGetProducts,
+    getProducts
+);
+
+router.get("/search",
+    productRateLimit,
+    validateProductSearchSecurity,
+    handleValidationErrors,
+    validateSearchProducts,
+    searchProducts
+);
+
+router.get("/:id",
+    productRateLimit,
+    validateGetProductById,
+    getProductById
+);
 
 // Rutas protegidas (requieren autenticación)
-router.post("/", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, adminRateLimit, validateCreateProduct, createProduct);
-router.put("/:id", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, adminRateLimit, validateUpdateProduct, updateProduct);
-router.delete("/:id", authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, requireAdmin, adminRateLimit, validateDeleteProduct, deleteProduct);
+router.post("/",
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    adminRateLimit,
+    validateContentType(['application/json']),
+    validateProductSecurity,
+    handleValidationErrors,
+    validateCreateProduct,
+    createProduct
+);
+
+router.put("/:id",
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    adminRateLimit,
+    validateContentType(['application/json']),
+    validateProductUpdateSecurity,
+    handleValidationErrors,
+    validateUpdateProduct,
+    updateProduct
+);
+
+router.delete("/:id",
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    requireAdmin,
+    adminRateLimit,
+    validateDeleteProduct,
+    deleteProduct
+);
 
 export default router;

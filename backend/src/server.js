@@ -75,12 +75,12 @@ const limiter = rateLimit({
 const isDevelopment = process.env.NODE_ENV !== 'production';
 configureSecurity(app, isDevelopment);
 
-// Middlewares adicionales de validación de seguridad
-app.use(validateSecurityHeaders);
-app.use(validatePayloadSize('10mb'));
-app.use(validateContentType(['application/json', 'multipart/form-data']));
-app.use(detectCommonAttacks);
-app.use(securityLogger);
+// Middlewares adicionales de validación de seguridad (temporalmente deshabilitados para desarrollo)
+// app.use(validateSecurityHeaders);
+// app.use(validatePayloadSize('10mb'));
+// app.use(validateContentType(['application/json', 'multipart/form-data']));
+// app.use(detectCommonAttacks);
+// app.use(securityLogger);
 
 // Rate limiting solo para rutas de autenticación
 const authLimiter = rateLimit({

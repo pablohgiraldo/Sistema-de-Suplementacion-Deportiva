@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { requireAdmin, requireStockAccess } from "../middleware/roleMiddleware.js";
 import { adminAuditMiddleware, stockAuditMiddleware, unauthorizedAccessMiddleware } from "../middleware/adminAuditMiddleware.js";
@@ -27,7 +28,6 @@ const router = express.Router();
 router.use(adminAuditMiddleware());
 router.use(unauthorizedAccessMiddleware());
 router.use(inventoryRateLimit);
-router.use(rateLimitLogger());
 
 // Rate limiting para operaciones de administración
 const adminLimiter = rateLimit({

@@ -46,10 +46,18 @@ const AdminDashboard = () => {
             const productsResponse = await api.get('/products');
             const totalProducts = productsResponse.data.success ? productsResponse.data.data.length : 0;
 
-            // Obtener estadísticas de inventario
-            const inventoryResponse = await api.get('/inventory');
-            const inventoryData = inventoryResponse.data.success ? inventoryResponse.data.data : [];
-            const lowStockProducts = inventoryData.filter(item => item.stock < 10).length;
+            // Obtener estadísticas de inventario (con manejo de errores)
+            let lowStockProducts = 0;
+            try {
+                const inventoryResponse = await api.get('/inventory');
+                const inventoryData = inventoryResponse.data.success ? inventoryResponse.data.data : [];
+                lowStockProducts = inventoryData.filter(item => item.stock < 10).length;
+            } catch (inventoryErr) {
+                console.warn('Error fetching inventory stats:', inventoryErr);
+                // Si falla el inventario, usar datos de productos como fallback
+                const productsData = productsResponse.data.success ? productsResponse.data.data : [];
+                lowStockProducts = productsData.filter(product => (product.stock || 0) < 10).length;
+            }
 
             setStats({
                 totalUsers,
