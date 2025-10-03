@@ -2,7 +2,7 @@ import axios from "axios";
 import { getAccessToken, getRefreshToken, saveAccessToken, clearAuthData } from '../utils/tokenUtils';
 
 const api = axios.create({
-  baseURL: "http://localhost:4000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
   timeout: 15000, // 15 segundos de timeout para operaciones complejas
 });
 
@@ -36,8 +36,9 @@ api.interceptors.response.use(
       try {
         const refreshTokenValue = getRefreshToken();
         if (refreshTokenValue) {
+          const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
           const response = await axios.post(
-            "http://localhost:4000/api/users/refresh",
+            `${apiUrl}/users/refresh`,
             { refreshToken: refreshTokenValue }
           );
 
