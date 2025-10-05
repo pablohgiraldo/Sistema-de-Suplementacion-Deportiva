@@ -4,7 +4,27 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
 import WishlistButton from './WishlistButton';
-import { getProductImage } from '../data/sampleProducts';
+
+// Imágenes de productos reales - Solo contenedores de suplementos, no personas
+const sampleProductImages = [
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center"
+];
+
+// Función para obtener una imagen basada en el ID del producto
+const getProductImage = (productId) => {
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = seed % sampleProductImages.length;
+  return sampleProductImages[index];
+};
 
 const ProductCard = React.memo(({ p }) => {
   const { isAuthenticated } = useAuth();
