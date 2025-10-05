@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import {
+    FormInput,
+    FormButton,
+    FormGroup,
+    FormError,
+    PasswordInput,
+    FormNotification,
+    FormStatus,
+    FormProgress
+} from '../components/forms';
+import RateLimitHandler from '../components/RateLimitHandler';
+import { useFormNotifications } from '../hooks/useFormNotifications';
 
 export default function Register() {
     const { register } = useAuth();
@@ -14,6 +26,10 @@ export default function Register() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [rateLimitError, setRateLimitError] = useState(null);
+    const [formStatus, setFormStatus] = useState('idle');
+    const [currentStep, setCurrentStep] = useState(0);
+    const { notifications, showSuccess, showError, removeNotification } = useFormNotifications();
 
     const handleChange = (e) => {
         setFormData({
@@ -38,12 +54,17 @@ export default function Register() {
         e.preventDefault();
         setError('');
         setSuccess(false);
+        setRateLimitError(null);
+        setFormStatus('loading');
+        setCurrentStep(1);
 
         if (!validateForm()) {
+            setFormStatus('error');
             return;
         }
 
         setLoading(true);
+        setCurrentStep(2);
 
         try {
             const { confirmarContraseña: _, ...dataToSend } = formData;
@@ -51,25 +72,54 @@ export default function Register() {
 
             if (result.success) {
                 setSuccess(true);
-                // Redirigir al login después de 2 segundos
+                setFormStatus('success');
+                setCurrentStep(3);
+                showSuccess('¡Cuenta creada exitosamente! Redirigiendo al login...', 'Registro exitoso', 3000);
+                // Redirigir al login después de 3 segundos
                 setTimeout(() => {
                     navigate('/login');
-                }, 2000);
+                }, 3000);
             } else {
+                setFormStatus('error');
+                setCurrentStep(0);
                 if (result.details) {
                     // Mostrar errores de validación del backend
                     const errorMessages = result.details.map(detail => detail.message).join(', ');
                     setError(errorMessages);
+                    showError(errorMessages, 'Error de validación');
                 } else {
                     setError(result.error);
+                    showError(result.error, 'Error al registrar usuario');
                 }
             }
-        } catch {
-            setError('Error inesperado al registrar usuario');
+        } catch (err) {
+            setFormStatus('error');
+            setCurrentStep(0);
+            // Verificar si es un error de rate limiting
+            if (err.response?.status === 429) {
+                setRateLimitError(err);
+                setFormStatus('warning');
+            } else {
+                setError('Error inesperado al registrar usuario');
+                showError('Error inesperado al registrar usuario', 'Error de conexión');
+            }
         } finally {
             setLoading(false);
         }
     };
+
+    const handleRetry = () => {
+        setRateLimitError(null);
+        setError('');
+        setFormStatus('idle');
+        setCurrentStep(0);
+    };
+
+    const registrationSteps = [
+        { label: 'Validación', description: 'Verificando datos' },
+        { label: 'Envío', description: 'Creando cuenta' },
+        { label: 'Completado', description: 'Registro exitoso' }
+    ];
 
     if (success) {
         return (
@@ -138,73 +188,65 @@ export default function Register() {
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <input
+                    <form onSubmit={handleSubmit}>
+                        <FormGroup>
+                            <FormInput
                                 id="nombre"
                                 name="nombre"
                                 type="text"
-                                autoComplete="name"
-                                required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Nombre completo"
+                                label="Nombre completo"
+                                placeholder="Ingresa tu nombre completo"
                                 value={formData.nombre}
                                 onChange={handleChange}
+                                autoComplete="name"
+                                required
                             />
-                        </div>
 
-                        <div>
-                            <input
+                            <FormInput
                                 id="email"
                                 name="email"
                                 type="email"
-                                autoComplete="email"
-                                required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Email"
+                                label="Email"
+                                placeholder="Ingresa tu email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                autoComplete="email"
+                                required
                             />
-                        </div>
 
-                        <div>
-                            <input
+                            <PasswordInput
                                 id="contraseña"
                                 name="contraseña"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Contraseña (mínimo 6 caracteres)"
+                                label="Contraseña"
+                                placeholder="Mínimo 6 caracteres"
                                 value={formData.contraseña}
                                 onChange={handleChange}
-                            />
-                        </div>
-
-                        <div>
-                            <input
-                                id="confirmarContraseña"
-                                name="confirmarContraseña"
-                                type="password"
                                 autoComplete="new-password"
                                 required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Confirmar contraseña"
+                            />
+
+                            <PasswordInput
+                                id="confirmarContraseña"
+                                name="confirmarContraseña"
+                                label="Confirmar contraseña"
+                                placeholder="Confirma tu contraseña"
                                 value={formData.confirmarContraseña}
                                 onChange={handleChange}
+                                autoComplete="new-password"
+                                required
                             />
-                        </div>
 
-
-                        <div>
-                            <button
+                            <FormButton
                                 type="submit"
+                                variant="primary"
+                                size="lg"
                                 disabled={loading}
-                                className="w-full bg-gray-100 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                                loading={loading}
+                                className="w-full"
                             >
                                 {loading ? 'Creando cuenta...' : 'Continuar'}
-                            </button>
-                        </div>
+                            </FormButton>
+                        </FormGroup>
                     </form>
 
                     {/* Enlaces de política */}
@@ -229,16 +271,58 @@ export default function Register() {
                         </p>
                     </div>
 
+                    {/* Rate limit error */}
+                    {rateLimitError && (
+                        <div className="mt-4">
+                            <RateLimitHandler
+                                error={rateLimitError}
+                                onRetry={handleRetry}
+                            />
+                        </div>
+                    )}
+
+                    {/* Progress indicator */}
+                    {formStatus === 'loading' && (
+                        <div className="mt-6">
+                            <FormProgress
+                                steps={registrationSteps}
+                                currentStep={currentStep}
+                                showLabels={true}
+                                showNumbers={true}
+                            />
+                        </div>
+                    )}
+
+                    {/* Form status */}
+                    {formStatus !== 'idle' && (
+                        <div className="mt-4">
+                            <FormStatus
+                                status={formStatus}
+                                message={
+                                    formStatus === 'loading' ? 'Procesando registro...' :
+                                        formStatus === 'success' ? '¡Registro exitoso!' :
+                                            formStatus === 'error' ? 'Error en el registro' :
+                                                formStatus === 'warning' ? 'Demasiados intentos' : ''
+                                }
+                            />
+                        </div>
+                    )}
+
                     {/* Error message */}
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-600 text-center">
-                                {error}
-                            </p>
+                    {error && !rateLimitError && (
+                        <div className="mt-4">
+                            <FormError error={error} />
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Notifications */}
+            <FormNotification
+                notifications={notifications}
+                onRemove={removeNotification}
+                position="top-right"
+            />
         </div>
     );
 }

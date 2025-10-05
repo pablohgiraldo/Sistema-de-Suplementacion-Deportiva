@@ -60,10 +60,22 @@ api.interceptors.response.use(
     // Manejar otros errores
     if (error.response) {
       console.error('Error del servidor:', error.response.status, error.response.data);
+
+      // Manejar error 429 (Rate Limiting) específicamente
+      if (error.response.status === 429) {
+        const retryAfter = error.response.headers['retry-after'];
+        const message = retryAfter
+          ? `Demasiados intentos. Intenta de nuevo en ${retryAfter} segundos.`
+          : 'Demasiados intentos. Por favor espera un momento antes de intentar de nuevo.';
+
+        error.userMessage = message;
+      }
     } else if (error.request) {
       console.error('Error de red:', error.request);
+      error.userMessage = 'Error de conexión. Verifica tu conexión a internet.';
     } else {
       console.error('Error:', error.message);
+      error.userMessage = 'Error inesperado. Intenta de nuevo.';
     }
 
     return Promise.reject(error);

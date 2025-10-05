@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import {
+    FormInput,
+    FormButton,
+    FormGroup,
+    FormError,
+    PasswordInput,
+    FormNotification,
+    FormStatus
+} from '../components/forms';
+import RateLimitHandler from '../components/RateLimitHandler';
+import { useFormNotifications } from '../hooks/useFormNotifications';
 
 export default function Login() {
     const { login } = useAuth();
@@ -11,6 +22,9 @@ export default function Login() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [rateLimitError, setRateLimitError] = useState(null);
+    const [formStatus, setFormStatus] = useState('idle');
+    const { notifications, showSuccess, showError, removeNotification } = useFormNotifications();
 
     const handleChange = (e) => {
         setFormData({
@@ -23,20 +37,42 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setRateLimitError(null);
+        setFormStatus('loading');
 
         try {
             const result = await login(formData.email, formData.contraseña);
 
             if (result.success) {
-                navigate('/');
+                setFormStatus('success');
+                showSuccess('¡Bienvenido! Iniciando sesión...', 'Inicio de sesión exitoso', 2000);
+                setTimeout(() => {
+                    navigate('/');
+                }, 1500);
             } else {
+                setFormStatus('error');
                 setError(result.error);
+                showError(result.error, 'Error al iniciar sesión');
             }
-        } catch {
-            setError('Error inesperado al iniciar sesión');
+        } catch (err) {
+            // Verificar si es un error de rate limiting
+            if (err.response?.status === 429) {
+                setRateLimitError(err);
+                setFormStatus('warning');
+            } else {
+                setFormStatus('error');
+                setError('Error inesperado al iniciar sesión');
+                showError('Error inesperado al iniciar sesión', 'Error de conexión');
+            }
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRetry = () => {
+        setRateLimitError(null);
+        setError('');
+        setFormStatus('idle');
     };
 
     return (
@@ -82,44 +118,42 @@ export default function Login() {
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <input
+                    <form onSubmit={handleSubmit}>
+                        <FormGroup>
+                            <FormInput
                                 id="email"
                                 name="email"
                                 type="email"
-                                autoComplete="email"
-                                required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Email"
+                                label="Email"
+                                placeholder="Ingresa tu email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                autoComplete="email"
+                                required
                             />
-                        </div>
 
-                        <div>
-                            <input
+                            <PasswordInput
                                 id="contraseña"
                                 name="contraseña"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                                placeholder="Contraseña"
+                                label="Contraseña"
+                                placeholder="Ingresa tu contraseña"
                                 value={formData.contraseña}
                                 onChange={handleChange}
+                                autoComplete="current-password"
+                                required
                             />
-                        </div>
 
-                        <div>
-                            <button
+                            <FormButton
                                 type="submit"
+                                variant="primary"
+                                size="lg"
                                 disabled={loading}
-                                className="w-full bg-gray-100 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                                loading={loading}
+                                className="w-full"
                             >
                                 {loading ? 'Iniciando sesión...' : 'Continuar'}
-                            </button>
-                        </div>
+                            </FormButton>
+                        </FormGroup>
                     </form>
 
                     {/* Enlaces de política */}
@@ -144,16 +178,46 @@ export default function Login() {
                         </p>
                     </div>
 
+                    {/* Rate limit error */}
+                    {rateLimitError && (
+                        <div className="mt-4">
+                            <RateLimitHandler
+                                error={rateLimitError}
+                                onRetry={handleRetry}
+                            />
+                        </div>
+                    )}
+
+                    {/* Form status */}
+                    {formStatus !== 'idle' && (
+                        <div className="mt-4">
+                            <FormStatus
+                                status={formStatus}
+                                message={
+                                    formStatus === 'loading' ? 'Iniciando sesión...' :
+                                        formStatus === 'success' ? '¡Inicio de sesión exitoso!' :
+                                            formStatus === 'error' ? 'Error al iniciar sesión' :
+                                                formStatus === 'warning' ? 'Demasiados intentos' : ''
+                                }
+                            />
+                        </div>
+                    )}
+
                     {/* Error message */}
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-600 text-center">
-                                {error}
-                            </p>
+                    {error && !rateLimitError && (
+                        <div className="mt-4">
+                            <FormError error={error} />
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Notifications */}
+            <FormNotification
+                notifications={notifications}
+                onRemove={removeNotification}
+                position="top-right"
+            />
         </div>
     );
 }

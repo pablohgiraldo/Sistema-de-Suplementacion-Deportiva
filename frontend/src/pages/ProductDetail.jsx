@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
+import {
+    FormInput,
+    FormButton,
+    FormGroup,
+    FormGrid
+} from '../components/forms';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
 import api from '../services/api';
 import WishlistButton from '../components/WishlistButton';
@@ -2767,93 +2773,77 @@ export default function ProductDetail() {
                         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
                             <h4 className="text-lg font-semibold text-gray-900 mb-4">Escribir una reseña</h4>
 
-                            <form onSubmit={handleSubmitReview} className="space-y-4">
-                                {/* Nombre del usuario */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Tu nombre
-                                    </label>
-                                    <input
+                            <form onSubmit={handleSubmitReview}>
+                                <FormGroup>
+                                    <FormInput
                                         type="text"
+                                        label="Tu nombre"
                                         value={reviewForm.userName}
                                         onChange={(e) => handleReviewFormChange('userName', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                                         placeholder="Ingresa tu nombre"
                                         required
                                     />
-                                </div>
 
-                                {/* Rating */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Calificación
-                                    </label>
-                                    <div className="flex items-center gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                onClick={() => handleReviewFormChange('rating', i + 1)}
-                                                className={`w-8 h-8 ${i < reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
-                                                    } hover:text-gray-900 transition-colors`}
-                                            >
-                                                <svg className="w-full h-full" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                            </button>
-                                        ))}
-                                        <span className="ml-2 text-sm text-gray-600">
-                                            {reviewForm.rating} de 5 estrellas
-                                        </span>
+                                    {/* Rating */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Calificación
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => handleReviewFormChange('rating', i + 1)}
+                                                    className={`w-8 h-8 ${i < reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
+                                                        } hover:text-gray-900 transition-colors`}
+                                                >
+                                                    <svg className="w-full h-full" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                </button>
+                                            ))}
+                                            <span className="ml-2 text-sm text-gray-600">
+                                                {reviewForm.rating} de 5 estrellas
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Título */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Título de tu reseña
-                                    </label>
-                                    <input
+                                    <FormInput
                                         type="text"
+                                        label="Título de tu reseña"
                                         value={reviewForm.title}
                                         onChange={(e) => handleReviewFormChange('title', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                                         placeholder="Ej: Excelente producto, muy recomendado"
                                         required
                                     />
-                                </div>
 
-                                {/* Contenido */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Tu experiencia
-                                    </label>
-                                    <textarea
+                                    <FormInput
+                                        type="text"
+                                        label="Tu experiencia"
                                         value={reviewForm.content}
                                         onChange={(e) => handleReviewFormChange('content', e.target.value)}
-                                        rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                                         placeholder="Comparte tu experiencia con este producto..."
+                                        rows={4}
                                         required
                                     />
-                                </div>
 
-                                {/* Botones */}
-                                <div className="flex gap-3">
-                                    <button
-                                        type="submit"
-                                        className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
-                                    >
-                                        Enviar reseña
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={cancelReviewForm}
-                                        className="flex-1 py-2 px-4 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium rounded-lg transition-colors duration-200"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
+                                    <FormGrid columns={2} gap="default">
+                                        <FormButton
+                                            type="submit"
+                                            variant="primary"
+                                        >
+                                            Enviar reseña
+                                        </FormButton>
+                                        <FormButton
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={cancelReviewForm}
+                                        >
+                                            Cancelar
+                                        </FormButton>
+                                    </FormGrid>
+                                </FormGroup>
                             </form>
                         </div>
                     )}

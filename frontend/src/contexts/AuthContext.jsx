@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Error en login:', error);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error al iniciar sesión'
+        error: error.userMessage || error.response?.data?.message || 'Error al iniciar sesión'
       };
     }
   };
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Error en registro:', error);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error al registrar usuario'
+        error: error.userMessage || error.response?.data?.message || 'Error al registrar usuario'
       };
     }
   };

@@ -1,0 +1,240 @@
+/* Utilidades CSS para colores de formularios consistentes */
+
+/* Colores de notificaciones */
+.bg-form-notification-success-background {
+    background-color: #F0FDF4;
+}
+
+.border-form-notification-success-border {
+    border-color: #BBF7D0;
+}
+
+.text-form-notification-success-text {
+    color: #166534;
+}
+
+.text-form-notification-success-title {
+    color: #15803D;
+}
+
+.text-form-notification-success-icon {
+    color: #10B981;
+}
+
+.text-form-notification-success-close {
+    color: #6B7280;
+}
+
+.hover\:text-form-notification-success-closeHover:hover {
+    color: #374151;
+}
+
+.bg-form-notification-error-background {
+    background-color: #FEF2F2;
+}
+
+.border-form-notification-error-border {
+    border-color: #FECACA;
+}
+
+.text-form-notification-error-text {
+    color: #DC2626;
+}
+
+.text-form-notification-error-title {
+    color: #B91C1C;
+}
+
+.text-form-notification-error-icon {
+    color: #EF4444;
+}
+
+.text-form-notification-error-close {
+    color: #6B7280;
+}
+
+.hover\:text-form-notification-error-closeHover:hover {
+    color: #374151;
+}
+
+.bg-form-notification-warning-background {
+    background-color: #FFFBEB;
+}
+
+.border-form-notification-warning-border {
+    border-color: #FED7AA;
+}
+
+.text-form-notification-warning-text {
+    color: #C2410C;
+}
+
+.text-form-notification-warning-title {
+    color: #A16207;
+}
+
+.text-form-notification-warning-icon {
+    color: #F59E0B;
+}
+
+.text-form-notification-warning-close {
+    color: #6B7280;
+}
+
+.hover\:text-form-notification-warning-closeHover:hover {
+    color: #374151;
+}
+
+.bg-form-notification-info-background {
+    background-color: #EFF6FF;
+}
+
+.border-form-notification-info-border {
+    border-color: #BFDBFE;
+}
+
+.text-form-notification-info-text {
+    color: #1E40AF;
+}
+
+.text-form-notification-info-title {
+    color: #1E3A8A;
+}
+
+.text-form-notification-info-icon {
+    color: #3B82F6;
+}
+
+.text-form-notification-info-close {
+    color: #6B7280;
+}
+
+.hover\:text-form-notification-info-closeHover:hover {
+    color: #374151;
+}
+
+/* Colores de progreso */
+.bg-form-progress-completed-background {
+    background-color: #10B981;
+}
+
+.text-form-progress-completed-text {
+    color: #FFFFFF;
+}
+
+.border-form-progress-completed-border {
+    border-color: #059669;
+}
+
+.bg-form-progress-current-background {
+    background-color: #3B82F6;
+}
+
+.text-form-progress-current-text {
+    color: #FFFFFF;
+}
+
+.border-form-progress-current-border {
+    border-color: #2563EB;
+}
+
+.ring-form-progress-current-ring {
+    --tw-ring-color: #93C5FD;
+}
+
+.bg-form-progress-upcoming-background {
+    background-color: #E5E7EB;
+}
+
+.text-form-progress-upcoming-text {
+    color: #6B7280;
+}
+
+.border-form-progress-upcoming-border {
+    border-color: #D1D5DB;
+}
+
+.bg-form-progress-connector-completed {
+    background-color: #10B981;
+}
+
+.bg-form-progress-connector-upcoming {
+    background-color: #E5E7EB;
+}
+
+/* Colores de estado */
+.bg-form-status-idle-background {
+    background-color: #F9FAFB;
+}
+
+.border-form-status-idle-border {
+    border-color: #E5E7EB;
+}
+
+.text-form-status-idle-text {
+    color: #6B7280;
+}
+
+.bg-form-status-loading-background {
+    background-color: #EFF6FF;
+}
+
+.border-form-status-loading-border {
+    border-color: #BFDBFE;
+}
+
+.text-form-status-loading-text {
+    color: #1E40AF;
+}
+
+.text-form-status-loading-icon {
+    color: #3B82F6;
+}
+
+.bg-form-status-success-background {
+    background-color: #F0FDF4;
+}
+
+.border-form-status-success-border {
+    border-color: #BBF7D0;
+}
+
+.text-form-status-success-text {
+    color: #166534;
+}
+
+.text-form-status-success-icon {
+    color: #10B981;
+}
+
+.bg-form-status-error-background {
+    background-color: #FEF2F2;
+}
+
+.border-form-status-error-border {
+    border-color: #FECACA;
+}
+
+.text-form-status-error-text {
+    color: #DC2626;
+}
+
+.text-form-status-error-icon {
+    color: #EF4444;
+}
+
+.bg-form-status-warning-background {
+    background-color: #FFFBEB;
+}
+
+.border-form-status-warning-border {
+    border-color: #FED7AA;
+}
+
+.text-form-status-warning-text {
+    color: #C2410C;
+}
+
+.text-form-status-warning-icon {
+    color: #F59E0B;
+}
