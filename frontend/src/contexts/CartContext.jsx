@@ -172,13 +172,13 @@ export const CartProvider = ({ children }) => {
     //     // Comentado para evitar problemas de sincronización
     // }, [cartItems]);
 
-    const addToCart = async (product) => {
+    const addToCart = async (product, quantity = 1) => {
         if (!isAuthenticated) {
             setError('Debes iniciar sesión para agregar productos al carrito');
-            return;
+            return { success: false, error: 'Debes iniciar sesión para agregar productos al carrito' };
         }
 
-        console.log('➕ CartContext: Agregando producto al carrito:', product);
+        console.log('➕ CartContext: Agregando producto al carrito:', product, 'Cantidad:', quantity);
 
         setLoading(true);
         setError(null);
@@ -186,7 +186,7 @@ export const CartProvider = ({ children }) => {
         try {
             const response = await api.post('/cart/add', {
                 productId: product._id,
-                quantity: 1
+                quantity: quantity
             });
 
             if (response.data.success) {
@@ -197,15 +197,19 @@ export const CartProvider = ({ children }) => {
                     if (existingItem) {
                         return prevItems.map(item =>
                             item._id === product._id
-                                ? { ...item, quantity: item.quantity + 1 }
+                                ? { ...item, quantity: item.quantity + quantity }
                                 : item
                         );
                     } else {
-                        return [...prevItems, { ...product, quantity: 1 }];
+                        return [...prevItems, { ...product, quantity: quantity }];
                     }
                 });
                 // Marcar que ya no es carga inicial después de agregar producto
                 setIsInitialLoad(false);
+
+                return { success: true, data: response.data };
+            } else {
+                return { success: false, error: response.data.error || 'Error desconocido' };
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
@@ -214,8 +218,10 @@ export const CartProvider = ({ children }) => {
             // Si es error 401, el usuario no está autenticado
             if (error.response?.status === 401) {
                 setError('Sesión expirada. Por favor, inicia sesión nuevamente');
-                return;
+                return { success: false, error: 'Sesión expirada' };
             }
+
+            return { success: false, error: error.response?.data?.error || 'Error al agregar al carrito' };
         } finally {
             setLoading(false);
         }

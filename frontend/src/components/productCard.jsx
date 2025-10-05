@@ -35,9 +35,9 @@ const ProductCard = React.memo(({ p }) => {
   // Función memoizada para formatear el precio
   const formatPrice = useCallback((price) => {
     if (typeof price === 'number') {
-      return `$${price.toFixed(2)}`;
+      return `$${price.toFixed(2)} USD`;
     }
-    return '$0.00';
+    return '$0.00 USD';
   }, []);
 
   // Valores memoizados para evitar recálculos innecesarios
@@ -157,7 +157,7 @@ const ProductCard = React.memo(({ p }) => {
       return { type: 'bestseller', text: 'Bestseller' };
     }
     if (p.isNew || p.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
-      return { type: 'new', text: 'New Flavor' };
+      return { type: 'new', text: 'Nuevo Sabor' };
     }
     return null;
   }, [p]);
