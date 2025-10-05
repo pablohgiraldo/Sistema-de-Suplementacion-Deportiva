@@ -8,6 +8,12 @@ export const inventoryService = {
             const response = await api.get(`/inventory/product/${productId}`);
             return response.data;
         } catch (error) {
+            // Si es 404 o 429, usar fallback silenciosamente
+            // 404: producto sin inventario registrado
+            // 429: rate limit excedido
+            if (error.response?.status === 404 || error.response?.status === 429) {
+                return { success: false, data: null };
+            }
             console.error('Error obteniendo inventario del producto:', error);
             throw error;
         }
