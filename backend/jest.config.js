@@ -4,7 +4,8 @@ export default {
 
     // Extensión de archivos de test
     testMatch: [
-        '**/tests/**/*.simple.test.js'
+        '**/tests/**/*.simple.test.js',
+        '**/tests/**/*.test.js'
     ],
 
     // Directorios a ignorar

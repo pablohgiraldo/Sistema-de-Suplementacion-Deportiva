@@ -209,6 +209,9 @@ alertConfigSchema.methods.shouldSendAlert = function (alertType, currentStock) {
 // Método para actualizar la última vez que se envió una alerta
 alertConfigSchema.methods.updateLastAlertSent = function (alertType) {
     const fieldName = alertType.replace('_', '');
+    if (!this.lastAlertsSent) {
+        this.lastAlertsSent = {};
+    }
     this.lastAlertsSent[fieldName] = new Date();
     return this.save();
 };

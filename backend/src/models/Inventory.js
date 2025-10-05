@@ -153,7 +153,10 @@ inventorySchema.methods.sellStock = function (quantity) {
     }
 
     this.currentStock -= quantity;
-    this.reservedStock = Math.max(0, this.reservedStock - quantity);
+    // Solo reducir reservedStock si hay stock reservado
+    if (this.reservedStock > 0) {
+        this.reservedStock = Math.max(0, this.reservedStock - quantity);
+    }
     this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
     this.totalSold += quantity;
     this.lastSold = new Date();
