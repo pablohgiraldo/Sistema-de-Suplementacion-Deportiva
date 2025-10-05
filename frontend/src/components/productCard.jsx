@@ -174,13 +174,13 @@ const ProductCard = React.memo(({ p }) => {
   }, [p.imageUrl, p._id]);
 
   return (
-    <div className="group relative border-2 border-transparent rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-300 bg-white transform hover:-translate-y-2" onClick={handleProductClick}>
+    <div className="group relative border-2 border-transparent rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-500 bg-white transform hover:-translate-y-2 hover:scale-[1.02]" onClick={handleProductClick}>
       {/* Imagen del producto */}
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square">
         <img
           src={getProductImageUrl()}
           alt={p.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
           onError={(e) => {
             // Si falla la imagen, usar imagen de respaldo simple
             e.target.src = getProductImage(p._id);
@@ -190,16 +190,16 @@ const ProductCard = React.memo(({ p }) => {
 
         {/* Badge del producto (Bestseller/New Flavor) */}
         {getProductBadge() && (
-          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${getProductBadge().type === 'bestseller'
-              ? 'bg-black text-white'
-              : 'bg-blue-500 text-white'
+          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${getProductBadge().type === 'bestseller'
+            ? 'bg-black text-white group-hover:bg-gray-800'
+            : 'bg-blue-500 text-white group-hover:bg-blue-600'
             }`}>
             {getProductBadge().text}
           </div>
         )}
 
         {/* Botón de wishlist */}
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <WishlistButton
             productId={p._id}
             productName={p.name}
@@ -208,16 +208,16 @@ const ProductCard = React.memo(({ p }) => {
         </div>
 
         {/* Icono de acción (bolsa de compras) */}
-        <div className="absolute bottom-3 right-3 z-10">
+        <div className="absolute bottom-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleAddToCart(e);
             }}
             disabled={inventoryLoading || !canAddToCart(1)}
-            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 transition-transform duration-300 hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </button>
@@ -231,7 +231,7 @@ const ProductCard = React.memo(({ p }) => {
           const flavorInfo = getFlavorInfo();
           return (
             <div className="flex flex-wrap gap-2">
-              <span className="text-xs bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">
+              <span className="text-xs bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium transition-all duration-300 group-hover:bg-blue-100 group-hover:text-blue-800 group-hover:scale-105">
                 {flavorInfo.primaryFlavor} + {flavorInfo.totalFlavors}
               </span>
             </div>
@@ -239,7 +239,7 @@ const ProductCard = React.memo(({ p }) => {
         })()}
 
         {/* Nombre del producto */}
-        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight">
+        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight transition-colors duration-300 group-hover:text-blue-600">
           {p.name || 'Sin nombre'}
         </h3>
 
@@ -254,12 +254,12 @@ const ProductCard = React.memo(({ p }) => {
         {(() => {
           const rating = getRating();
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 transition-all duration-300 group-hover:scale-105">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-4 h-4 ${i < Math.floor(rating.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                    className={`w-4 h-4 transition-all duration-300 ${i < Math.floor(rating.rating) ? 'text-yellow-400 group-hover:text-yellow-500' : 'text-gray-300 group-hover:text-gray-400'}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -267,21 +267,21 @@ const ProductCard = React.memo(({ p }) => {
                   </svg>
                 ))}
               </div>
-              <span className="text-sm text-gray-600">({rating.reviewCount.toLocaleString()})</span>
+              <span className="text-sm text-gray-600 group-hover:text-gray-700">({rating.reviewCount.toLocaleString()})</span>
             </div>
           );
         })()}
 
         {/* Precio */}
-        <div className="space-y-1">
+        <div className="space-y-1 transition-all duration-300 group-hover:scale-105">
           {p.originalPrice && p.originalPrice > p.price && (
-            <p className="text-sm text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
+            <p className="text-sm text-gray-400 line-through group-hover:text-gray-500">{formatPrice(p.originalPrice)}</p>
           )}
           <div className="flex items-baseline gap-2">
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors duration-300">
               {formatPrice(p.price)}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 group-hover:text-gray-700">
               ({formatPrice(getPricePerKg())}/kg)
             </p>
           </div>
@@ -290,7 +290,7 @@ const ProductCard = React.memo(({ p }) => {
 
       {/* Indicador de cantidad en carrito */}
       {cartContext.isInCart(p._id) && (
-        <div className="absolute top-2 left-2 z-20 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+        <div className="absolute top-2 left-2 z-20 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-green-600 group-hover:shadow-xl">
           {cartContext.getCartItemQuantity(p._id)} en carrito
         </div>
       )}
