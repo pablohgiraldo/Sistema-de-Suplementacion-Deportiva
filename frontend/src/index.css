@@ -1,9 +1,9 @@
+/* Importar colores consistentes para formularios */
+@import './styles/form-colors.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Importar colores consistentes para formularios */
-@import './styles/form-colors.css';
 
 /* Animaciones personalizadas para notificaciones */
 @keyframes slide-in {
