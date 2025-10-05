@@ -11,6 +11,7 @@ import ProductModal from './components/ProductModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import ProductCard from './components/productCard';
+import ProductGrid from './components/ProductGrid';
 import PageLoader from './components/PageLoader';
 import LazyErrorBoundary from './components/LazyErrorBoundary';
 import { useProducts } from './hooks/useProducts';
@@ -312,9 +313,11 @@ function HomePage() {
               title="Productos Destacados"
               subtitle="Los mejores suplementos para tu rendimiento"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mt-6 sm:mt-8">
-              {products.map(p => <ProductCard key={p._id} p={p} />)}
-            </div>
+            <ProductGrid
+              products={products}
+              className="mt-6 sm:mt-8"
+              showTitle={false}
+            />
           </>
         )}
       </div>

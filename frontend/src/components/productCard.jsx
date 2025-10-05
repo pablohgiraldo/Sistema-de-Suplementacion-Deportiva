@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
 import WishlistButton from './WishlistButton';
+import { getProductImage } from '../data/sampleProducts';
 
 const ProductCard = React.memo(({ p }) => {
   const { isAuthenticated } = useAuth();
@@ -128,79 +129,119 @@ const ProductCard = React.memo(({ p }) => {
     navigate(`/product/${p._id}`);
   }, [navigate, p._id]);
 
+  // Función para determinar el badge del producto
+  const getProductBadge = useCallback(() => {
+    // Lógica para determinar si es Bestseller o New Flavor
+    // Por ahora usaremos datos del producto o lógica simple
+    if (p.isBestseller || p.salesCount > 1000) {
+      return { type: 'bestseller', text: 'Bestseller' };
+    }
+    if (p.isNew || p.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
+      return { type: 'new', text: 'New Flavor' };
+    }
+    return null;
+  }, [p]);
+
+  // Función para obtener el sabor principal y contador
+  const getFlavorInfo = useCallback(() => {
+    const primaryFlavor = p.flavor || p.name?.split(' ').pop() || 'Original';
+    // Usar el ID del producto para generar un número consistente de sabores
+    const seed = p._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const totalFlavors = p.availableFlavors?.length || Math.floor(5 + (seed % 20)); // 5-24 basado en el ID
+    return { primaryFlavor, totalFlavors };
+  }, [p._id, p.flavor, p.name, p.availableFlavors]);
+
+  // Función para generar rating simulado (usando ID del producto para consistencia)
+  const getRating = useCallback(() => {
+    // Usar el ID del producto para generar un número consistente
+    const seed = p._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const rating = p.rating || 4.5 + (seed % 50) / 100; // 4.5-5.0 basado en el ID
+    const reviewCount = p.reviewCount || Math.floor(1000 + (seed % 9000)); // 1000-9999 basado en el ID
+    return { rating: Math.round(rating * 10) / 10, reviewCount };
+  }, [p._id, p.rating, p.reviewCount]);
+
+  // Función para calcular precio por kg
+  const getPricePerKg = useCallback(() => {
+    const weightInKg = p.weightInGrams ? p.weightInGrams / 1000 : 1; // Default 1kg si no hay peso
+    const pricePerKg = p.price / weightInKg;
+    return pricePerKg;
+  }, [p]);
+
+  // Función para obtener la imagen del producto
+  const getProductImageUrl = useCallback(() => {
+    // Si el producto ya tiene una imagen, usarla; sino usar una imagen de muestra
+    return p.imageUrl || getProductImage(p._id);
+  }, [p.imageUrl, p._id]);
+
   return (
     <div className="group relative border-2 border-transparent rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-300 bg-white transform hover:-translate-y-2" onClick={handleProductClick}>
       {/* Imagen del producto */}
-      {p.imageUrl && (
-        <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square">
-          <img
-            src={p.imageUrl}
-            alt={p.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-            onLoad={(e) => {
-              e.target.style.opacity = '1';
-            }}
-            loading="lazy"
-            decoding="async"
-            style={{ opacity: 0 }}
-          />
-          {/* Placeholder mientras carga */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square">
+        <img
+          src={getProductImageUrl()}
+          alt={p.name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {
+            // Si falla la imagen, usar imagen de respaldo simple
+            e.target.src = getProductImage(p._id);
+          }}
+          loading="lazy"
+        />
 
-          {/* Badge de stock */}
-          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm ${getStockStatusColor()}`}>
-            {getStockStatus()}
-          </div>
-
-          {/* Botón de wishlist */}
-          <div className="absolute top-3 right-3 z-10 transform transition-all duration-300 scale-0 group-hover:scale-100">
-            <WishlistButton
-              productId={p._id}
-              productName={p.name}
-              size="md"
-            />
-          </div>
-
-          {/* Overlay de descuento (si aplica) */}
-          {p.discount && (
-            <div className="absolute bottom-3 right-3 bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-              -{p.discount}%
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Contenido del producto */}
-      <div className="p-4 space-y-3">
-        {/* Categorías */}
-        {p.categories && p.categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {p.categories.slice(0, 2).map((category, index) => (
-              <span
-                key={index}
-                className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full font-medium shadow-sm"
-              >
-                {category}
-              </span>
-            ))}
+        {/* Badge del producto (Bestseller/New Flavor) */}
+        {getProductBadge() && (
+          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${getProductBadge().type === 'bestseller'
+              ? 'bg-black text-white'
+              : 'bg-blue-500 text-white'
+            }`}>
+            {getProductBadge().text}
           </div>
         )}
 
+        {/* Botón de wishlist */}
+        <div className="absolute top-3 right-3 z-10">
+          <WishlistButton
+            productId={p._id}
+            productName={p.name}
+            size="sm"
+          />
+        </div>
+
+        {/* Icono de acción (bolsa de compras) */}
+        <div className="absolute bottom-3 right-3 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(e);
+            }}
+            disabled={inventoryLoading || !canAddToCart(1)}
+            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido del producto */}
+      <div className="p-4 space-y-3">
+        {/* Tags de sabores */}
+        {(() => {
+          const flavorInfo = getFlavorInfo();
+          return (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-xs bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">
+                {flavorInfo.primaryFlavor} + {flavorInfo.totalFlavors}
+              </span>
+            </div>
+          );
+        })()}
+
         {/* Nombre del producto */}
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 line-clamp-2 min-h-[3.5rem] leading-tight">
+        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight">
           {p.name || 'Sin nombre'}
         </h3>
-
-        {/* Marca */}
-        <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          <span className="text-sm text-gray-600 font-medium">{p.brand || 'Sin marca'}</span>
-        </div>
 
         {/* Descripción */}
         {p.description && (
@@ -209,105 +250,50 @@ const ProductCard = React.memo(({ p }) => {
           </p>
         )}
 
-        {/* Stock info */}
-        <div className="flex items-center gap-2 text-sm">
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-          {inventoryLoading ? (
-            <span className="text-gray-400 animate-pulse">Cargando...</span>
-          ) : (
-            <span className="text-gray-700 font-medium">
-              {getAvailableStock()} unidades disponibles
-            </span>
-          )}
-        </div>
+        {/* Rating con estrellas */}
+        {(() => {
+          const rating = getRating();
+          return (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <svg
+                    key={i}
+                    className={`w-4 h-4 ${i < Math.floor(rating.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-sm text-gray-600">({rating.reviewCount.toLocaleString()})</span>
+            </div>
+          );
+        })()}
 
         {/* Precio */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <div className="space-y-1">
-            {p.originalPrice && p.originalPrice > p.price && (
-              <p className="text-sm text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
-            )}
-            <p className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+        <div className="space-y-1">
+          {p.originalPrice && p.originalPrice > p.price && (
+            <p className="text-sm text-gray-400 line-through">{formatPrice(p.originalPrice)}</p>
+          )}
+          <div className="flex items-baseline gap-2">
+            <p className="text-lg font-bold text-gray-900">
               {formatPrice(p.price)}
             </p>
+            <p className="text-sm text-gray-600">
+              ({formatPrice(getPricePerKg())}/kg)
+            </p>
           </div>
-          {p.discount && (
-            <div className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
-              AHORRA {p.discount}%
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Botones de carrito */}
-      <div className="p-4 pt-0">
-        {cartContext.isInCart(p._id) ? (
-          <div className="space-y-3">
-            {/* Contador de cantidad */}
-            <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border-2 border-green-200">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) - 1, e)}
-                  disabled={inventoryLoading || !canAddToCart(1)}
-                  className="bg-white text-gray-700 w-8 h-8 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200 flex items-center justify-center font-bold text-lg hover:scale-110"
-                  aria-label="Reducir cantidad"
-                >
-                  −
-                </button>
-                <span className="text-lg font-bold text-gray-900 min-w-[2rem] text-center">
-                  {cartContext.getCartItemQuantity(p._id)}
-                </span>
-                <button
-                  onClick={(e) => handleUpdateQuantity(cartContext.getCartItemQuantity(p._id) + 1, e)}
-                  disabled={inventoryLoading || !canAddToCart(cartContext.getCartItemQuantity(p._id) + 1)}
-                  className="bg-white text-gray-700 w-8 h-8 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200 flex items-center justify-center font-bold text-lg hover:scale-110"
-                  aria-label="Aumentar cantidad"
-                >
-                  +
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                </svg>
-                <span className="text-sm font-bold text-green-600">En carrito</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={handleAddToCart}
-            disabled={inventoryLoading || !canAddToCart(1)}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group"
-          >
-            {inventoryLoading ? (
-              <>
-                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Cargando...
-              </>
-            ) : !canAddToCart(1) ? (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Agotado
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5 transform group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al Carrito
-              </>
-            )}
-          </button>
-        )}
-      </div>
+      {/* Indicador de cantidad en carrito */}
+      {cartContext.isInCart(p._id) && (
+        <div className="absolute top-2 left-2 z-20 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+          {cartContext.getCartItemQuantity(p._id)} en carrito
+        </div>
+      )}
     </div>
   );
 });
