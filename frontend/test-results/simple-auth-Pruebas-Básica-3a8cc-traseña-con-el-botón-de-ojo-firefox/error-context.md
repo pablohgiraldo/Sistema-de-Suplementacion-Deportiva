@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e9]: SPG
+      - generic [ref=e10]:
+        - heading "Iniciar sesión" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Elige cómo quieres iniciar sesión
+      - button "Iniciar sesión con Shop" [disabled] [ref=e14]
+      - generic [ref=e19]: o
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - text: Email
+            - generic [ref=e24]: "*"
+          - textbox "Email*" [ref=e25]
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - text: Contraseña
+            - generic [ref=e28]: "*"
+          - generic [ref=e29]:
+            - textbox "Contraseña*" [ref=e30]
+            - button [ref=e31] [cursor=pointer]:
+              - img [ref=e32] [cursor=pointer]
+        - button "Continuar" [ref=e35] [cursor=pointer]
+      - generic [ref=e37]:
+        - link "Política de privacidad" [ref=e38] [cursor=pointer]:
+          - /url: "#"
+        - link "Términos de servicio" [ref=e39] [cursor=pointer]:
+          - /url: "#"
+      - paragraph [ref=e41]:
+        - text: ¿No tienes cuenta?
+        - link "Regístrate aquí" [ref=e42] [cursor=pointer]:
+          - /url: /register
+    - contentinfo [ref=e43]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - generic [ref=e47]: SUPERGAINS
+          - generic [ref=e48]: SUPERGAINS ELITE SPORTS NUTRITION
+          - generic [ref=e49]:
+            - generic [ref=e50]: © 2025 SuperGains Colombia
+            - generic [ref=e51]: Todos los precios incluyen IVA.
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - heading "Atención al Cliente" [level=3] [ref=e54]
+            - generic [ref=e55]:
+              - link "Servicio y Preguntas Frecuentes" [ref=e56] [cursor=pointer]:
+                - /url: "#contacto"
+              - link "Contacto" [ref=e57] [cursor=pointer]:
+                - /url: "#contacto"
+              - link "Rastrear mi pedido" [ref=e58] [cursor=pointer]:
+                - /url: "#"
+              - link "Envíos" [ref=e59] [cursor=pointer]:
+                - /url: "#"
+              - link "Devoluciones" [ref=e60] [cursor=pointer]:
+                - /url: "#"
+          - generic [ref=e61]:
+            - heading "Empresa" [level=3] [ref=e62]
+            - generic [ref=e63]:
+              - link "Acerca de Nosotros" [ref=e64] [cursor=pointer]:
+                - /url: "#nosotros"
+              - link "Carreras" [ref=e65] [cursor=pointer]:
+                - /url: "#"
+              - link "Aviso Legal" [ref=e66] [cursor=pointer]:
+                - /url: "#"
+              - link "Política de Privacidad" [ref=e67] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - heading "Nuestras Redes" [level=3] [ref=e70]
+            - generic [ref=e71]:
+              - link "Instagram" [ref=e72] [cursor=pointer]:
+                - /url: https://www.instagram.com/supergains96?utm_source=ig_web_button_share_sheet&igsh=d3cybHN6cGh5cGQy
+                - img [ref=e73] [cursor=pointer]
+              - link "TikTok" [ref=e75] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@supergains96?is_from_webapp=1&sender_device=pc
+                - img [ref=e76] [cursor=pointer]
+          - generic [ref=e78]:
+            - heading "Opciones de Pago" [level=3] [ref=e79]
+            - generic [ref=e80]:
+              - generic [ref=e81]: AMEX
+              - generic [ref=e82]: MC
+              - generic [ref=e83]: VISA
+              - generic [ref=e84]: PP
+          - generic [ref=e85]:
+            - heading "Envíos" [level=3] [ref=e86]
+            - generic [ref=e87]: DHL
+  - generic [ref=e88]:
+    - img [ref=e90]
+    - button "Open Tanstack query devtools" [ref=e139] [cursor=pointer]:
+      - img [ref=e140] [cursor=pointer]
+```

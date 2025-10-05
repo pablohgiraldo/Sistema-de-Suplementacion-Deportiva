@@ -1,0 +1,1081 @@
+<testsuites id="" name="" tests="55" failures="21" skipped="0" errors="0" time="156.37817900000002">
+<testsuite name="simple-auth.spec.js" timestamp="2025-10-05T16:29:46.481Z" hostname="chromium" tests="11" failures="7" skipped="0" time="133.187" errors="0">
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de login" classname="simple-auth.spec.js" time="16.687">
+<failure message="simple-auth.spec.js:5:5 debería mostrar la página de login" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:5:5 › Pruebas Básicas de Autenticación › debería mostrar la página de login 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('h1')
+    Expected string: "Iniciar sesión"
+    Received: <element(s) not found>
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('h1')
+
+
+       7 |
+       8 |         // Verificar que la página se carga correctamente
+    >  9 |         await expect(page.locator('h1')).toContainText('Iniciar sesión');
+         |                                          ^
+      10 |
+      11 |         // Verificar que los campos del formulario están presentes
+      12 |         await expect(page.locator('input[name="email"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:9:42
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-54c56--mostrar-la-página-de-login-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de registro" classname="simple-auth.spec.js" time="16.572">
+<failure message="simple-auth.spec.js:17:5 debería mostrar la página de registro" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:17:5 › Pruebas Básicas de Autenticación › debería mostrar la página de registro 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('h1')
+    Expected string: "Crear cuenta"
+    Received: <element(s) not found>
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('h1')
+
+
+      19 |
+      20 |         // Verificar que la página se carga correctamente
+    > 21 |         await expect(page.locator('h1')).toContainText('Crear cuenta');
+         |                                          ^
+      22 |
+      23 |         // Verificar que los campos del formulario están presentes
+      24 |         await expect(page.locator('input[name="name"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:21:42
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería navegar entre login y registro" classname="simple-auth.spec.js" time="16.759">
+<failure message="simple-auth.spec.js:30:5 debería navegar entre login y registro" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:30:5 › Pruebas Básicas de Autenticación › debería navegar entre login y registro 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('h1')
+    Expected string: "Iniciar sesión"
+    Received: <element(s) not found>
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('h1')
+
+
+      31 |         // Ir a login
+      32 |         await page.goto('/login');
+    > 33 |         await expect(page.locator('h1')).toContainText('Iniciar sesión');
+         |                                          ^
+      34 |
+      35 |         // Hacer clic en el enlace de registro
+      36 |         await page.click('text=Regístrate aquí');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:33:42
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar campos requeridos en login" classname="simple-auth.spec.js" time="17.197">
+<failure message="simple-auth.spec.js:50:5 debería validar campos requeridos en login" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:50:5 › Pruebas Básicas de Autenticación › debería validar campos requeridos en login 
+
+    TimeoutError: page.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="submit"]')
+
+
+      52 |
+      53 |         // Intentar enviar el formulario vacío
+    > 54 |         await page.click('button[type="submit"]');
+         |                    ^
+      55 |
+      56 |         // Verificar que los campos muestran validación HTML5
+      57 |         const emailInput = page.locator('input[name="email"]');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:54:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-ea797--campos-requeridos-en-login-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar formato de email" classname="simple-auth.spec.js" time="17.26">
+<failure message="simple-auth.spec.js:64:5 debería validar formato de email" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:64:5 › Pruebas Básicas de Autenticación › debería validar formato de email 
+
+    TimeoutError: page.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="email"]')
+
+
+      66 |
+      67 |         // Llenar con email inválido
+    > 68 |         await page.fill('input[name="email"]', 'email-invalido');
+         |                    ^
+      69 |         await page.fill('input[name="contraseña"]', 'password123');
+      70 |
+      71 |         // Intentar enviar
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:68:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo" classname="simple-auth.spec.js" time="16.631">
+<failure message="simple-auth.spec.js:79:5 debería mostrar/ocultar contraseña con el botón de ojo" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:79:5 › Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator: locator('input[name="contraseña"]')
+    Expected string: "password"
+    Received: <element(s) not found>
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('input[name="contraseña"]')
+
+
+      84 |
+      85 |         // Verificar que inicialmente la contraseña está oculta
+    > 86 |         await expect(passwordInput).toHaveAttribute('type', 'password');
+         |                                     ^
+      87 |
+      88 |         // Hacer clic en el botón de ojo
+      89 |         await toggleButton.click();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:86:37
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería mostrar la página principal con productos" classname="simple-auth.spec.js" time="15.439">
+<failure message="simple-auth.spec.js:105:5 debería mostrar la página principal con productos" type="FAILURE">
+<![CDATA[  [chromium] › simple-auth.spec.js:105:5 › Pruebas de Productos › debería mostrar la página principal con productos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.product-card, [class*="product"], [class*="card"]').first()
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.product-card, [class*="product"], [class*="card"]').first()
+
+
+      111 |         // Verificar que hay productos en la página
+      112 |         const productCards = page.locator('.product-card, [class*="product"], [class*="card"]');
+    > 113 |         await expect(productCards.first()).toBeVisible();
+          |                                            ^
+      114 |     });
+      115 |
+      116 |     test('debería navegar al detalle de un producto', async ({ page }) => {
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:113:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería navegar al detalle de un producto" classname="simple-auth.spec.js" time="4.194">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en móvil" classname="simple-auth.spec.js" time="4.29">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en tablet" classname="simple-auth.spec.js" time="2.828">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en desktop" classname="simple-auth.spec.js" time="5.33">
+</testcase>
+</testsuite>
+<testsuite name="simple-auth.spec.js" timestamp="2025-10-05T16:29:46.481Z" hostname="firefox" tests="11" failures="5" skipped="0" time="227.854" errors="0">
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de login" classname="simple-auth.spec.js" time="6.835">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de registro" classname="simple-auth.spec.js" time="14.274">
+<failure message="simple-auth.spec.js:17:5 debería mostrar la página de registro" type="FAILURE">
+<![CDATA[  [firefox] › simple-auth.spec.js:17:5 › Pruebas Básicas de Autenticación › debería mostrar la página de registro 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[name="name"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[name="name"]')
+
+
+      22 |
+      23 |         // Verificar que los campos del formulario están presentes
+    > 24 |         await expect(page.locator('input[name="name"]')).toBeVisible();
+         |                                                          ^
+      25 |         await expect(page.locator('input[name="email"]')).toBeVisible();
+      26 |         await expect(page.locator('input[name="contraseña"]')).toBeVisible();
+      27 |         await expect(page.locator('input[name="confirmarContraseña"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:24:58
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería navegar entre login y registro" classname="simple-auth.spec.js" time="25.396">
+<failure message="simple-auth.spec.js:30:5 debería navegar entre login y registro" type="FAILURE">
+<![CDATA[  [firefox] › simple-auth.spec.js:30:5 › Pruebas Básicas de Autenticación › debería navegar entre login y registro 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('h1')
+    Expected string: "Iniciar sesión"
+    Received: <element(s) not found>
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('h1')
+
+
+      31 |         // Ir a login
+      32 |         await page.goto('/login');
+    > 33 |         await expect(page.locator('h1')).toContainText('Iniciar sesión');
+         |                                          ^
+      34 |
+      35 |         // Hacer clic en el enlace de registro
+      36 |         await page.click('text=Regístrate aquí');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:33:42
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-4a30c-egar-entre-login-y-registro-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar campos requeridos en login" classname="simple-auth.spec.js" time="8.819">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar formato de email" classname="simple-auth.spec.js" time="43.002">
+<failure message="simple-auth.spec.js:64:5 debería validar formato de email" type="FAILURE">
+<![CDATA[  [firefox] › simple-auth.spec.js:64:5 › Pruebas Básicas de Autenticación › debería validar formato de email 
+
+    Tearing down "context" exceeded the test timeout of 30000ms.
+
+    Error: browserContext.close: Test ended.
+    Browser logs:
+
+    <launching> C:\Users\Pablo\AppData\Local\ms-playwright\firefox-1490\firefox\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\Users\Pablo\AppData\Local\Temp\playwright_firefoxdev_profile-AaSbCN -juggler-pipe -silent
+    <launched> pid=23100
+    [pid=23100][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement
+    [pid=23100][out] console.warn: services.settings: Ignoring preference override of remote settings server
+    [pid=23100][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+    [pid=23100][out] 
+    [pid=23100][out] Juggler listening to the pipe
+    [pid=23100][out] console.error: "Warning: unrecognized command line flag" "-foreground"
+    [pid=23100][out] console.error: services.settings: 
+    [pid=23100][out]   Message: EmptyDatabaseError: "main/nimbus-desktop-experiments" has not been synced yet
+    [pid=23100][out]   Stack:
+    [pid=23100][out]     EmptyDatabaseError@resource://services-settings/Database.sys.mjs:19:5
+    [pid=23100][out] list@resource://services-settings/Database.sys.mjs:96:13
+    [pid=23100][out] 
+    [pid=23100][out] console.error: services.settings: 
+    [pid=23100][out]   Message: EmptyDatabaseError: "main/nimbus-secure-experiments" has not been synced yet
+    [pid=23100][out]   Stack:
+    [pid=23100][out]     EmptyDatabaseError@resource://services-settings/Database.sys.mjs:19:5
+    [pid=23100][out] list@resource://services-settings/Database.sys.mjs:96:13
+    [pid=23100][out] 
+    [pid=23100][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]
+    [pid=23100][out] console.warn: services.settings: #fetchAttachment: Forcing fallbackToDump to false due to Utils.LOAD_DUMPS being false
+    [pid=23100][out] console.error: (new NotFoundError("Could not find fa0fc42c-d91d-fca7-34eb-806ff46062dc in cache or dump", "resource://services-settings/Attachments.sys.mjs", 48))
+    [pid=23100][out] console.warn: "Unable to find the attachment for" "fa0fc42c-d91d-fca7-34eb-806ff46062dc"
+    [pid=23100] <gracefully close start>
+    [pid=23100] <kill>
+    [pid=23100] <will force kill>
+    [pid=23100] taskkill stdout: CORRECTO: el proceso con PID 25240 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 30872 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 22912 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 25744 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 29044 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 7160 (proceso secundario de PID 26368)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 26368 (proceso secundario de PID 23100)
+    ha sido terminado.
+    CORRECTO: el proceso con PID 23100 (proceso secundario de PID 30592)
+    ha sido terminado.
+
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-7a917-ía-validar-formato-de-email-firefox\test-failed-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo" classname="simple-auth.spec.js" time="22.636">
+<failure message="simple-auth.spec.js:79:5 debería mostrar/ocultar contraseña con el botón de ojo" type="FAILURE">
+<![CDATA[  [firefox] › simple-auth.spec.js:79:5 › Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="button"]').first()
+        - locator resolved to <button disabled type="button" class="w-full bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">Iniciar sesión con Shop</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        5 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      87 |
+      88 |         // Hacer clic en el botón de ojo
+    > 89 |         await toggleButton.click();
+         |                            ^
+      90 |
+      91 |         // Verificar que la contraseña se muestra
+      92 |         await expect(passwordInput).toHaveAttribute('type', 'text');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:89:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería mostrar la página principal con productos" classname="simple-auth.spec.js" time="33.503">
+<failure message="simple-auth.spec.js:105:5 debería mostrar la página principal con productos" type="FAILURE">
+<![CDATA[  [firefox] › simple-auth.spec.js:105:5 › Pruebas de Productos › debería mostrar la página principal con productos 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator:  locator('h1, h2, h3')
+    - Expected  - 3
+    + Received  + 7
+
+      Array [
+    -   "SuperGains",
+    -   "Productos",
+    -   "Proteína",
+    +   "Categorías",
+    +   "Filtros Rápidos",
+    +   "Atención al Cliente",
+    +   "Empresa",
+    +   "Nuestras Redes",
+    +   "Opciones de Pago",
+    +   "Envíos",
+      ]
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('h1, h2, h3')
+        - locator resolved to 7 elements
+
+
+      107 |
+      108 |         // Verificar que la página se carga
+    > 109 |         await expect(page.locator('h1, h2, h3')).toContainText(['SuperGains', 'Productos', 'Proteína']);
+          |                                                  ^
+      110 |
+      111 |         // Verificar que hay productos en la página
+      112 |         const productCards = page.locator('.product-card, [class*="product"], [class*="card"]');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:109:50
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería navegar al detalle de un producto" classname="simple-auth.spec.js" time="13.299">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en móvil" classname="simple-auth.spec.js" time="25.584">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en tablet" classname="simple-auth.spec.js" time="21.39">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en desktop" classname="simple-auth.spec.js" time="13.116">
+</testcase>
+</testsuite>
+<testsuite name="simple-auth.spec.js" timestamp="2025-10-05T16:29:46.481Z" hostname="webkit" tests="11" failures="3" skipped="0" time="71.96" errors="0">
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de login" classname="simple-auth.spec.js" time="12.903">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de registro" classname="simple-auth.spec.js" time="10.081">
+<failure message="simple-auth.spec.js:17:5 debería mostrar la página de registro" type="FAILURE">
+<![CDATA[  [webkit] › simple-auth.spec.js:17:5 › Pruebas Básicas de Autenticación › debería mostrar la página de registro 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[name="name"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[name="name"]')
+
+
+      22 |
+      23 |         // Verificar que los campos del formulario están presentes
+    > 24 |         await expect(page.locator('input[name="name"]')).toBeVisible();
+         |                                                          ^
+      25 |         await expect(page.locator('input[name="email"]')).toBeVisible();
+      26 |         await expect(page.locator('input[name="contraseña"]')).toBeVisible();
+      27 |         await expect(page.locator('input[name="confirmarContraseña"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:24:58
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería navegar entre login y registro" classname="simple-auth.spec.js" time="4.295">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar campos requeridos en login" classname="simple-auth.spec.js" time="4.371">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar formato de email" classname="simple-auth.spec.js" time="4.666">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo" classname="simple-auth.spec.js" time="13.576">
+<failure message="simple-auth.spec.js:79:5 debería mostrar/ocultar contraseña con el botón de ojo" type="FAILURE">
+<![CDATA[  [webkit] › simple-auth.spec.js:79:5 › Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="button"]').first()
+        - locator resolved to <button disabled type="button" class="w-full bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">Iniciar sesión con Shop</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        13 × waiting for element to be visible, enabled and stable
+           - element is not enabled
+         - retrying click action
+           - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      87 |
+      88 |         // Hacer clic en el botón de ojo
+    > 89 |         await toggleButton.click();
+         |                            ^
+      90 |
+      91 |         // Verificar que la contraseña se muestra
+      92 |         await expect(passwordInput).toHaveAttribute('type', 'text');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:89:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería mostrar la página principal con productos" classname="simple-auth.spec.js" time="12.217">
+<failure message="simple-auth.spec.js:105:5 debería mostrar la página principal con productos" type="FAILURE">
+<![CDATA[  [webkit] › simple-auth.spec.js:105:5 › Pruebas de Productos › debería mostrar la página principal con productos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.product-card, [class*="product"], [class*="card"]').first()
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.product-card, [class*="product"], [class*="card"]').first()
+
+
+      111 |         // Verificar que hay productos en la página
+      112 |         const productCards = page.locator('.product-card, [class*="product"], [class*="card"]');
+    > 113 |         await expect(productCards.first()).toBeVisible();
+          |                                            ^
+      114 |     });
+      115 |
+      116 |     test('debería navegar al detalle de un producto', async ({ page }) => {
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:113:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería navegar al detalle de un producto" classname="simple-auth.spec.js" time="1.77">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en móvil" classname="simple-auth.spec.js" time="1.946">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en tablet" classname="simple-auth.spec.js" time="2.777">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en desktop" classname="simple-auth.spec.js" time="3.358">
+</testcase>
+</testsuite>
+<testsuite name="simple-auth.spec.js" timestamp="2025-10-05T16:29:46.481Z" hostname="Mobile Chrome" tests="11" failures="3" skipped="0" time="68.754" errors="0">
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de login" classname="simple-auth.spec.js" time="6.032">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de registro" classname="simple-auth.spec.js" time="10.28">
+<failure message="simple-auth.spec.js:17:5 debería mostrar la página de registro" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › simple-auth.spec.js:17:5 › Pruebas Básicas de Autenticación › debería mostrar la página de registro 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[name="name"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[name="name"]')
+
+
+      22 |
+      23 |         // Verificar que los campos del formulario están presentes
+    > 24 |         await expect(page.locator('input[name="name"]')).toBeVisible();
+         |                                                          ^
+      25 |         await expect(page.locator('input[name="email"]')).toBeVisible();
+      26 |         await expect(page.locator('input[name="contraseña"]')).toBeVisible();
+      27 |         await expect(page.locator('input[name="confirmarContraseña"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:24:58
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería navegar entre login y registro" classname="simple-auth.spec.js" time="6.259">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar campos requeridos en login" classname="simple-auth.spec.js" time="5.432">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar formato de email" classname="simple-auth.spec.js" time="4.302">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo" classname="simple-auth.spec.js" time="14.033">
+<failure message="simple-auth.spec.js:79:5 debería mostrar/ocultar contraseña con el botón de ojo" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › simple-auth.spec.js:79:5 › Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="button"]').first()
+        - locator resolved to <button disabled type="button" class="w-full bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">Iniciar sesión con Shop</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and stable
+           - element is not enabled
+         - retrying click action
+           - waiting 500ms
+
+
+      87 |
+      88 |         // Hacer clic en el botón de ojo
+    > 89 |         await toggleButton.click();
+         |                            ^
+      90 |
+      91 |         // Verificar que la contraseña se muestra
+      92 |         await expect(passwordInput).toHaveAttribute('type', 'text');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:89:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería mostrar la página principal con productos" classname="simple-auth.spec.js" time="10.726">
+<failure message="simple-auth.spec.js:105:5 debería mostrar la página principal con productos" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › simple-auth.spec.js:105:5 › Pruebas de Productos › debería mostrar la página principal con productos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.product-card, [class*="product"], [class*="card"]').first()
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.product-card, [class*="product"], [class*="card"]').first()
+
+
+      111 |         // Verificar que hay productos en la página
+      112 |         const productCards = page.locator('.product-card, [class*="product"], [class*="card"]');
+    > 113 |         await expect(productCards.first()).toBeVisible();
+          |                                            ^
+      114 |     });
+      115 |
+      116 |     test('debería navegar al detalle de un producto', async ({ page }) => {
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:113:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería navegar al detalle de un producto" classname="simple-auth.spec.js" time="3.951">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en móvil" classname="simple-auth.spec.js" time="1.275">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en tablet" classname="simple-auth.spec.js" time="2.432">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en desktop" classname="simple-auth.spec.js" time="4.032">
+</testcase>
+</testsuite>
+<testsuite name="simple-auth.spec.js" timestamp="2025-10-05T16:29:46.481Z" hostname="Mobile Safari" tests="11" failures="3" skipped="0" time="57.435" errors="0">
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de login" classname="simple-auth.spec.js" time="3.407">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar la página de registro" classname="simple-auth.spec.js" time="8.689">
+<failure message="simple-auth.spec.js:17:5 debería mostrar la página de registro" type="FAILURE">
+<![CDATA[  [Mobile Safari] › simple-auth.spec.js:17:5 › Pruebas Básicas de Autenticación › debería mostrar la página de registro 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[name="name"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[name="name"]')
+
+
+      22 |
+      23 |         // Verificar que los campos del formulario están presentes
+    > 24 |         await expect(page.locator('input[name="name"]')).toBeVisible();
+         |                                                          ^
+      25 |         await expect(page.locator('input[name="email"]')).toBeVisible();
+      26 |         await expect(page.locator('input[name="contraseña"]')).toBeVisible();
+      27 |         await expect(page.locator('input[name="confirmarContraseña"]')).toBeVisible();
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:24:58
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-14157-strar-la-página-de-registro-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería navegar entre login y registro" classname="simple-auth.spec.js" time="3.965">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar campos requeridos en login" classname="simple-auth.spec.js" time="3.437">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería validar formato de email" classname="simple-auth.spec.js" time="3.919">
+</testcase>
+<testcase name="Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo" classname="simple-auth.spec.js" time="13.186">
+<failure message="simple-auth.spec.js:79:5 debería mostrar/ocultar contraseña con el botón de ojo" type="FAILURE">
+<![CDATA[  [Mobile Safari] › simple-auth.spec.js:79:5 › Pruebas Básicas de Autenticación › debería mostrar/ocultar contraseña con el botón de ojo 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="button"]').first()
+        - locator resolved to <button disabled type="button" class="w-full bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">Iniciar sesión con Shop</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        14 × waiting for element to be visible, enabled and stable
+           - element is not enabled
+         - retrying click action
+           - waiting 500ms
+
+
+      87 |
+      88 |         // Hacer clic en el botón de ojo
+    > 89 |         await toggleButton.click();
+         |                            ^
+      90 |
+      91 |         // Verificar que la contraseña se muestra
+      92 |         await expect(passwordInput).toHaveAttribute('type', 'text');
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:89:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-Básica-3a8cc-traseña-con-el-botón-de-ojo-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería mostrar la página principal con productos" classname="simple-auth.spec.js" time="9.618">
+<failure message="simple-auth.spec.js:105:5 debería mostrar la página principal con productos" type="FAILURE">
+<![CDATA[  [Mobile Safari] › simple-auth.spec.js:105:5 › Pruebas de Productos › debería mostrar la página principal con productos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.product-card, [class*="product"], [class*="card"]').first()
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.product-card, [class*="product"], [class*="card"]').first()
+
+
+      111 |         // Verificar que hay productos en la página
+      112 |         const productCards = page.locator('.product-card, [class*="product"], [class*="card"]');
+    > 113 |         await expect(productCards.first()).toBeVisible();
+          |                                            ^
+      114 |     });
+      115 |
+      116 |     test('debería navegar al detalle de un producto', async ({ page }) => {
+        at C:\Users\Pablo\Documents\UPB 2025-20\TIC\supergains\frontend\e2e\simple-auth.spec.js:113:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|simple-auth-Pruebas-de-Pro-8f154-ina-principal-con-productos-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pruebas de Productos › debería navegar al detalle de un producto" classname="simple-auth.spec.js" time="2.186">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en móvil" classname="simple-auth.spec.js" time="2.184">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en tablet" classname="simple-auth.spec.js" time="2.432">
+</testcase>
+<testcase name="Pruebas de Responsividad › debería funcionar en desktop" classname="simple-auth.spec.js" time="4.412">
+</testcase>
+</testsuite>
+</testsuites>

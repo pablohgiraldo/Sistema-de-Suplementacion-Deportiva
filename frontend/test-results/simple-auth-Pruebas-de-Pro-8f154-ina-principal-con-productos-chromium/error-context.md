@@ -1,0 +1,487 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: 💪
+        - generic [ref=e9]: "Semana de Proteínas: Disfruta 20% de descuento en proteínas"
+      - generic [ref=e11]:
+        - generic [ref=e12] [cursor=pointer]:
+          - img [ref=e13] [cursor=pointer]
+          - generic [ref=e17] [cursor=pointer]: CO
+          - generic [ref=e18] [cursor=pointer]: ▼
+        - link "SPG SUPERGAINS" [ref=e19] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e20] [cursor=pointer]: SPG
+          - generic [ref=e21] [cursor=pointer]: SUPERGAINS
+        - generic [ref=e23]:
+          - textbox "Buscar proteínas, alimentos..." [ref=e24]
+          - img [ref=e26]
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - link "Iniciar sesión" [ref=e30] [cursor=pointer]:
+              - /url: /login
+            - link "Registrarse" [ref=e31] [cursor=pointer]:
+              - /url: /register
+          - link "Mi Lista de Deseos" [ref=e33] [cursor=pointer]:
+            - /url: /wishlist
+            - img [ref=e34] [cursor=pointer]
+          - link [ref=e37] [cursor=pointer]:
+            - /url: /cart
+            - img [ref=e38] [cursor=pointer]
+      - navigation [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e43]:
+            - generic [ref=e44] [cursor=pointer]:
+              - generic [ref=e45] [cursor=pointer]: Promociones
+              - generic [ref=e46] [cursor=pointer]: ▼
+            - generic [ref=e47] [cursor=pointer]:
+              - generic [ref=e48] [cursor=pointer]: Proteínas en Polvo
+              - generic [ref=e49] [cursor=pointer]: ▼
+            - generic [ref=e50] [cursor=pointer]:
+              - generic [ref=e51] [cursor=pointer]: Vitaminas y Más
+              - generic [ref=e52] [cursor=pointer]: ▼
+            - generic [ref=e53] [cursor=pointer]:
+              - generic [ref=e54] [cursor=pointer]: Rendimiento
+              - generic [ref=e55] [cursor=pointer]: ▼
+            - generic [ref=e56] [cursor=pointer]:
+              - generic [ref=e57] [cursor=pointer]: Barras y Snacks
+              - generic [ref=e58] [cursor=pointer]: ▼
+            - generic [ref=e59] [cursor=pointer]:
+              - generic [ref=e60] [cursor=pointer]: Accesorios
+              - generic [ref=e61] [cursor=pointer]: ▼
+            - generic [ref=e62] [cursor=pointer]:
+              - generic [ref=e63] [cursor=pointer]: Outlet
+              - generic [ref=e64] [cursor=pointer]: ▼
+            - generic [ref=e65] [cursor=pointer]:
+              - generic [ref=e66] [cursor=pointer]: Objetivos
+              - generic [ref=e67] [cursor=pointer]: ▼
+            - generic [ref=e68] [cursor=pointer]:
+              - generic [ref=e69] [cursor=pointer]: Nosotros
+              - generic [ref=e70] [cursor=pointer]: ▼
+          - generic [ref=e71]:
+            - generic [ref=e72] [cursor=pointer]: Todos los Productos
+            - generic [ref=e73] [cursor=pointer]: Más Vendidos
+            - generic [ref=e74] [cursor=pointer]: Proteínas
+            - generic [ref=e75] [cursor=pointer]: Vitaminas y Más
+            - generic [ref=e76] [cursor=pointer]: Rendimiento
+            - generic [ref=e77] [cursor=pointer]: Alimentos y Snacks
+            - generic [ref=e78] [cursor=pointer]: Barras de Proteína
+            - generic [ref=e79] [cursor=pointer]: Outlet
+            - generic [ref=e80] [cursor=pointer]: Muestras
+            - generic [ref=e81] [cursor=pointer]: Vegano
+    - main [ref=e82]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - img "Entrenamiento intenso" [ref=e87]
+          - generic [ref=e88]:
+            - heading "SUPERGAINS" [level=2] [ref=e89]
+            - paragraph [ref=e90]: Impulsa tu rendimiento, conquista tus límites.
+        - generic [ref=e91]:
+          - img "ESN Designer Whey Protein" [ref=e92]
+          - generic [ref=e93]:
+            - generic [ref=e94]: NEW
+            - heading "DESIGNER WHEY PROTEIN" [level=1] [ref=e95]
+            - paragraph [ref=e96]: "New in: KiBa Flavor"
+            - button "SAVE 20%" [ref=e97] [cursor=pointer]
+      - generic [ref=e98]:
+        - heading "Catálogo SuperGains" [level=1] [ref=e99]
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - heading "Productos Destacados" [level=2] [ref=e104]
+                - paragraph [ref=e105]: Los mejores suplementos para tu rendimiento
+              - generic [ref=e106]:
+                - button "←" [disabled] [ref=e107]
+                - button "→" [ref=e108] [cursor=pointer]
+            - generic [ref=e109]:
+              - button [ref=e110] [cursor=pointer]
+              - button [ref=e111] [cursor=pointer]
+          - generic [ref=e113]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img "Creatina 300g" [ref=e117]
+                - button "Agregar a lista de deseos" [ref=e119] [cursor=pointer]:
+                  - img [ref=e120] [cursor=pointer]
+                - button [ref=e123] [cursor=pointer]:
+                  - img [ref=e124] [cursor=pointer]
+              - generic [ref=e126]:
+                - generic [ref=e128]: 300g + 21
+                - heading "Creatina 300g" [level=3] [ref=e129]
+                - paragraph [ref=e130]: Creatina monohidratada para fuerza y rendimiento.
+                - generic [ref=e131]:
+                  - generic [ref=e132]:
+                    - img [ref=e133]
+                    - img [ref=e135]
+                    - img [ref=e137]
+                    - img [ref=e139]
+                    - img [ref=e141]
+                  - generic [ref=e143]: (2,656)
+                - generic [ref=e145]:
+                  - paragraph [ref=e146]: $8999.00 USD
+                  - paragraph [ref=e147]: ($8999.00 USD/kg)
+            - generic [ref=e149]:
+              - generic [ref=e150]:
+                - img "BCAA 200g" [ref=e151]
+                - button "Agregar a lista de deseos" [ref=e153] [cursor=pointer]:
+                  - img [ref=e154] [cursor=pointer]
+                - button [ref=e157] [cursor=pointer]:
+                  - img [ref=e158] [cursor=pointer]
+              - generic [ref=e160]:
+                - generic [ref=e162]: 200g + 21
+                - heading "BCAA 200g" [level=3] [ref=e163]
+                - paragraph [ref=e164]: Aminoácidos de cadena ramificada.
+                - generic [ref=e165]:
+                  - generic [ref=e166]:
+                    - img [ref=e167]
+                    - img [ref=e169]
+                    - img [ref=e171]
+                    - img [ref=e173]
+                    - img [ref=e175]
+                  - generic [ref=e177]: (2,696)
+                - generic [ref=e179]:
+                  - paragraph [ref=e180]: $6999.00 USD
+                  - paragraph [ref=e181]: ($6999.00 USD/kg)
+            - generic [ref=e183]:
+              - generic [ref=e184]:
+                - img "Whey Protein 2lb" [ref=e185]
+                - button "Agregar a lista de deseos" [ref=e187] [cursor=pointer]:
+                  - img [ref=e188] [cursor=pointer]
+                - button [ref=e191] [cursor=pointer]:
+                  - img [ref=e192] [cursor=pointer]
+              - generic [ref=e194]:
+                - generic [ref=e196]: 2lb + 20
+                - heading "Whey Protein 2lb" [level=3] [ref=e197]
+                - paragraph [ref=e198]: Proteína de suero para recuperación muscular.
+                - generic [ref=e199]:
+                  - generic [ref=e200]:
+                    - img [ref=e201]
+                    - img [ref=e203]
+                    - img [ref=e205]
+                    - img [ref=e207]
+                    - img [ref=e209]
+                  - generic [ref=e211]: (2,655)
+                - generic [ref=e213]:
+                  - paragraph [ref=e214]: $9999.00 USD
+                  - paragraph [ref=e215]: ($9999.00 USD/kg)
+            - generic [ref=e217]:
+              - generic [ref=e218]:
+                - img "Creatina Monohidratada" [ref=e219]
+                - button "Agregar a lista de deseos" [ref=e221] [cursor=pointer]:
+                  - img [ref=e222] [cursor=pointer]
+                - button [ref=e225] [cursor=pointer]:
+                  - img [ref=e226] [cursor=pointer]
+              - generic [ref=e228]:
+                - generic [ref=e230]: Monohidratada + 12
+                - heading "Creatina Monohidratada" [level=3] [ref=e231]
+                - paragraph [ref=e232]: Creatina pura para aumentar fuerza y potencia muscular
+                - generic [ref=e233]:
+                  - generic [ref=e234]:
+                    - img [ref=e235]
+                    - img [ref=e237]
+                    - img [ref=e239]
+                    - img [ref=e241]
+                    - img [ref=e243]
+                  - generic [ref=e245]: (2,647)
+                - generic [ref=e247]:
+                  - paragraph [ref=e248]: $24.99 USD
+                  - paragraph [ref=e249]: ($24.99 USD/kg)
+            - generic [ref=e251]:
+              - generic [ref=e252]:
+                - img "BCAA Aminoácidos" [ref=e253]
+                - button "Agregar a lista de deseos" [ref=e255] [cursor=pointer]:
+                  - img [ref=e256] [cursor=pointer]
+                - button [ref=e259] [cursor=pointer]:
+                  - img [ref=e260] [cursor=pointer]
+              - generic [ref=e262]:
+                - generic [ref=e264]: Aminoácidos + 13
+                - heading "BCAA Aminoácidos" [level=3] [ref=e265]
+                - paragraph [ref=e266]: Aminoácidos ramificados para recuperación muscular
+                - generic [ref=e267]:
+                  - generic [ref=e268]:
+                    - img [ref=e269]
+                    - img [ref=e271]
+                    - img [ref=e273]
+                    - img [ref=e275]
+                    - img [ref=e277]
+                  - generic [ref=e279]: (2,648)
+                - generic [ref=e281]:
+                  - paragraph [ref=e282]: $34.99 USD
+                  - paragraph [ref=e283]: ($34.99 USD/kg)
+            - generic [ref=e285]:
+              - generic [ref=e286]:
+                - img "Pre-Workout Explosive" [ref=e287]
+                - button "Agregar a lista de deseos" [ref=e289] [cursor=pointer]:
+                  - img [ref=e290] [cursor=pointer]
+                - button [ref=e293] [cursor=pointer]:
+                  - img [ref=e294] [cursor=pointer]
+              - generic [ref=e296]:
+                - generic [ref=e298]: Explosive + 20
+                - heading "Pre-Workout Explosive" [level=3] [ref=e299]
+                - paragraph [ref=e300]: Pre-entrenamiento para máxima energía y enfoque
+                - generic [ref=e301]:
+                  - generic [ref=e302]:
+                    - img [ref=e303]
+                    - img [ref=e305]
+                    - img [ref=e307]
+                    - img [ref=e309]
+                    - img [ref=e311]
+                  - generic [ref=e313]: (2,595)
+                - generic [ref=e315]:
+                  - paragraph [ref=e316]: $44.99 USD
+                  - paragraph [ref=e317]: ($44.99 USD/kg)
+        - generic [ref=e319]:
+          - generic [ref=e320]:
+            - generic [ref=e321]:
+              - img "Creatina 300g" [ref=e322]
+              - button "Agregar a lista de deseos" [ref=e324] [cursor=pointer]:
+                - img [ref=e325] [cursor=pointer]
+              - button [ref=e328] [cursor=pointer]:
+                - img [ref=e329] [cursor=pointer]
+            - generic [ref=e331]:
+              - generic [ref=e333]: 300g + 21
+              - heading "Creatina 300g" [level=3] [ref=e334]
+              - paragraph [ref=e335]: Creatina monohidratada para fuerza y rendimiento.
+              - generic [ref=e336]:
+                - generic [ref=e337]:
+                  - img [ref=e338]
+                  - img [ref=e340]
+                  - img [ref=e342]
+                  - img [ref=e344]
+                  - img [ref=e346]
+                - generic [ref=e348]: (2,656)
+              - generic [ref=e350]:
+                - paragraph [ref=e351]: $8999.00 USD
+                - paragraph [ref=e352]: ($8999.00 USD/kg)
+          - generic [ref=e353]:
+            - generic [ref=e354]:
+              - img "BCAA 200g" [ref=e355]
+              - button "Agregar a lista de deseos" [ref=e357] [cursor=pointer]:
+                - img [ref=e358] [cursor=pointer]
+              - button [ref=e361] [cursor=pointer]:
+                - img [ref=e362] [cursor=pointer]
+            - generic [ref=e364]:
+              - generic [ref=e366]: 200g + 21
+              - heading "BCAA 200g" [level=3] [ref=e367]
+              - paragraph [ref=e368]: Aminoácidos de cadena ramificada.
+              - generic [ref=e369]:
+                - generic [ref=e370]:
+                  - img [ref=e371]
+                  - img [ref=e373]
+                  - img [ref=e375]
+                  - img [ref=e377]
+                  - img [ref=e379]
+                - generic [ref=e381]: (2,696)
+              - generic [ref=e383]:
+                - paragraph [ref=e384]: $6999.00 USD
+                - paragraph [ref=e385]: ($6999.00 USD/kg)
+          - generic [ref=e386]:
+            - generic [ref=e387]:
+              - img "Whey Protein 2lb" [ref=e388]
+              - button "Agregar a lista de deseos" [ref=e390] [cursor=pointer]:
+                - img [ref=e391] [cursor=pointer]
+              - button [ref=e394] [cursor=pointer]:
+                - img [ref=e395] [cursor=pointer]
+            - generic [ref=e397]:
+              - generic [ref=e399]: 2lb + 20
+              - heading "Whey Protein 2lb" [level=3] [ref=e400]
+              - paragraph [ref=e401]: Proteína de suero para recuperación muscular.
+              - generic [ref=e402]:
+                - generic [ref=e403]:
+                  - img [ref=e404]
+                  - img [ref=e406]
+                  - img [ref=e408]
+                  - img [ref=e410]
+                  - img [ref=e412]
+                - generic [ref=e414]: (2,655)
+              - generic [ref=e416]:
+                - paragraph [ref=e417]: $9999.00 USD
+                - paragraph [ref=e418]: ($9999.00 USD/kg)
+          - generic [ref=e419]:
+            - generic [ref=e420]:
+              - img "Creatina Monohidratada" [ref=e421]
+              - button "Agregar a lista de deseos" [ref=e423] [cursor=pointer]:
+                - img [ref=e424] [cursor=pointer]
+              - button [ref=e427] [cursor=pointer]:
+                - img [ref=e428] [cursor=pointer]
+            - generic [ref=e430]:
+              - generic [ref=e432]: Monohidratada + 12
+              - heading "Creatina Monohidratada" [level=3] [ref=e433]
+              - paragraph [ref=e434]: Creatina pura para aumentar fuerza y potencia muscular
+              - generic [ref=e435]:
+                - generic [ref=e436]:
+                  - img [ref=e437]
+                  - img [ref=e439]
+                  - img [ref=e441]
+                  - img [ref=e443]
+                  - img [ref=e445]
+                - generic [ref=e447]: (2,647)
+              - generic [ref=e449]:
+                - paragraph [ref=e450]: $24.99 USD
+                - paragraph [ref=e451]: ($24.99 USD/kg)
+          - generic [ref=e452]:
+            - generic [ref=e453]:
+              - img "BCAA Aminoácidos" [ref=e454]
+              - button "Agregar a lista de deseos" [ref=e456] [cursor=pointer]:
+                - img [ref=e457] [cursor=pointer]
+              - button [ref=e460] [cursor=pointer]:
+                - img [ref=e461] [cursor=pointer]
+            - generic [ref=e463]:
+              - generic [ref=e465]: Aminoácidos + 13
+              - heading "BCAA Aminoácidos" [level=3] [ref=e466]
+              - paragraph [ref=e467]: Aminoácidos ramificados para recuperación muscular
+              - generic [ref=e468]:
+                - generic [ref=e469]:
+                  - img [ref=e470]
+                  - img [ref=e472]
+                  - img [ref=e474]
+                  - img [ref=e476]
+                  - img [ref=e478]
+                - generic [ref=e480]: (2,648)
+              - generic [ref=e482]:
+                - paragraph [ref=e483]: $34.99 USD
+                - paragraph [ref=e484]: ($34.99 USD/kg)
+          - generic [ref=e485]:
+            - generic [ref=e486]:
+              - img "Pre-Workout Explosive" [ref=e487]
+              - button "Agregar a lista de deseos" [ref=e489] [cursor=pointer]:
+                - img [ref=e490] [cursor=pointer]
+              - button [ref=e493] [cursor=pointer]:
+                - img [ref=e494] [cursor=pointer]
+            - generic [ref=e496]:
+              - generic [ref=e498]: Explosive + 20
+              - heading "Pre-Workout Explosive" [level=3] [ref=e499]
+              - paragraph [ref=e500]: Pre-entrenamiento para máxima energía y enfoque
+              - generic [ref=e501]:
+                - generic [ref=e502]:
+                  - img [ref=e503]
+                  - img [ref=e505]
+                  - img [ref=e507]
+                  - img [ref=e509]
+                  - img [ref=e511]
+                - generic [ref=e513]: (2,595)
+              - generic [ref=e515]:
+                - paragraph [ref=e516]: $44.99 USD
+                - paragraph [ref=e517]: ($44.99 USD/kg)
+          - generic [ref=e518]:
+            - generic [ref=e519]:
+              - img "Omega-3 Fish Oil" [ref=e520]
+              - button "Agregar a lista de deseos" [ref=e522] [cursor=pointer]:
+                - img [ref=e523] [cursor=pointer]
+              - button [ref=e526] [cursor=pointer]:
+                - img [ref=e527] [cursor=pointer]
+            - generic [ref=e529]:
+              - generic [ref=e531]: Oil + 21
+              - heading "Omega-3 Fish Oil" [level=3] [ref=e532]
+              - paragraph [ref=e533]: Aceite de pescado rico en ácidos grasos esenciales
+              - generic [ref=e534]:
+                - generic [ref=e535]:
+                  - img [ref=e536]
+                  - img [ref=e538]
+                  - img [ref=e540]
+                  - img [ref=e542]
+                  - img [ref=e544]
+                - generic [ref=e546]: (2,596)
+              - generic [ref=e548]:
+                - paragraph [ref=e549]: $19.99 USD
+                - paragraph [ref=e550]: ($19.99 USD/kg)
+          - generic [ref=e551]:
+            - generic [ref=e552]:
+              - img "Proteína Whey Gold Standard" [ref=e553]
+              - button "Agregar a lista de deseos" [ref=e555] [cursor=pointer]:
+                - img [ref=e556] [cursor=pointer]
+              - button [ref=e559] [cursor=pointer]:
+                - img [ref=e560] [cursor=pointer]
+            - generic [ref=e562]:
+              - generic [ref=e564]: Standard + 11
+              - heading "Proteína Whey Gold Standard" [level=3] [ref=e565]
+              - paragraph [ref=e566]: Proteína de suero de leche de alta calidad para construcción muscular
+              - generic [ref=e567]:
+                - generic [ref=e568]:
+                  - img [ref=e569]
+                  - img [ref=e571]
+                  - img [ref=e573]
+                  - img [ref=e575]
+                  - img [ref=e577]
+                - generic [ref=e579]: (2,646)
+              - generic [ref=e581]:
+                - paragraph [ref=e582]: $89.99 USD
+                - paragraph [ref=e583]: ($89.99 USD/kg)
+      - generic [ref=e585]:
+        - generic [ref=e586]:
+          - heading "Sobre SuperGains" [level=2] [ref=e587]
+          - paragraph [ref=e588]: Somos la tienda líder en suplementos deportivos y nutrición. Nuestra misión es ayudarte a alcanzar tus objetivos de fitness con productos de la más alta calidad.
+        - generic [ref=e589]:
+          - generic [ref=e590]:
+            - img [ref=e592]
+            - heading "Calidad Premium" [level=3] [ref=e594]
+            - paragraph [ref=e595]: Productos de las mejores marcas del mercado
+          - generic [ref=e596]:
+            - img [ref=e598]
+            - heading "Envío Rápido" [level=3] [ref=e600]
+            - paragraph [ref=e601]: Entrega en 24-48 horas en toda Colombia
+          - generic [ref=e602]:
+            - img [ref=e604]
+            - heading "Resultados Garantizados" [level=3] [ref=e606]
+            - paragraph [ref=e607]: Productos que realmente funcionan
+    - contentinfo [ref=e608]:
+      - generic [ref=e610]:
+        - generic [ref=e611]:
+          - generic [ref=e612]: SUPERGAINS
+          - generic [ref=e613]: SUPERGAINS ELITE SPORTS NUTRITION
+          - generic [ref=e614]:
+            - generic [ref=e615]: © 2025 SuperGains Colombia
+            - generic [ref=e616]: Todos los precios incluyen IVA.
+        - generic [ref=e617]:
+          - generic [ref=e618]:
+            - heading "Atención al Cliente" [level=3] [ref=e619]
+            - generic [ref=e620]:
+              - link "Servicio y Preguntas Frecuentes" [ref=e621] [cursor=pointer]:
+                - /url: "#contacto"
+              - link "Contacto" [ref=e622] [cursor=pointer]:
+                - /url: "#contacto"
+              - link "Rastrear mi pedido" [ref=e623] [cursor=pointer]:
+                - /url: "#"
+              - link "Envíos" [ref=e624] [cursor=pointer]:
+                - /url: "#"
+              - link "Devoluciones" [ref=e625] [cursor=pointer]:
+                - /url: "#"
+          - generic [ref=e626]:
+            - heading "Empresa" [level=3] [ref=e627]
+            - generic [ref=e628]:
+              - link "Acerca de Nosotros" [ref=e629] [cursor=pointer]:
+                - /url: "#nosotros"
+              - link "Carreras" [ref=e630] [cursor=pointer]:
+                - /url: "#"
+              - link "Aviso Legal" [ref=e631] [cursor=pointer]:
+                - /url: "#"
+              - link "Política de Privacidad" [ref=e632] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e633]:
+          - generic [ref=e634]:
+            - heading "Nuestras Redes" [level=3] [ref=e635]
+            - generic [ref=e636]:
+              - link "Instagram" [ref=e637] [cursor=pointer]:
+                - /url: https://www.instagram.com/supergains96?utm_source=ig_web_button_share_sheet&igsh=d3cybHN6cGh5cGQy
+                - img [ref=e638] [cursor=pointer]
+              - link "TikTok" [ref=e640] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@supergains96?is_from_webapp=1&sender_device=pc
+                - img [ref=e641] [cursor=pointer]
+          - generic [ref=e643]:
+            - heading "Opciones de Pago" [level=3] [ref=e644]
+            - generic [ref=e645]:
+              - generic [ref=e646]: AMEX
+              - generic [ref=e647]: MC
+              - generic [ref=e648]: VISA
+              - generic [ref=e649]: PP
+          - generic [ref=e650]:
+            - heading "Envíos" [level=3] [ref=e651]
+            - generic [ref=e652]: DHL
+  - generic [ref=e653]:
+    - img [ref=e655]
+    - button "Open Tanstack query devtools" [ref=e703] [cursor=pointer]:
+      - img [ref=e704] [cursor=pointer]
+```
