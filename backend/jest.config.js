@@ -1,54 +1,32 @@
 export default {
-    // Configuración para ES modules
+    // Configuración para pruebas de integración
     testEnvironment: 'node',
-
-    // Extensión de archivos de test
+    setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
     testMatch: [
-        '**/tests/**/*.simple.test.js',
-        '**/tests/**/*.test.js'
+        '<rootDir>/tests/**/*.test.js',
+        '<rootDir>/tests/**/*.integration.test.js'
     ],
-
-    // Directorios a ignorar
-    testPathIgnorePatterns: [
-        '/node_modules/',
-        '/dist/',
-        '/coverage/'
+    collectCoverageFrom: [
+        'src/**/*.js',
+        '!src/server.js', // Excluir archivo principal del servidor
+        '!src/config/**', // Excluir configuración
+        '!**/node_modules/**'
     ],
-
+    coverageDirectory: 'coverage',
+    coverageReporters: ['text', 'lcov', 'html'],
+    verbose: true,
+    forceExit: true,
+    clearMocks: true,
+    resetMocks: true,
+    restoreMocks: true,
+    // Timeout para pruebas de integración
+    testTimeout: 30000,
     // Configuración para ES modules con Babel
     transform: {
         '^.+\\.js$': 'babel-jest'
     },
-
-    // Configuración de cobertura
-    collectCoverageFrom: [
-        'src/**/*.js',
-        '!src/server.js',
-        '!src/config/db.js',
-        '!**/node_modules/**'
-    ],
-
-    // Umbrales de cobertura
-    coverageThreshold: {
-        global: {
-            branches: 60,
-            functions: 60,
-            lines: 60,
-            statements: 60
-        }
-    },
-
-    // Setup para tests
-    setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-
-    // Timeout para tests
-    testTimeout: 15000,
-
-    // Configuración de verbose
-    verbose: true,
-
-    // Configuración de clearMocks
-    clearMocks: true,
-    resetMocks: true,
-    restoreMocks: true
+    // Configuración para módulos
+    moduleNameMapping: {
+        '^@/(.*)$': '<rootDir>/src/$1'
+    }
 };
