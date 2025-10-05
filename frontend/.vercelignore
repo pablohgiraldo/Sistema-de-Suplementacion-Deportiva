@@ -1,10 +1,10 @@
-# Archivos de pruebas E2E
+# Archivos de pruebas E2E - Excluir completamente
 e2e/
 test-results/
 playwright-report/
 playwright.config.js
 
-# Archivos de desarrollo
+# Archivos de desarrollo y pruebas
 *.test.js
 *.test.jsx
 *.spec.js
@@ -16,3 +16,7 @@ vitest.config.js
 
 # Archivos de documentación de pruebas
 e2e/README.md
+
+# Archivos de resultados de pruebas
+test-results/
+playwright-report/

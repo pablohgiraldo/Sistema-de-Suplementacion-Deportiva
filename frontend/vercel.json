@@ -1,7 +1,8 @@
 {
-    "buildCommand": "npm run build",
+    "buildCommand": "npm run build:prod",
     "outputDirectory": "dist",
     "framework": "vite",
+    "installCommand": "npm ci --only=production",
     "rewrites": [
         {
             "source": "/(.*)",

@@ -10,13 +10,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: (id) => {
-        // Excluir archivos de pruebas y Playwright
-        if (id.includes('e2e/') || id.includes('test/') || id.includes('@playwright')) {
-          return true;
-        }
-        return false;
-      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -26,7 +19,5 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000,
-  },
-  // Excluir archivos de pruebas del procesamiento
-  exclude: ['**/e2e/**', '**/test/**', '**/*.test.*', '**/*.spec.*']
+  }
 })
