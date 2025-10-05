@@ -1,0 +1,18 @@
+# Archivos de pruebas E2E
+e2e/
+test-results/
+playwright-report/
+playwright.config.js
+
+# Archivos de desarrollo
+*.test.js
+*.test.jsx
+*.spec.js
+*.spec.jsx
+
+# Archivos de configuración de pruebas
+jest.config.js
+vitest.config.js
+
+# Archivos de documentación de pruebas
+e2e/README.md
