@@ -1,0 +1,49 @@
+{
+    "testProducts": [
+        {
+            "id": "1",
+            "name": "Whey Protein",
+            "brand": "Optimum Nutrition",
+            "price": 89.99,
+            "description": "Proteína de suero de leche de alta calidad",
+            "category": "Proteínas",
+            "stock": 50,
+            "image": "whey-protein.jpg"
+        },
+        {
+            "id": "2",
+            "name": "Creatine Monohydrate",
+            "brand": "MuscleTech",
+            "price": 29.99,
+            "description": "Creatina monohidrato para fuerza y masa muscular",
+            "category": "Creatina",
+            "stock": 25,
+            "image": "creatine.jpg"
+        },
+        {
+            "id": "3",
+            "name": "BCAA 2:1:1",
+            "brand": "Dymatize",
+            "price": 39.99,
+            "description": "Aminoácidos de cadena ramificada",
+            "category": "Aminoácidos",
+            "stock": 30,
+            "image": "bcaa.jpg"
+        }
+    ],
+    "categories": [
+        "Todos los Productos",
+        "Proteínas",
+        "Creatina",
+        "Aminoácidos",
+        "Vitaminas",
+        "Pre-entrenamiento"
+    ],
+    "searchQueries": [
+        "whey",
+        "proteína",
+        "creatina",
+        "bcaa",
+        "vitamina"
+    ]
+}

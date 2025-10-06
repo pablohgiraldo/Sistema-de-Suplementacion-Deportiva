@@ -1,0 +1,29 @@
+{
+    "testUser": {
+        "nombre": "Usuario de Prueba",
+        "email": "test@example.com",
+        "contraseña": "Password123!",
+        "confirmarContraseña": "Password123!",
+        "rol": "usuario"
+    },
+    "testAdmin": {
+        "nombre": "Admin de Prueba",
+        "email": "admin@example.com",
+        "contraseña": "AdminPassword123!",
+        "confirmarContraseña": "AdminPassword123!",
+        "rol": "admin"
+    },
+    "newUser": {
+        "nombre": "Nuevo Usuario",
+        "email": "nuevo@example.com",
+        "contraseña": "NewPassword123!",
+        "confirmarContraseña": "NewPassword123!",
+        "rol": "usuario"
+    },
+    "invalidUser": {
+        "nombre": "",
+        "email": "invalid-email",
+        "contraseña": "123",
+        "confirmarContraseña": "456"
+    }
+}
