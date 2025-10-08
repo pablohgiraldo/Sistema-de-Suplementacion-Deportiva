@@ -90,7 +90,8 @@ configureSecurity(app, isDevelopment);
 // Rate limiting solo para rutas de autenticación
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // más restrictivo para auth
+  max: process.env.NODE_ENV === 'production' ? 20 : 1000, // 20 intentos balanceado para usuarios reales
+  skipSuccessfulRequests: true, // No contar requests exitosos en el límite
   message: {
     success: false,
     message: 'Demasiadas solicitudes de autenticación, intenta de nuevo en 15 minutos.'

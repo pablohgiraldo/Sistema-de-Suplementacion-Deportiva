@@ -6,10 +6,10 @@ const logRateLimit = (level, message, data) => {
     console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`, data);
 };
 
-// Rate limiting para endpoints de autenticación (muy restrictivo)
+// Rate limiting para endpoints de autenticación (balanceado para seguridad y usabilidad)
 export const authRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.NODE_ENV === 'production' ? 5 : 1000, // muy permisivo en desarrollo
+    max: process.env.NODE_ENV === 'production' ? 20 : 1000, // 20 intentos en producción para usuarios legítimos
     message: {
         success: false,
         error: 'Demasiados intentos de autenticación. Intenta de nuevo en 15 minutos.',
@@ -17,6 +17,7 @@ export const authRateLimit = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skipSuccessfulRequests: true, // No contar requests exitosos en el límite
     handler: (req, res) => {
         logRateLimit('warn', 'Rate limit exceeded for auth endpoint', {
             ip: req.ip,
@@ -36,7 +37,7 @@ export const authRateLimit = rateLimit({
 // Rate limiting para endpoints de registro (moderadamente restrictivo)
 export const registerRateLimit = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hora
-    max: process.env.NODE_ENV === 'production' ? 3 : 100, // permisivo en desarrollo
+    max: process.env.NODE_ENV === 'production' ? 10 : 100, // 10 intentos permite registros legítimos
     message: {
         success: false,
         error: 'Demasiados intentos de registro. Intenta de nuevo en 1 hora.',
@@ -44,6 +45,7 @@ export const registerRateLimit = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skipSuccessfulRequests: true, // No contar registros exitosos en el límite
     handler: (req, res) => {
         logRateLimit('warn', 'Rate limit exceeded for register endpoint', {
             ip: req.ip,
