@@ -19,7 +19,12 @@ import {
     getChurnRiskCustomers,
     getCRMDashboard,
     updateLoyaltyPoints,
-    getCustomerByUserId
+    getCustomerByUserId,
+    getCustomerPurchaseHistory,
+    syncCustomersWithOrders,
+    getCustomersBySegment,
+    resegmentAllCustomers,
+    getSegmentationAnalysis
 } from '../controllers/customerController.js';
 
 // Middleware de autenticación y autorización
@@ -76,6 +81,24 @@ router.get(
     requireAdmin,
     adminRateLimit,
     getChurnRiskCustomers
+);
+
+// ==================== RUTAS DE SEGMENTACIÓN ====================
+
+// Análisis de segmentación completo
+router.get(
+    '/segmentation/analysis',
+    requireAdmin,
+    adminRateLimit,
+    getSegmentationAnalysis
+);
+
+// Obtener customers de un segmento específico
+router.get(
+    '/segment/:segment',
+    requireAdmin,
+    adminRateLimit,
+    getCustomersBySegment
 );
 
 // ==================== RUTAS CRUD ====================
@@ -162,6 +185,32 @@ router.put(
     validateUpdateLoyaltyPoints,
     handleValidationErrors,
     updateLoyaltyPoints
+);
+
+// Obtener historial de compras completo de un customer
+router.get(
+    '/:id/purchase-history',
+    requireAdmin,
+    adminRateLimit,
+    getCustomerPurchaseHistory
+);
+
+// ==================== RUTAS DE SINCRONIZACIÓN ====================
+
+// Sincronizar todos los customers con sus órdenes
+router.post(
+    '/sync-orders',
+    requireAdmin,
+    adminRateLimit,
+    syncCustomersWithOrders
+);
+
+// Re-segmentar todos los customers
+router.post(
+    '/resegment',
+    requireAdmin,
+    adminRateLimit,
+    resegmentAllCustomers
 );
 
 export default router;

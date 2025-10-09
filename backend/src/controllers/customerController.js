@@ -593,6 +593,465 @@ export const getCustomerByUserId = async (req, res) => {
     }
 };
 
+// @desc    Obtener historial de compras completo de un customer
+// @route   GET /api/customers/:id/purchase-history
+// @access  Private/Admin
+export const getCustomerPurchaseHistory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            page = 1,
+            limit = 10,
+            status,
+            sortBy = 'createdAt',
+            order = 'desc'
+        } = req.query;
+
+        // Verificar que el customer existe
+        const customer = await Customer.findById(id);
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                error: 'Cliente no encontrado'
+            });
+        }
+
+        // Construir filtros para las órdenes
+        const filters = { user: customer.user };
+        if (status) {
+            filters.status = status;
+        }
+
+        // Configurar ordenamiento
+        const sortOptions = {};
+        sortOptions[sortBy] = order === 'desc' ? -1 : 1;
+
+        // Calcular skip
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        // Obtener órdenes con paginación
+        const orders = await Order.find(filters)
+            .populate('items.product', 'name brand image price')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        // Contar total de órdenes
+        const totalOrders = await Order.countDocuments(filters);
+
+        // Calcular estadísticas del historial
+        const orderStats = await Order.aggregate([
+            { $match: { user: customer.user } },
+            {
+                $group: {
+                    _id: null,
+                    totalSpent: { $sum: '$total' },
+                    totalOrders: { $sum: 1 },
+                    avgOrderValue: { $avg: '$total' },
+                    totalItems: { $sum: { $size: '$items' } }
+                }
+            }
+        ]);
+
+        // Productos más comprados
+        const topProducts = await Order.aggregate([
+            { $match: { user: customer.user } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.product',
+                    totalQuantity: { $sum: '$items.quantity' },
+                    totalSpent: { $sum: '$items.subtotal' },
+                    orderCount: { $sum: 1 }
+                }
+            },
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'productInfo'
+                }
+            },
+            { $unwind: '$productInfo' },
+            {
+                $project: {
+                    productId: '$_id',
+                    productName: '$productInfo.name',
+                    productBrand: '$productInfo.brand',
+                    productImage: '$productInfo.image',
+                    totalQuantity: 1,
+                    totalSpent: 1,
+                    orderCount: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                orders,
+                stats: orderStats[0] || {
+                    totalSpent: 0,
+                    totalOrders: 0,
+                    avgOrderValue: 0,
+                    totalItems: 0
+                },
+                topProducts,
+                customer: {
+                    id: customer._id,
+                    customerCode: customer.customerCode,
+                    segment: customer.segment,
+                    loyaltyLevel: customer.loyaltyLevel,
+                    loyaltyPoints: customer.loyaltyPoints
+                }
+            },
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: totalOrders,
+                pages: Math.ceil(totalOrders / parseInt(limit))
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener historial de compras:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener el historial de compras'
+        });
+    }
+};
+
+// @desc    Sincronizar todos los customers con sus órdenes
+// @route   POST /api/customers/sync-orders
+// @access  Private/Admin
+export const syncCustomersWithOrders = async (req, res) => {
+    try {
+        const customers = await Customer.find();
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const customer of customers) {
+            try {
+                await customer.updateMetricsFromOrders();
+                successCount++;
+            } catch (error) {
+                console.error(`Error al sincronizar customer ${customer.customerCode}:`, error);
+                errorCount++;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Sincronización completada',
+            results: {
+                total: customers.length,
+                success: successCount,
+                errors: errorCount
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al sincronizar customers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al sincronizar clientes con órdenes'
+        });
+    }
+};
+
+// @desc    Obtener customers por segmento específico
+// @route   GET /api/customers/segment/:segment
+// @access  Private/Admin
+export const getCustomersBySegment = async (req, res) => {
+    try {
+        const { segment } = req.params;
+        const { page = 1, limit = 20, sortBy = 'lifetimeValue', order = 'desc' } = req.query;
+
+        // Validar segmento
+        const validSegments = ['VIP', 'Frecuente', 'Ocasional', 'Nuevo', 'Inactivo', 'En Riesgo'];
+        if (!validSegments.includes(segment)) {
+            return res.status(400).json({
+                success: false,
+                error: `Segmento inválido. Válidos: ${validSegments.join(', ')}`
+            });
+        }
+
+        // Construir query
+        const filters = { segment, status: 'Activo' };
+
+        // Configurar ordenamiento
+        const sortOptions = {};
+        sortOptions[sortBy] = order === 'desc' ? -1 : 1;
+
+        // Calcular skip
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        // Obtener customers
+        const customers = await Customer.find(filters)
+            .populate('user', 'nombre email fechaCreacion')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        // Contar total
+        const total = await Customer.countDocuments(filters);
+
+        // Calcular estadísticas del segmento
+        const stats = await Customer.aggregate([
+            { $match: filters },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 },
+                    avgLifetimeValue: { $avg: '$lifetimeValue' },
+                    totalRevenue: { $sum: '$lifetimeValue' },
+                    avgOrders: { $avg: '$metrics.totalOrders' },
+                    avgDaysSinceLastOrder: { $avg: '$metrics.daysSinceLastOrder' }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: customers,
+            stats: stats[0] || {
+                count: 0,
+                avgLifetimeValue: 0,
+                totalRevenue: 0,
+                avgOrders: 0,
+                avgDaysSinceLastOrder: 0
+            },
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            },
+            segment: {
+                name: segment,
+                description: getSegmentDescription(segment)
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener customers por segmento:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener clientes del segmento'
+        });
+    }
+};
+
+// @desc    Re-segmentar todos los customers
+// @route   POST /api/customers/resegment
+// @access  Private/Admin
+export const resegmentAllCustomers = async (req, res) => {
+    try {
+        const customers = await Customer.find();
+        let successCount = 0;
+        let errorCount = 0;
+        const segmentChanges = {};
+
+        for (const customer of customers) {
+            try {
+                const oldSegment = customer.segment;
+
+                // Actualizar métricas y re-segmentar
+                await customer.updateMetricsFromOrders();
+
+                const newSegment = customer.segment;
+
+                // Registrar cambios
+                if (oldSegment !== newSegment) {
+                    const key = `${oldSegment} → ${newSegment}`;
+                    segmentChanges[key] = (segmentChanges[key] || 0) + 1;
+                }
+
+                successCount++;
+            } catch (error) {
+                console.error(`Error al re-segmentar customer ${customer.customerCode}:`, error);
+                errorCount++;
+            }
+        }
+
+        // Obtener distribución actualizada
+        const distribution = await Customer.aggregate([
+            {
+                $group: {
+                    _id: '$segment',
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { count: -1 } }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            message: 'Re-segmentación completada',
+            results: {
+                total: customers.length,
+                success: successCount,
+                errors: errorCount,
+                changes: segmentChanges,
+                distribution: distribution.reduce((acc, item) => {
+                    acc[item._id] = item.count;
+                    return acc;
+                }, {})
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al re-segmentar customers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al re-segmentar clientes'
+        });
+    }
+};
+
+// @desc    Obtener análisis de segmentación
+// @route   GET /api/customers/segmentation/analysis
+// @access  Private/Admin
+export const getSegmentationAnalysis = async (req, res) => {
+    try {
+        // Distribución por segmento
+        const distribution = await Customer.aggregate([
+            { $match: { status: 'Activo' } },
+            {
+                $group: {
+                    _id: '$segment',
+                    count: { $sum: 1 },
+                    avgLifetimeValue: { $avg: '$lifetimeValue' },
+                    totalRevenue: { $sum: '$lifetimeValue' },
+                    avgOrders: { $avg: '$metrics.totalOrders' },
+                    avgOrderValue: { $avg: '$metrics.averageOrderValue' }
+                }
+            },
+            { $sort: { totalRevenue: -1 } }
+        ]);
+
+        // Total de customers
+        const totalCustomers = await Customer.countDocuments({ status: 'Activo' });
+
+        // Agregar porcentajes y descripción
+        const enrichedDistribution = distribution.map(segment => ({
+            segment: segment._id,
+            count: segment.count,
+            percentage: ((segment.count / totalCustomers) * 100).toFixed(2),
+            avgLifetimeValue: segment.avgLifetimeValue,
+            totalRevenue: segment.totalRevenue,
+            avgOrders: segment.avgOrders,
+            avgOrderValue: segment.avgOrderValue,
+            description: getSegmentDescription(segment._id),
+            revenuePercentage: ((segment.totalRevenue / distribution.reduce((sum, s) => sum + s.totalRevenue, 0)) * 100).toFixed(2)
+        }));
+
+        // Tendencias (últimos 30 días vs anteriores)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const recentChanges = await Customer.aggregate([
+            { $match: { updatedAt: { $gte: thirtyDaysAgo } } },
+            {
+                $group: {
+                    _id: '$segment',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                total: totalCustomers,
+                distribution: enrichedDistribution,
+                recentActivity: recentChanges,
+                recommendations: generateSegmentRecommendations(enrichedDistribution)
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener análisis de segmentación:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener análisis de segmentación'
+        });
+    }
+};
+
+// Helper: Obtener descripción del segmento
+function getSegmentDescription(segment) {
+    const descriptions = {
+        'VIP': 'Clientes de máximo valor (>$2M y 10+ órdenes). Prioridad máxima.',
+        'Frecuente': 'Compradores regulares (5+ órdenes, activos últimos 30 días)',
+        'Ocasional': 'Compradores esporádicos (2+ órdenes, activos últimos 90 días)',
+        'Nuevo': 'Sin historial de compras. Oportunidad de conversión.',
+        'Inactivo': 'Sin compras en 180+ días. Requiere reactivación.',
+        'En Riesgo': 'Sin compras en 90-180 días. Necesita atención.'
+    };
+    return descriptions[segment] || 'Descripción no disponible';
+}
+
+// Helper: Generar recomendaciones por segmento
+function generateSegmentRecommendations(distribution) {
+    const recommendations = [];
+
+    distribution.forEach(segment => {
+        const percentage = parseFloat(segment.percentage);
+
+        if (segment.segment === 'Inactivo' && percentage > 20) {
+            recommendations.push({
+                priority: 'Alta',
+                segment: 'Inactivo',
+                issue: `${percentage}% de customers inactivos`,
+                action: 'Implementar campaña de reactivación con ofertas especiales'
+            });
+        }
+
+        if (segment.segment === 'En Riesgo' && percentage > 15) {
+            recommendations.push({
+                priority: 'Media',
+                segment: 'En Riesgo',
+                issue: `${percentage}% de customers en riesgo de abandono`,
+                action: 'Contactar proactivamente con descuentos personalizados'
+            });
+        }
+
+        if (segment.segment === 'Nuevo' && percentage > 40) {
+            recommendations.push({
+                priority: 'Media',
+                segment: 'Nuevo',
+                issue: `${percentage}% son nuevos sin compras`,
+                action: 'Mejorar estrategia de onboarding y primera compra'
+            });
+        }
+
+        if (segment.segment === 'VIP' && segment.count > 0) {
+            recommendations.push({
+                priority: 'Alta',
+                segment: 'VIP',
+                issue: `${segment.count} customers VIP generan ${segment.revenuePercentage}% del revenue`,
+                action: 'Programa de fidelización exclusivo y atención premium'
+            });
+        }
+
+        if (segment.segment === 'Frecuente' && percentage < 10) {
+            recommendations.push({
+                priority: 'Media',
+                segment: 'Frecuente',
+                issue: `Solo ${percentage}% son compradores frecuentes`,
+                action: 'Implementar incentivos para aumentar frecuencia de compra'
+            });
+        }
+    });
+
+    return recommendations;
+}
+
 export default {
     getCustomers,
     getCustomerById,
@@ -606,6 +1065,11 @@ export default {
     getChurnRiskCustomers,
     getCRMDashboard,
     updateLoyaltyPoints,
-    getCustomerByUserId
+    getCustomerByUserId,
+    getCustomerPurchaseHistory,
+    syncCustomersWithOrders,
+    getCustomersBySegment,
+    resegmentAllCustomers,
+    getSegmentationAnalysis
 };
 

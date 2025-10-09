@@ -45,6 +45,8 @@
     "test-cart-fix": "node scripts/test-cart-fix.js",
     "test-simple-login": "node scripts/test-simple-login.js",
     "fix-test-user": "node scripts/fix-test-user.js",
+    "test-customer-order": "node scripts/test-customer-order-integration.js",
+    "test-segmentation": "node scripts/test-segmentation.js",
     "build": "npm install"
   },
   "engines": {

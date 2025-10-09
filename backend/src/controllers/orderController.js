@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Cart from '../models/Cart.js';
 import Inventory from '../models/Inventory.js';
 import mongoose from 'mongoose';
+import { syncCustomerAfterOrder } from '../services/customerSyncService.js';
 
 // Función helper para detectar la marca de tarjeta
 function getCardBrand(cardNumber) {
@@ -129,6 +130,15 @@ export async function createOrder(req, res) {
                     }
                 }
             );
+        }
+
+        // Sincronizar customer automáticamente después de crear la orden
+        try {
+            await syncCustomerAfterOrder(userId, order);
+            console.log(`📊 Customer sincronizado automáticamente para orden ${order.orderNumber}`);
+        } catch (syncError) {
+            console.error('⚠️  Error al sincronizar customer (no crítico):', syncError);
+            // No bloqueamos la creación de la orden si falla la sincronización
         }
 
         // Limpiar carrito
@@ -343,6 +353,16 @@ export async function updateOrderStatus(req, res) {
         if (notes) {
             order.notes = notes;
             await order.save();
+        }
+
+        // Sincronizar customer si la orden se completó o canceló
+        if (['delivered', 'cancelled'].includes(status)) {
+            try {
+                await syncCustomerAfterOrder(order.user, order);
+                console.log(`📊 Customer sincronizado automáticamente tras actualización de orden ${order.orderNumber}`);
+            } catch (syncError) {
+                console.error('⚠️  Error al sincronizar customer (no crítico):', syncError);
+            }
         }
 
         await order.populate([
@@ -671,6 +691,14 @@ export async function cancelOrder(req, res) {
                     }
                 }
             );
+        }
+
+        // Sincronizar customer tras cancelación
+        try {
+            await syncCustomerAfterOrder(order.user, order);
+            console.log(`📊 Customer sincronizado automáticamente tras cancelación de orden ${order.orderNumber}`);
+        } catch (syncError) {
+            console.error('⚠️  Error al sincronizar customer (no crítico):', syncError);
         }
 
         await order.populate([
