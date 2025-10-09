@@ -23,7 +23,7 @@ import {
 } from '../controllers/customerController.js';
 
 // Middleware de autenticación y autorización
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 
 // Middleware de validación

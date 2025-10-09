@@ -7,8 +7,20 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
+// Validación suave: advertir pero no bloquear el inicio del servidor
 if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET no está definido en las variables de entorno');
+    console.warn('⚠️  WARNING: JWT_SECRET no está definido en las variables de entorno');
+    console.warn('⚠️  Las funciones de autenticación fallarán hasta que se configure JWT_SECRET');
+}
+
+/**
+ * Valida que JWT_SECRET esté disponible antes de usar funciones JWT
+ * @throws {Error} Si JWT_SECRET no está definido
+ */
+function validateJWTSecret() {
+    if (!JWT_SECRET) {
+        throw new Error('JWT_SECRET no está definido en las variables de entorno. Por favor configura JWT_SECRET para usar autenticación.');
+    }
 }
 
 /**
@@ -18,6 +30,8 @@ if (!JWT_SECRET) {
  * @returns {string} Token JWT generado
  */
 export function generateToken(payload, type = 'access') {
+    validateJWTSecret(); // Validar antes de usar
+
     const expiresIn = type === 'refresh' ? JWT_REFRESH_EXPIRES_IN : JWT_EXPIRES_IN;
 
     return jwt.sign(payload, JWT_SECRET, {
@@ -34,6 +48,8 @@ export function generateToken(payload, type = 'access') {
  * @throws {Error} Si el token es inválido o ha expirado
  */
 export function verifyToken(token) {
+    validateJWTSecret(); // Validar antes de usar
+
     try {
         return jwt.verify(token, JWT_SECRET, {
             issuer: 'supergains-api',
@@ -56,6 +72,8 @@ export function verifyToken(token) {
  * @returns {Object} Objeto con accessToken y refreshToken
  */
 export function generateTokenPair(user) {
+    validateJWTSecret(); // Validar antes de usar
+
     const payload = {
         userId: user._id,
         email: user.email,
