@@ -25,6 +25,7 @@ import healthRoutes from "./routes/healthRoutes.js";
 import schedulerRoutes from "./routes/schedulerRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import securityRoutes from "./routes/securityRoutes.js";
+import customerRoutes from "./routes/customerRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
@@ -162,6 +163,9 @@ app.use("/api/notifications", notificationRoutes);
 
 // Rutas del scheduler - solo para administradores
 app.use("/api/scheduler", schedulerRoutes);
+
+// Rutas de CRM customers - solo para administradores
+app.use("/api/customers", customerRoutes);
 
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
