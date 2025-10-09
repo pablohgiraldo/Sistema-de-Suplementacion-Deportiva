@@ -421,7 +421,8 @@ export const getCRMDashboard = async (req, res) => {
                 $group: {
                     _id: '$segment',
                     count: { $sum: 1 },
-                    totalRevenue: { $sum: '$lifetimeValue' }
+                    totalRevenue: { $sum: '$lifetimeValue' },
+                    avgLifetimeValue: { $avg: '$lifetimeValue' }
                 }
             },
             {

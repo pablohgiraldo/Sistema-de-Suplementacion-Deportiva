@@ -320,7 +320,7 @@ customerSchema.index({ churnRisk: 1 });
 customerSchema.index({ segment: 1, loyaltyLevel: 1, status: 1 });
 
 // Middleware pre-save: Generar código de cliente único
-customerSchema.pre('save', async function(next) {
+customerSchema.pre('save', async function (next) {
     try {
         if (this.isNew && !this.customerCode) {
             // Generar código: CUS-YYYYMMDD-XXXXX
@@ -336,7 +336,7 @@ customerSchema.pre('save', async function(next) {
 });
 
 // Middleware pre-save: Calcular métricas derivadas
-customerSchema.pre('save', function(next) {
+customerSchema.pre('save', function (next) {
     try {
         // Calcular días desde última orden
         if (this.metrics.lastOrderDate) {
@@ -370,7 +370,7 @@ customerSchema.pre('save', function(next) {
 });
 
 // Método para auto-segmentar clientes
-customerSchema.methods.autoSegment = function() {
+customerSchema.methods.autoSegment = function () {
     const { totalOrders, daysSinceLastOrder } = this.metrics;
 
     if (totalOrders === 0) {
@@ -391,7 +391,7 @@ customerSchema.methods.autoSegment = function() {
 };
 
 // Método para calcular riesgo de abandono
-customerSchema.methods.calculateChurnRisk = function() {
+customerSchema.methods.calculateChurnRisk = function () {
     const { totalOrders, daysSinceLastOrder } = this.metrics;
 
     if (totalOrders === 0) {
@@ -409,7 +409,7 @@ customerSchema.methods.calculateChurnRisk = function() {
 };
 
 // Método para actualizar nivel de fidelidad
-customerSchema.methods.updateLoyaltyLevel = function() {
+customerSchema.methods.updateLoyaltyLevel = function () {
     const ltv = this.lifetimeValue;
 
     if (ltv >= 5000000) {
@@ -426,7 +426,7 @@ customerSchema.methods.updateLoyaltyLevel = function() {
 };
 
 // Método para agregar interacción al historial
-customerSchema.methods.addInteraction = function(type, description, metadata = {}) {
+customerSchema.methods.addInteraction = function (type, description, metadata = {}) {
     this.interactionHistory.unshift({
         type,
         description,
@@ -443,14 +443,14 @@ customerSchema.methods.addInteraction = function(type, description, metadata = {
 };
 
 // Método para actualizar métricas desde órdenes
-customerSchema.methods.updateMetricsFromOrders = async function() {
+customerSchema.methods.updateMetricsFromOrders = async function () {
     try {
         const Order = mongoose.model('Order');
-        
-        // Obtener todas las órdenes del usuario
-        const orders = await Order.find({ 
+
+        // Obtener todas las órdenes del usuario (excluyendo solo las canceladas)
+        const orders = await Order.find({
             user: this.user,
-            status: { $in: ['Completado', 'Enviado', 'Entregado'] }
+            status: { $in: ['pending', 'processing', 'shipped', 'delivered'] }
         }).sort({ createdAt: -1 });
 
         if (orders.length === 0) {
@@ -459,8 +459,16 @@ customerSchema.methods.updateMetricsFromOrders = async function() {
 
         // Actualizar métricas
         this.metrics.totalOrders = orders.length;
-        this.metrics.totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
+        this.metrics.totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
         this.metrics.lastOrderDate = orders[0].createdAt;
+
+        // Calcular promedio de orden
+        this.metrics.averageOrderValue = orders.length > 0
+            ? this.metrics.totalSpent / orders.length
+            : 0;
+
+        // Actualizar lifetime value (igual al total gastado)
+        this.lifetimeValue = this.metrics.totalSpent;
 
         // Actualizar nivel de fidelidad
         this.updateLoyaltyLevel();
@@ -496,7 +504,7 @@ customerSchema.virtual('wishlistInfo', {
 });
 
 // Método estático para obtener estadísticas de segmentos
-customerSchema.statics.getSegmentStats = async function() {
+customerSchema.statics.getSegmentStats = async function () {
     try {
         const stats = await this.aggregate([
             {
@@ -523,24 +531,24 @@ customerSchema.statics.getSegmentStats = async function() {
 };
 
 // Método estático para obtener clientes de alto valor
-customerSchema.statics.getHighValueCustomers = async function(limit = 10) {
-    return this.find({ 
+customerSchema.statics.getHighValueCustomers = async function (limit = 10) {
+    return this.find({
         isHighValue: true,
         status: 'Activo'
     })
-    .sort({ lifetimeValue: -1 })
-    .limit(limit)
-    .populate('user', 'nombre email');
+        .sort({ lifetimeValue: -1 })
+        .limit(limit)
+        .populate('user', 'nombre email');
 };
 
 // Método estático para obtener clientes en riesgo
-customerSchema.statics.getChurnRiskCustomers = async function() {
+customerSchema.statics.getChurnRiskCustomers = async function () {
     return this.find({
         churnRisk: { $in: ['Medio', 'Alto'] },
         status: 'Activo'
     })
-    .sort({ 'metrics.daysSinceLastOrder': -1 })
-    .populate('user', 'nombre email');
+        .sort({ 'metrics.daysSinceLastOrder': -1 })
+        .populate('user', 'nombre email');
 };
 
 const Customer = mongoose.model('Customer', customerSchema);

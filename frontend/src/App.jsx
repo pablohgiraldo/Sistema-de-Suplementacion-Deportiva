@@ -31,6 +31,7 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const Orders = lazy(() => import('./pages/Orders'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
+const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 
 function AppContent() {
   const location = useLocation();
@@ -222,6 +223,14 @@ function AuthenticatedApp({
               element={
                 <AdminRoute>
                   <AdminOrders />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/customers"
+              element={
+                <AdminRoute>
+                  <AdminCustomers />
                 </AdminRoute>
               }
             />
