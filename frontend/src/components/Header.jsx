@@ -197,23 +197,44 @@ export default function Header({
               )}
             </div>
 
-            {/* Botón hamburger para móvil - Mejorado */}
-            <button
-              className={`md:hidden p-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
-                ? 'bg-blue-50 text-blue-600'
-                : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              onClick={toggleMobileMenu}
-              aria-label={isMobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-                <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+            {/* Iconos móviles (carrito siempre visible) */}
+            <div className="md:hidden flex items-center gap-3">
+              {/* Carrito móvil - Siempre visible */}
+              <div className="relative">
+                <Link
+                  to="/cart"
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative flex items-center justify-center"
+                  aria-label={`Carrito de compras con ${cartItemsCount} ${cartItemsCount === 1 ? 'producto' : 'productos'}`}
+                >
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </Link>
               </div>
-            </button>
+
+              {/* Botón hamburger para móvil */}
+              <button
+                className={`p-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                onClick={toggleMobileMenu}
+                aria-label={isMobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+              >
+                <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -371,29 +392,18 @@ export default function Header({
                     </Link>
                   </>
                 ) : (
-                  // Iconos para usuarios normales móvil
+                  // Icono de wishlist para usuarios normales móvil
                   <>
-                    {/* Icono de favoritos móvil */}
-                    <svg className="w-5 h-5 text-black cursor-pointer hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-
-                    {/* Carrito móvil */}
-                    <div className="relative">
-                      <Link
-                        to="/cart"
-                        className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {cartItemsCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                            {cartItemsCount}
-                          </span>
-                        )}
-                      </Link>
-                    </div>
+                    {/* Icono de favoritos/wishlist móvil */}
+                    <Link
+                      to="/wishlist"
+                      className="w-5 h-5 cursor-pointer hover:text-gray-600 relative block"
+                      title="Mi Lista de Deseos"
+                    >
+                      <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </Link>
                   </>
                 )}
               </div>
