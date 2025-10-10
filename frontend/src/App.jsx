@@ -32,6 +32,7 @@ const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const Orders = lazy(() => import('./pages/Orders'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
+const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
 
 function AppContent() {
   const location = useLocation();
@@ -231,6 +232,14 @@ function AuthenticatedApp({
               element={
                 <AdminRoute>
                   <AdminCustomers />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/customers/:customerId/recommendations"
+              element={
+                <AdminRoute>
+                  <AdminCustomerRecommendations />
                 </AdminRoute>
               }
             />
