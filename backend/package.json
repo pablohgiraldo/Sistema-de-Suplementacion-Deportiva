@@ -48,6 +48,7 @@
     "test-customer-order": "node scripts/test-customer-order-integration.js",
     "test-segmentation": "node scripts/test-segmentation.js",
     "generate-recommendation-dataset": "node scripts/generate-recommendation-dataset.js",
+    "test-recommendations": "node scripts/test-recommendation-system.js",
     "build": "npm install"
   },
   "engines": {

@@ -26,6 +26,7 @@ import schedulerRoutes from "./routes/schedulerRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import securityRoutes from "./routes/securityRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
@@ -137,7 +138,8 @@ app.get("/", (_req, res) => {
     endpoints: {
       health: "/api/health",
       products: "/api/products",
-      users: "/api/users"
+      users: "/api/users",
+      recommendations: "/api/recommendations"
     }
   });
 });
@@ -166,6 +168,9 @@ app.use("/api/scheduler", schedulerRoutes);
 
 // Rutas de CRM customers - solo para administradores
 app.use("/api/customers", customerRoutes);
+
+// Rutas de recomendaciones - sin rate limiting para recomendaciones públicas
+app.use("/api/recommendations", recommendationRoutes);
 
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
