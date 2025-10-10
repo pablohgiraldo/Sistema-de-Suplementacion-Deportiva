@@ -14,7 +14,7 @@ import {
     getCustomerRecommendations,
     getRecommendationStats
 } from '../controllers/recommendationController.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
@@ -45,35 +45,35 @@ router.get('/similar/:productId', getSimilarProducts);
  * @desc    Obtener recomendaciones personalizadas del usuario autenticado
  * @access  Private
  */
-router.get('/me', requireAuth, getMyRecommendations);
+router.get('/me', authMiddleware, getMyRecommendations);
 
 /**
  * @route   GET /api/recommendations/hybrid
  * @desc    Obtener recomendaciones híbridas (múltiples estrategias)
  * @access  Private
  */
-router.get('/hybrid', requireAuth, getHybridRecommendations);
+router.get('/hybrid', authMiddleware, getHybridRecommendations);
 
 /**
  * @route   GET /api/recommendations/user/:userId
  * @desc    Obtener recomendaciones de un usuario específico (admin)
  * @access  Private/Admin
  */
-router.get('/user/:userId', requireAuth, requireAdmin, getUserRecommendations);
+router.get('/user/:userId', authMiddleware, requireAdmin, getUserRecommendations);
 
 /**
  * @route   GET /api/recommendations/stats
  * @desc    Obtener estadísticas del sistema de recomendaciones (admin)
  * @access  Private/Admin
  */
-router.get('/stats', requireAuth, requireAdmin, getRecommendationStats);
+router.get('/stats', authMiddleware, requireAdmin, getRecommendationStats);
 
 /**
  * @route   GET /api/recommendations/:customerId
  * @desc    Obtener recomendaciones basadas en perfil completo del Customer (CRM)
  * @access  Private/Admin
  */
-router.get('/:customerId', requireAuth, requireAdmin, getCustomerRecommendations);
+router.get('/:customerId', authMiddleware, requireAdmin, getCustomerRecommendations);
 
 export default router;
 
