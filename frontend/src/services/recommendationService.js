@@ -11,7 +11,7 @@ import api from './api';
  * @param {number} limit - Límite de productos por categoría
  * @returns {Promise} - Promesa con las recomendaciones
  */
-export const getCustomerRecommendations = async (customerId, limit = 10) => {
+const getCustomerRecommendations = async (customerId, limit = 10) => {
     try {
         const response = await api.get(`/recommendations/${customerId}`, {
             params: { limit }
@@ -28,7 +28,7 @@ export const getCustomerRecommendations = async (customerId, limit = 10) => {
  * @param {number} limit - Límite de productos
  * @returns {Promise} - Promesa con las recomendaciones
  */
-export const getMyRecommendations = async (limit = 10) => {
+const getMyRecommendations = async (limit = 10) => {
     try {
         const response = await api.get('/recommendations/me', {
             params: { limit }
@@ -46,7 +46,7 @@ export const getMyRecommendations = async (limit = 10) => {
  * @param {number} limit - Límite de productos
  * @returns {Promise} - Promesa con productos similares
  */
-export const getSimilarProducts = async (productId, limit = 5) => {
+const getSimilarProducts = async (productId, limit = 5) => {
     try {
         const response = await api.get(`/recommendations/similar/${productId}`, {
             params: { limit }
@@ -63,7 +63,7 @@ export const getSimilarProducts = async (productId, limit = 5) => {
  * @param {number} limit - Límite de productos
  * @returns {Promise} - Promesa con productos populares
  */
-export const getPopularProducts = async (limit = 10) => {
+const getPopularProducts = async (limit = 10) => {
     try {
         const response = await api.get('/recommendations/popular', {
             params: { limit }

@@ -5,8 +5,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCustomerRecommendations } from '../services/recommendationService';
-import { getCustomerById } from '../services/customerService';
+import recommendationService from '../services/recommendationService';
+import customerService from '../services/customerService';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -32,8 +32,8 @@ const AdminCustomerRecommendations = () => {
 
             // Cargar datos del customer y sus recomendaciones en paralelo
             const [customerData, recsData] = await Promise.all([
-                getCustomerById(customerId),
-                getCustomerRecommendations(customerId, 5)
+                customerService.getCustomerById(customerId),
+                recommendationService.getCustomerRecommendations(customerId, 5)
             ]);
 
             setCustomer(customerData.customer);
