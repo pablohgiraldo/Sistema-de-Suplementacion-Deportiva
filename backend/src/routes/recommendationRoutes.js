@@ -14,7 +14,8 @@ import {
     getCustomerRecommendations,
     getRecommendationStats
 } from '../controllers/recommendationController.js';
-import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
+import { requireAdmin } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
