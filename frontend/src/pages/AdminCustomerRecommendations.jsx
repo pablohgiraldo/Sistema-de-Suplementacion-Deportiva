@@ -7,10 +7,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import recommendationService from '../services/recommendationService';
 import customerService from '../services/customerService';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
-import { Alert } from '../components/ui/Alert';
+import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
+import Alert from '../components/ui/Alert';
 
 const AdminCustomerRecommendations = () => {
     const { customerId } = useParams();
