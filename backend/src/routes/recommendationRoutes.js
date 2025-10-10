@@ -11,6 +11,7 @@ import {
     getPopularProducts,
     getRecommendationsByCategory,
     getHybridRecommendations,
+    getCustomerRecommendations,
     getRecommendationStats
 } from '../controllers/recommendationController.js';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
@@ -65,6 +66,13 @@ router.get('/user/:userId', requireAuth, requireAdmin, getUserRecommendations);
  * @access  Private/Admin
  */
 router.get('/stats', requireAuth, requireAdmin, getRecommendationStats);
+
+/**
+ * @route   GET /api/recommendations/:customerId
+ * @desc    Obtener recomendaciones basadas en perfil completo del Customer (CRM)
+ * @access  Private/Admin
+ */
+router.get('/:customerId', requireAuth, requireAdmin, getCustomerRecommendations);
 
 export default router;
 

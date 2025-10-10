@@ -236,7 +236,7 @@ async function generateOrder(user, products, preferences, daysAgo = 0) {
             state: 'Antioquia',
             zipCode: '050001',
             country: 'Colombia',
-            phone: '+57300000000'
+            phone: '3001234567'
         },
         createdAt: orderDate,
         updatedAt: orderDate

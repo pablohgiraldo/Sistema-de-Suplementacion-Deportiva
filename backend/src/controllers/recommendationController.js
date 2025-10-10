@@ -190,6 +190,36 @@ export const getRecommendationStats = async (req, res) => {
     }
 };
 
+/**
+ * Obtiene recomendaciones basadas en el perfil completo del Customer (CRM)
+ * GET /api/recommendations/:customerId
+ */
+export const getCustomerRecommendations = async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        const limit = parseInt(req.query.limit) || 10;
+        
+        const result = await recommendationService.getCustomerRecommendations(customerId, { limit });
+        
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error getting customer recommendations:', error);
+        
+        if (error.message === 'Customer no encontrado') {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer no encontrado'
+            });
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener recomendaciones del customer',
+            error: error.message
+        });
+    }
+};
+
 export default {
     getUserRecommendations,
     getMyRecommendations,
@@ -197,6 +227,7 @@ export default {
     getPopularProducts,
     getRecommendationsByCategory,
     getHybridRecommendations,
+    getCustomerRecommendations,
     getRecommendationStats
 };
 

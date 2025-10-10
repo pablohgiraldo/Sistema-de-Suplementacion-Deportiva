@@ -396,6 +396,187 @@ async function getRecommendationStats() {
     };
 }
 
+/**
+ * Obtiene recomendaciones personalizadas basadas en el perfil completo del Customer
+ * @param {string} customerId - ID del customer
+ * @param {Object} options - Opciones de recomendación
+ * @returns {Promise<Object>} - Objeto con recomendaciones personalizadas y metadatos
+ */
+async function getCustomerRecommendations(customerId, options = {}) {
+    const { limit = 10 } = options;
+    
+    try {
+        // Obtener el customer con toda su información
+        const customer = await Customer.findById(customerId)
+            .populate('user')
+            .lean();
+        
+        if (!customer) {
+            throw new Error('Customer no encontrado');
+        }
+        
+        // Construir el perfil de recomendación
+        const profile = {
+            customerId: customer._id,
+            userId: customer.user._id,
+            segment: customer.segment,
+            loyaltyLevel: customer.loyalty?.level,
+            totalOrders: customer.metrics?.totalOrders || 0,
+            totalSpent: customer.metrics?.totalSpent || 0,
+            lastOrderDate: customer.metrics?.lastOrderDate,
+            preferences: customer.preferences || {},
+            churnRisk: customer.churnRisk || 'low'
+        };
+        
+        // Estrategias de recomendación según el perfil
+        const recommendations = {
+            profile,
+            featured: [], // Productos destacados personalizados
+            crossSell: [], // Productos complementarios
+            upsell: [], // Productos premium
+            similar: [], // Basados en última compra
+            trending: [] // Tendencias en su segmento
+        };
+        
+        // 1. Recomendaciones principales basadas en historial
+        const userBased = await getUserBasedRecommendations(customer.user._id, limit);
+        recommendations.featured = userBased.slice(0, Math.ceil(limit / 2));
+        
+        // 2. Cross-sell: Productos complementarios basados en categorías compradas
+        if (customer.preferences?.favoriteCategories?.length > 0) {
+            const favoriteCategory = customer.preferences.favoriteCategories[0];
+            
+            // Obtener productos en categorías complementarias
+            const complementaryCategories = {
+                'Proteína': ['Creatina', 'Aminoácidos', 'Snacks'],
+                'Creatina': ['Proteína', 'Pre-Entreno'],
+                'Pre-Entreno': ['Aminoácidos', 'Proteína'],
+                'Vitaminas': ['Proteína', 'Snacks'],
+                'Quemadores': ['Vitaminas', 'Aminoácidos'],
+                'Ganadores': ['Creatina', 'Proteína']
+            };
+            
+            const complementary = complementaryCategories[favoriteCategory] || ['Proteína'];
+            
+            for (const category of complementary.slice(0, 2)) {
+                const categoryProducts = await getRecommendationsByCategory(category, 2);
+                recommendations.crossSell.push(...categoryProducts);
+            }
+        }
+        
+        // 3. Upsell: Productos premium según segmento y capacidad de compra
+        if (profile.segment === 'VIP' || profile.segment === 'Frecuente') {
+            const premiumProducts = await Product.find({
+                price: { $gte: 1500 }, // Productos premium
+                stock: { $gt: 0 }
+            })
+                .sort({ price: -1 })
+                .limit(3)
+                .lean();
+            
+            recommendations.upsell = premiumProducts.map(p => ({
+                ...p,
+                recommendationScore: 1,
+                recommendationReason: 'Producto premium recomendado'
+            }));
+        }
+        
+        // 4. Productos similares a la última compra
+        const lastOrder = await Order.findOne({
+            user: customer.user._id,
+            status: { $in: ['delivered'] }
+        })
+            .sort({ createdAt: -1 })
+            .select('items')
+            .lean();
+        
+        if (lastOrder && lastOrder.items.length > 0) {
+            const lastProductId = lastOrder.items[0].product;
+            const similarItems = await getItemBasedRecommendations(lastProductId, 3);
+            
+            recommendations.similar = similarItems.map(item => ({
+                ...item.product,
+                recommendationScore: item.score,
+                recommendationReason: item.reason
+            }));
+        }
+        
+        // 5. Trending: Productos populares en su segmento
+        if (profile.segment) {
+            const segmentProducts = await getSegmentBasedRecommendations(customer.user._id, 3);
+            recommendations.trending = segmentProducts;
+        }
+        
+        // Calcular score de confianza de las recomendaciones
+        const confidenceScore = calculateConfidenceScore(profile);
+        
+        return {
+            success: true,
+            customer: {
+                id: customer._id,
+                name: customer.user.nombre,
+                segment: profile.segment,
+                loyaltyLevel: profile.loyaltyLevel
+            },
+            recommendations,
+            metadata: {
+                confidenceScore,
+                totalRecommendations: 
+                    recommendations.featured.length +
+                    recommendations.crossSell.length +
+                    recommendations.upsell.length +
+                    recommendations.similar.length +
+                    recommendations.trending.length,
+                generatedAt: new Date(),
+                strategy: 'hybrid-customer-profile'
+            }
+        };
+    } catch (error) {
+        console.error('Error generating customer recommendations:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calcula el score de confianza de las recomendaciones basado en el perfil
+ * @param {Object} profile - Perfil del customer
+ * @returns {number} - Score entre 0 y 1
+ */
+function calculateConfidenceScore(profile) {
+    let score = 0;
+    let factors = 0;
+    
+    // Factor 1: Historial de compras
+    if (profile.totalOrders > 0) {
+        score += Math.min(profile.totalOrders / 10, 1) * 0.3;
+        factors++;
+    }
+    
+    // Factor 2: Segmento definido
+    if (profile.segment && profile.segment !== 'Nuevo') {
+        score += 0.25;
+        factors++;
+    }
+    
+    // Factor 3: Nivel de lealtad
+    if (profile.loyaltyLevel) {
+        const loyaltyScores = { Bronze: 0.1, Silver: 0.15, Gold: 0.2, Platinum: 0.25 };
+        score += loyaltyScores[profile.loyaltyLevel] || 0;
+        factors++;
+    }
+    
+    // Factor 4: Actividad reciente
+    if (profile.lastOrderDate) {
+        const daysSinceLastOrder = (Date.now() - new Date(profile.lastOrderDate).getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceLastOrder < 30) {
+            score += 0.2;
+            factors++;
+        }
+    }
+    
+    return factors > 0 ? Math.min(score, 1) : 0.5; // Score mínimo de 0.5
+}
+
 export default {
     getUserBasedRecommendations,
     getItemBasedRecommendations,
@@ -403,6 +584,7 @@ export default {
     getRecommendationsByCategory,
     getSegmentBasedRecommendations,
     getHybridRecommendations,
+    getCustomerRecommendations,
     getRecommendationStats
 };
 
