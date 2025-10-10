@@ -1,37 +1,83 @@
-import axios from "axios";
-import dotenv from "dotenv";
+/**
+ * Script para crear o verificar el usuario administrador
+ */
 
-// Cargar variables de entorno
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import { connectDB } from '../src/config/db.js';
+import User from '../src/models/User.js';
+
 dotenv.config();
-
-const BASE_URL = process.env.API_URL || "http://localhost:4000";
 
 async function createAdminUser() {
     try {
-        console.log("👑 Creando usuario administrador...");
-
-        const response = await axios.post(`${BASE_URL}/api/users/register`, {
-            nombre: "Administrador SuperGains",
-            email: "admin@test.com",
-            contraseña: "Admin123!",
-            rol: "admin"
-        });
-
-        console.log("✅ Usuario administrador creado exitosamente");
-        console.log("📧 Email: admin@test.com");
-        console.log("🔑 Password: Admin123!");
-        console.log("👤 Usuario ID:", response.data.data.user.id);
-        console.log("🔐 Rol:", response.data.data.user.rol);
-
-    } catch (error) {
-        if (error.response?.data?.error === 'El usuario ya existe') {
-            console.log("ℹ️ Usuario administrador ya existe");
-            console.log("📧 Email: admin@test.com");
-            console.log("🔑 Password: Admin123!");
+        console.log('\n🔧 Verificando usuario administrador...\n');
+        
+        // Conectar a la base de datos
+        await connectDB(process.env.MONGODB_URI);
+        
+        const adminEmail = 'admin@test.com';
+        const adminPassword = 'Admin123!';
+        
+        // Verificar si el usuario admin ya existe
+        const existingAdmin = await User.findOne({ email: adminEmail });
+        
+        if (existingAdmin) {
+            console.log('✅ Usuario admin ya existe:');
+            console.log(`   Email: ${existingAdmin.email}`);
+            console.log(`   Nombre: ${existingAdmin.nombre}`);
+            console.log(`   Rol: ${existingAdmin.rol}`);
+            console.log(`   Activo: ${existingAdmin.activo}`);
+            
+            // Verificar la contraseña
+            const isPasswordValid = await existingAdmin.compararContraseña(adminPassword);
+            console.log(`   Contraseña válida: ${isPasswordValid ? '✅' : '❌'}`);
+            
+            if (!isPasswordValid) {
+                console.log('\n⚠️  La contraseña no coincide. Actualizando...');
+                existingAdmin.contraseña = adminPassword;
+                await existingAdmin.save();
+                console.log('✅ Contraseña actualizada exitosamente');
+            }
+            
+            if (!existingAdmin.activo) {
+                console.log('\n⚠️  Usuario inactivo. Activando...');
+                existingAdmin.activo = true;
+                await existingAdmin.save();
+                console.log('✅ Usuario activado exitosamente');
+            }
         } else {
-            console.log("❌ Error creando usuario administrador:", error.response?.data || error.message);
+            console.log('⚠️  Usuario admin no encontrado. Creando...\n');
+            
+            const newAdmin = new User({
+                nombre: 'Administrador',
+                email: adminEmail,
+                contraseña: adminPassword,
+                rol: 'admin',
+                activo: true
+            });
+            
+            await newAdmin.save();
+            
+            console.log('✅ Usuario administrador creado exitosamente:');
+            console.log(`   Email: ${newAdmin.email}`);
+            console.log(`   Nombre: ${newAdmin.nombre}`);
+            console.log(`   Rol: ${newAdmin.rol}`);
         }
+        
+        console.log('\n✅ Proceso completado\n');
+        
+        // Cerrar conexión
+        await mongoose.connection.close();
+        console.log('🔌 Conexión cerrada');
+        
+        process.exit(0);
+    } catch (error) {
+        console.error('❌ Error:', error);
+        await mongoose.connection.close();
+        process.exit(1);
     }
 }
 
+// Ejecutar
 createAdminUser();

@@ -467,14 +467,25 @@ async function main() {
         
         // Limpiar datos existentes de prueba
         console.log('🧹 Limpiando datos de prueba existentes...');
-        await User.deleteMany({ email: /@test\.com$/ });
+        // No borrar el usuario admin
+        await User.deleteMany({ 
+            $and: [
+                { email: { $regex: /@test\.com$/ } },
+                { email: { $ne: 'admin@test.com' } }
+            ]
+        });
         
         // Eliminar productos de prueba (por nombres específicos)
         const testProductNames = productsData.map(p => p.name);
         await Product.deleteMany({ name: { $in: testProductNames } });
         
-        // Limpiar órdenes y customers de usuarios de prueba
-        const testUsers = await User.find({ email: /@test\.com$/ });
+        // Limpiar órdenes y customers de usuarios de prueba (excepto admin)
+        const testUsers = await User.find({ 
+            $and: [
+                { email: { $regex: /@test\.com$/ } },
+                { email: { $ne: 'admin@test.com' } }
+            ]
+        });
         const testUserIds = testUsers.map(u => u._id);
         await Order.deleteMany({ user: { $in: testUserIds } });
         await Customer.deleteMany({ user: { $in: testUserIds } });
