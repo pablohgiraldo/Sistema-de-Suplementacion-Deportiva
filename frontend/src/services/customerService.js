@@ -140,10 +140,13 @@ export const getCustomerPurchaseHistory = async (id, page = 1, limit = 10) => {
 
 /**
  * Sincronizar todos los customers con sus órdenes
+ * Timeout aumentado a 60s porque puede procesar muchos usuarios
  */
 export const syncCustomersWithOrders = async () => {
     try {
-        const response = await api.post('/customers/sync-orders');
+        const response = await api.post('/customers/sync-orders', {}, {
+            timeout: 60000 // 60 segundos
+        });
         return response.data;
     } catch (error) {
         console.error('Error syncing customers:', error);

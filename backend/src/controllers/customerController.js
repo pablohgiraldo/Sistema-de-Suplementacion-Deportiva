@@ -738,56 +738,80 @@ export const syncCustomersWithOrders = async (req, res) => {
         const usersWithOrders = await Order.distinct('user');
         console.log(`🔍 Encontrados ${usersWithOrders.length} usuarios con órdenes`);
         
-        let created = 0;
-        let updated = 0;
-        let errors = 0;
+        const results = {
+            created: 0,
+            updated: 0,
+            errors: 0
+        };
         
-        for (const userId of usersWithOrders) {
-            try {
-                // Verificar si ya existe un customer para este usuario
-                let customer = await Customer.findOne({ user: userId });
-                
-                if (!customer) {
-                    // Crear nuevo customer
-                    const user = await User.findById(userId);
-                    if (!user) {
-                        console.warn(`⚠️ Usuario ${userId} no encontrado, omitiendo...`);
-                        continue;
+        // ⚡ OPTIMIZACIÓN: Procesar en lotes de 10 en paralelo para mayor velocidad
+        const BATCH_SIZE = 10;
+        for (let i = 0; i < usersWithOrders.length; i += BATCH_SIZE) {
+            const batch = usersWithOrders.slice(i, i + BATCH_SIZE);
+            
+            const batchResults = await Promise.all(batch.map(async (userId) => {
+                try {
+                    // Verificar si ya existe un customer para este usuario
+                    let customer = await Customer.findOne({ user: userId });
+                    let wasCreated = false;
+                    
+                    if (!customer) {
+                        // Crear nuevo customer
+                        const user = await User.findById(userId);
+                        if (!user) {
+                            console.warn(`⚠️ Usuario ${userId} no encontrado, omitiendo...`);
+                            return { status: 'skipped' };
+                        }
+                        
+                        customer = new Customer({
+                            user: userId,
+                            segment: 'Nuevo',
+                            loyaltyLevel: 'Bronce',
+                            status: 'Activo',
+                            acquisitionSource: 'Directo'
+                        });
+                        
+                        await customer.save();
+                        console.log(`✅ Customer creado: ${customer.customerCode}`);
+                        wasCreated = true;
                     }
                     
-                    customer = new Customer({
-                        user: userId,
-                        segment: 'Nuevo',
-                        loyaltyLevel: 'Bronce',
-                        status: 'Activo',
-                        acquisitionSource: 'Directo'
-                    });
+                    // PASO 2: Actualizar métricas desde órdenes
+                    await customer.updateMetricsFromOrders();
                     
-                    await customer.save();
-                    console.log(`✅ Customer creado: ${customer.customerCode}`);
-                    created++;
+                    return { 
+                        status: 'success',
+                        created: wasCreated,
+                        updated: true
+                    };
+                    
+                } catch (error) {
+                    console.error(`❌ Error procesando usuario ${userId}:`, error);
+                    return { status: 'error' };
                 }
-                
-                // PASO 2: Actualizar métricas desde órdenes
-                await customer.updateMetricsFromOrders();
-                updated++;
-                
-            } catch (error) {
-                console.error(`❌ Error procesando usuario ${userId}:`, error);
-                errors++;
-            }
+            }));
+            
+            // Contar resultados del batch
+            batchResults.forEach(result => {
+                if (result.status === 'success') {
+                    if (result.created) results.created++;
+                    if (result.updated) results.updated++;
+                } else if (result.status === 'error') {
+                    results.errors++;
+                }
+            });
         }
         
-        console.log(`📊 Sincronización completada: ${created} creados, ${updated} actualizados, ${errors} errores`);
+        console.log(`📊 Sincronización completada: ${results.created} creados, ${results.updated} actualizados, ${results.errors} errores`);
 
         res.status(200).json({
             success: true,
             message: 'Sincronización completada',
             results: {
                 total: usersWithOrders.length,
-                success: updated,
-                created,
-                errors
+                success: results.updated,
+                created: results.created,
+                errors: results.errors
             }
         });
 
