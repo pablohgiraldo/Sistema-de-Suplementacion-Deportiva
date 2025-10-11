@@ -3,7 +3,6 @@ import rateLimit from "express-rate-limit";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { requireAdmin, requireStockAccess } from "../middleware/roleMiddleware.js";
 import { adminAuditMiddleware, stockAuditMiddleware, unauthorizedAccessMiddleware } from "../middleware/adminAuditMiddleware.js";
-import { inventoryRateLimit } from "../middleware/rateLimitMiddleware.js";
 import {
     getInventories,
     getInventoryById,
@@ -24,10 +23,11 @@ import {
 
 const router = express.Router();
 
-// Aplicar middleware de auditoría y rate limiting a todas las rutas
+// Aplicar middleware de auditoría a todas las rutas
 router.use(adminAuditMiddleware());
 router.use(unauthorizedAccessMiddleware());
-router.use(inventoryRateLimit);
+// ❌ REMOVIDO: router.use(inventoryRateLimit) - causaba rate limiting excesivo (30 req/min)
+// Ahora cada ruta tiene su rate limiting específico según el tipo de operación
 
 // Rate limiting para operaciones de administración
 const adminLimiter = rateLimit({

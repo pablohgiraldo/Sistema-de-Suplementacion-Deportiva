@@ -554,6 +554,12 @@ export async function getInventoryAlerts(req, res) {
 
         // Procesar cada configuración de alerta
         for (const config of alertConfigs) {
+            // ✅ Validar que el producto existe y no fue eliminado
+            if (!config.product || !config.product._id) {
+                console.warn(`AlertConfig ${config._id} tiene producto nulo o eliminado`);
+                continue;
+            }
+
             const inventory = await Inventory.findOne({ product: config.product._id });
             if (!inventory) continue;
 

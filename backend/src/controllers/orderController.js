@@ -622,7 +622,7 @@ export async function getOrdersSummary(req, res) {
                 },
                 recentOrders: recentOrders.map(order => ({
                     orderNumber: order.orderNumber,
-                    customer: order.user.nombre,
+                    customer: order.user?.nombre || 'Usuario eliminado', // ✅ Validación para usuario eliminado
                     total: order.total,
                     status: order.status,
                     paymentStatus: order.paymentStatus,
