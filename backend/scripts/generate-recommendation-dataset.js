@@ -13,6 +13,63 @@ import Customer from '../src/models/Customer.js';
 
 dotenv.config();
 
+// Mapeo de imágenes por categoría (URLs de Unsplash - imágenes reales de alta calidad)
+const categoryImages = {
+    'Proteína': [
+        'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop', // Protein powder
+        'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=400&h=400&fit=crop', // Protein shake
+        'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&h=400&fit=crop', // Whey protein
+        'https://images.unsplash.com/photo-1599932385720-7b5c4e88e7f6?w=400&h=400&fit=crop'  // Plant protein
+    ],
+    'Pre-Entreno': [
+        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop', // Energy drink
+        'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&h=400&fit=crop', // Pre-workout
+        'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400&h=400&fit=crop'  // Workout supplements
+    ],
+    'Creatina': [
+        'https://images.unsplash.com/photo-1595475038585-6de8cf7e0b48?w=400&h=400&fit=crop', // Creatine powder
+        'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400&h=400&fit=crop', // Supplement powder
+        'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop'  // White powder
+    ],
+    'Aminoácidos': [
+        'https://images.unsplash.com/photo-1556817411-31ae72fa3ea0?w=400&h=400&fit=crop', // BCAA capsules
+        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop', // Energy drinks
+        'https://images.unsplash.com/photo-1585559604959-d8f8772dc53b?w=400&h=400&fit=crop'  // Colored supplements
+    ],
+    'Vitaminas': [
+        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop', // Vitamins
+        'https://images.unsplash.com/photo-1550572017-edd951aa8433?w=400&h=400&fit=crop', // Pills
+        'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&h=400&fit=crop'  // Omega 3
+    ],
+    'Quemadores': [
+        'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&h=400&fit=crop', // Fat burner
+        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop', // Energy supplement
+        'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=400&fit=crop'  // Pills bottle
+    ],
+    'Ganadores': [
+        'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop', // Mass gainer
+        'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=400&h=400&fit=crop', // Protein shake
+        'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&h=400&fit=crop'  // Gainer powder
+    ],
+    'Snacks': [
+        'https://images.unsplash.com/photo-1580281657702-257584239a55?w=400&h=400&fit=crop', // Protein bars
+        'https://images.unsplash.com/photo-1585938389612-0809a02d35db?w=400&h=400&fit=crop', // Energy bars
+        'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=400&h=400&fit=crop'  // Snack bars
+    ]
+};
+
+// Función helper para obtener imagen según categoría
+function getCategoryImage(category, index = 0) {
+    const images = categoryImages[category];
+    if (!images || images.length === 0) {
+        // Fallback: placeholder con color según categoría
+        const colors = ['4A90E2', 'E24A4A', '4AE290', 'E2C44A', '904AE2', 'E24A90', '4AE2E2'];
+        const colorIndex = Object.keys(categoryImages).indexOf(category) % colors.length;
+        return `https://placehold.co/400x400/${colors[colorIndex]}/white?text=${encodeURIComponent(category)}`;
+    }
+    return images[index % images.length];
+}
+
 // Productos de muestra con categorías y relaciones
 // Precios ajustados para estar dentro del límite del modelo ($10,000)
 const productsData = [
@@ -116,8 +173,15 @@ async function generateProducts() {
     console.log('\n📦 Generando productos de prueba...');
     
     const products = [];
+    let productIndexByCategory = {};
     
     for (const productData of productsData) {
+        // Obtener índice del producto dentro de su categoría para variar las imágenes
+        if (!productIndexByCategory[productData.category]) {
+            productIndexByCategory[productData.category] = 0;
+        }
+        const categoryIndex = productIndexByCategory[productData.category]++;
+        
         const product = new Product({
             name: productData.name,
             brand: productData.brand,
@@ -125,14 +189,14 @@ async function generateProducts() {
             stock: productData.stock,
             categories: [productData.category],
             description: `${productData.category} de alta calidad de ${productData.brand}`,
-            imageUrl: 'https://via.placeholder.com/300'
+            imageUrl: getCategoryImage(productData.category, categoryIndex)
         });
         
         await product.save();
         products.push({ product, category: productData.category });
     }
     
-    console.log(`✅ ${products.length} productos creados`);
+    console.log(`✅ ${products.length} productos creados con imágenes únicas por categoría`);
     return products;
 }
 
