@@ -731,27 +731,63 @@ export const getCustomerPurchaseHistory = async (req, res) => {
 // @access  Private/Admin
 export const syncCustomersWithOrders = async (req, res) => {
     try {
-        const customers = await Customer.find();
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const customer of customers) {
+        // PASO 1: Crear customers para usuarios que no tengan uno
+        console.log('📊 Paso 1: Creando customers faltantes...');
+        
+        // Obtener usuarios únicos que tienen órdenes
+        const usersWithOrders = await Order.distinct('user');
+        console.log(`🔍 Encontrados ${usersWithOrders.length} usuarios con órdenes`);
+        
+        let created = 0;
+        let updated = 0;
+        let errors = 0;
+        
+        for (const userId of usersWithOrders) {
             try {
+                // Verificar si ya existe un customer para este usuario
+                let customer = await Customer.findOne({ user: userId });
+                
+                if (!customer) {
+                    // Crear nuevo customer
+                    const user = await User.findById(userId);
+                    if (!user) {
+                        console.warn(`⚠️ Usuario ${userId} no encontrado, omitiendo...`);
+                        continue;
+                    }
+                    
+                    customer = new Customer({
+                        user: userId,
+                        segment: 'Nuevo',
+                        loyaltyLevel: 'Bronce',
+                        status: 'Activo',
+                        acquisitionSource: 'Directo'
+                    });
+                    
+                    await customer.save();
+                    console.log(`✅ Customer creado: ${customer.customerCode}`);
+                    created++;
+                }
+                
+                // PASO 2: Actualizar métricas desde órdenes
                 await customer.updateMetricsFromOrders();
-                successCount++;
+                updated++;
+                
             } catch (error) {
-                console.error(`Error al sincronizar customer ${customer.customerCode}:`, error);
-                errorCount++;
+                console.error(`❌ Error procesando usuario ${userId}:`, error);
+                errors++;
             }
         }
+        
+        console.log(`📊 Sincronización completada: ${created} creados, ${updated} actualizados, ${errors} errores`);
 
         res.status(200).json({
             success: true,
             message: 'Sincronización completada',
             results: {
-                total: customers.length,
-                success: successCount,
-                errors: errorCount
+                total: usersWithOrders.length,
+                success: updated,
+                created,
+                errors
             }
         });
 
