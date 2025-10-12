@@ -50,6 +50,7 @@
     "generate-recommendation-dataset": "node scripts/generate-recommendation-dataset.js",
     "test-recommendations": "node scripts/test-recommendation-system.js",
     "test-customer-recommendations": "node scripts/test-customer-recommendations.js",
+    "validate-recommendations": "node scripts/validate-recommendation-accuracy.js",
     "create-admin": "node scripts/create-admin-user.js",
     "build": "npm install"
   },
