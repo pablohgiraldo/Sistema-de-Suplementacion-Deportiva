@@ -2,6 +2,15 @@ import express from 'express';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 import {
+    validateTransactionData,
+    validateOrderForPayment,
+    preventDuplicateTransaction,
+    validatePayUSignature,
+    validateTransactionAmount,
+    validateMerchantId,
+    validateRefundData
+} from '../middleware/paymentValidation.js';
+import {
     createPayment,
     generatePaymentForm,
     getTransactionStatus,
@@ -19,7 +28,15 @@ const router = express.Router();
  */
 
 // Callback de PayU (POST desde servidor de PayU)
-router.post('/payu-callback', express.urlencoded({ extended: true }), handlePayUCallback);
+// Validar firma, merchant, y monto
+router.post(
+    '/payu-callback',
+    express.urlencoded({ extended: true }),
+    validateMerchantId,
+    validatePayUSignature,
+    validateTransactionAmount,
+    handlePayUCallback
+);
 
 // Respuesta de PayU (GET - redirige al usuario después del pago)
 router.get('/payu-response', handlePayUResponse);
@@ -32,10 +49,25 @@ router.get('/config', getPayUConfig);
  */
 
 // Crear transacción de pago
-router.post('/create-transaction', authMiddleware, createPayment);
+// Validar datos, orden, y prevenir duplicados
+router.post(
+    '/create-transaction',
+    authMiddleware,
+    validateTransactionData,
+    validateOrderForPayment,
+    preventDuplicateTransaction,
+    createPayment
+);
 
 // Generar formulario de pago HTML
-router.post('/generate-form', authMiddleware, generatePaymentForm);
+// Validar datos y orden
+router.post(
+    '/generate-form',
+    authMiddleware,
+    validateTransactionData,
+    validateOrderForPayment,
+    generatePaymentForm
+);
 
 // Obtener estado de pago de una orden
 router.get('/order/:orderId/status', authMiddleware, getOrderPaymentStatus);
@@ -48,6 +80,13 @@ router.get('/transaction/:transactionId', authMiddleware, getTransactionStatus);
  */
 
 // Crear un reembolso
-router.post('/create-refund', authMiddleware, requireAdmin, createRefund);
+// Validar datos de reembolso
+router.post(
+    '/create-refund',
+    authMiddleware,
+    requireAdmin,
+    validateRefundData,
+    createRefund
+);
 
 export default router;

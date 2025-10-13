@@ -8,60 +8,10 @@ import mongoose from 'mongoose';
  */
 export const createPayment = async (req, res) => {
     try {
-        const { orderId, paymentMethod = 'CREDIT_CARD' } = req.body;
-        const userId = req.user.id;
+        const { paymentMethod = 'CREDIT_CARD' } = req.body;
         
-        // Validar que se proporcionó orderId
-        if (!orderId) {
-            return res.status(400).json({
-                success: false,
-                error: 'El orderId es requerido'
-            });
-        }
-        
-        // Validar formato de ObjectId
-        if (!mongoose.Types.ObjectId.isValid(orderId)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Formato de orderId inválido'
-            });
-        }
-        
-        // Buscar la orden
-        const order = await Order.findById(orderId)
-            .populate('user', 'email nombre')
-            .populate('items.product', 'name brand');
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'Orden no encontrada'
-            });
-        }
-        
-        // Verificar que la orden pertenece al usuario (a menos que sea admin)
-        if (order.user._id.toString() !== userId && req.user.rol !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                error: 'No tienes permisos para pagar esta orden'
-            });
-        }
-        
-        // Verificar que la orden esté en estado "pending"
-        if (order.status !== 'pending') {
-            return res.status(400).json({
-                success: false,
-                error: `La orden ya está en estado: ${order.statusFormatted}`
-            });
-        }
-        
-        // Verificar que el pago no esté ya completado
-        if (order.paymentStatus === 'paid') {
-            return res.status(400).json({
-                success: false,
-                error: 'Esta orden ya fue pagada'
-            });
-        }
+        // La orden ya fue validada por el middleware validateOrderForPayment
+        const order = req.order;
         
         // Preparar datos del comprador
         const buyer = {
@@ -124,41 +74,8 @@ export const createPayment = async (req, res) => {
  */
 export const generatePaymentForm = async (req, res) => {
     try {
-        const { orderId } = req.body;
-        const userId = req.user.id;
-        
-        if (!orderId) {
-            return res.status(400).json({
-                success: false,
-                error: 'El orderId es requerido'
-            });
-        }
-        
-        // Buscar la orden
-        const order = await Order.findById(orderId).populate('user', 'email nombre');
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'Orden no encontrada'
-            });
-        }
-        
-        // Verificar permisos
-        if (order.user._id.toString() !== userId && req.user.rol !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                error: 'No tienes permisos para pagar esta orden'
-            });
-        }
-        
-        // Verificar estado
-        if (order.paymentStatus === 'paid') {
-            return res.status(400).json({
-                success: false,
-                error: 'Esta orden ya fue pagada'
-            });
-        }
+        // La orden ya fue validada por el middleware validateOrderForPayment
+        const order = req.order;
         
         // Generar formulario
         const buyer = {
@@ -227,41 +144,11 @@ export const getTransactionStatus = async (req, res) => {
  */
 export const createRefund = async (req, res) => {
     try {
-        const { orderId, reason = 'Cliente solicitó reembolso' } = req.body;
+        const { reason = 'Cliente solicitó reembolso' } = req.body;
         
-        if (!orderId) {
-            return res.status(400).json({
-                success: false,
-                error: 'El orderId es requerido'
-            });
-        }
-        
-        // Buscar la orden
-        const order = await Order.findById(orderId);
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'Orden no encontrada'
-            });
-        }
-        
-        // Verificar que la orden tenga un pago exitoso
-        if (order.paymentStatus !== 'paid') {
-            return res.status(400).json({
-                success: false,
-                error: 'La orden no tiene un pago exitoso para reembolsar'
-            });
-        }
-        
+        // La orden ya fue validada por el middleware validateRefundData
+        const order = req.order;
         const transactionId = order.paymentDetails.transactionId;
-        
-        if (!transactionId) {
-            return res.status(400).json({
-                success: false,
-                error: 'No se encontró información de pago en la orden'
-            });
-        }
         
         // Crear reembolso en PayU
         const refund = await paymentService.createPayURefund(
