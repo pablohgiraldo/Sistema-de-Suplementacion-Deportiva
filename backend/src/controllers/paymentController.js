@@ -43,9 +43,15 @@ export const createPayment = async (req, res) => {
             paymentMethod: paymentMethod
         });
         
-        // Guardar el Transaction ID en la orden
-        order.paymentDetails.transactionId = transaction.transactionId;
-        await order.save();
+        // Registrar inicio de pago en la orden
+        await order.logPaymentInitiation({
+            transactionId: transaction.transactionId,
+            payuOrderId: transaction.orderId,
+            payuReferenceCode: transaction.referenceCode,
+            paymentMethod: paymentMethod,
+            amount: order.total,
+            currency: 'COP'
+        });
         
         res.status(200).json({
             success: true,

@@ -52,6 +52,7 @@
     "test-customer-recommendations": "node scripts/test-customer-recommendations.js",
     "validate-recommendations": "node scripts/validate-recommendation-accuracy.js",
     "create-admin": "node scripts/create-admin-user.js",
+    "test-payment-registration": "node scripts/test-payment-registration.js",
     "build": "npm install"
   },
   "engines": {

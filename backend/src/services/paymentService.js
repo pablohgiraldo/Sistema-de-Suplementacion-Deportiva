@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import axios from 'axios';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 
 /**
@@ -341,19 +342,29 @@ export const processPayUConfirmation = async (payuData) => {
  */
 async function handlePaymentSuccess(order, paymentData) {
     try {
+        // Actualizar estado de pago con toda la información
         await order.updatePaymentStatus('paid', {
             transactionId: paymentData.transactionId,
+            payuReferenceCode: paymentData.referenceCode,
+            payuResponseCode: paymentData.responseCode,
             amountPaid: paymentData.amount,
             paymentDate: new Date(paymentData.transactionDate),
-            currency: paymentData.currency
-        });
+            currency: paymentData.currency,
+            cardLastFour: paymentData.cardLastFour,
+            cardBrand: paymentData.cardBrand
+        }, 'payu');
         
         // Cambiar estado de la orden a "processing"
         if (order.status === 'pending') {
             await order.updateStatus('processing');
         }
         
+        // Actualizar inventario (descontar stock vendido)
+        await updateInventoryAfterPayment(order);
+        
         console.log(`✅ Orden ${order.orderNumber} marcada como PAGADA (PayU)`);
+        console.log(`   Transaction ID: ${paymentData.transactionId}`);
+        console.log(`   Monto: $${paymentData.amount} ${paymentData.currency}`);
         
         return {
             success: true,
@@ -368,6 +379,43 @@ async function handlePaymentSuccess(order, paymentData) {
 }
 
 /**
+ * Actualizar inventario después de un pago exitoso
+ * @private
+ */
+async function updateInventoryAfterPayment(order) {
+    try {
+        const Inventory = mongoose.model('Inventory');
+        
+        for (const item of order.items) {
+            if (!item.product) continue;
+            
+            const inventory = await Inventory.findOne({ product: item.product._id || item.product });
+            
+            if (inventory) {
+                // Descontar el stock vendido
+                inventory.quantityAvailable -= item.quantity;
+                
+                // Registrar movimiento
+                inventory.movements.push({
+                    type: 'sale',
+                    quantity: item.quantity,
+                    reason: `Venta - Orden ${order.orderNumber}`,
+                    performedBy: order.user,
+                    reference: order._id
+                });
+                
+                await inventory.save();
+                
+                console.log(`   📦 Inventario actualizado: ${item.quantity} unidades descontadas`);
+            }
+        }
+    } catch (error) {
+        console.error('⚠️ Error al actualizar inventario después del pago:', error);
+        // No lanzar error para no bloquear el proceso de pago
+    }
+}
+
+/**
  * Manejar pago fallido
  * @private
  */
@@ -375,10 +423,14 @@ async function handlePaymentFailure(order, paymentData) {
     try {
         await order.updatePaymentStatus('failed', {
             transactionId: paymentData.transactionId,
+            payuReferenceCode: paymentData.referenceCode,
+            payuResponseCode: paymentData.responseCode,
             paymentDate: new Date(paymentData.transactionDate)
-        });
+        }, 'payu');
         
         console.log(`❌ Pago fallido para orden ${order.orderNumber} (PayU)`);
+        console.log(`   Transaction ID: ${paymentData.transactionId}`);
+        console.log(`   Response Code: ${paymentData.responseCode}`);
         
         return {
             success: true,

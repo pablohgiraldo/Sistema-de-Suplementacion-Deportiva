@@ -176,6 +176,18 @@ const orderSchema = new mongoose.Schema({
             type: String,
             trim: true
         },
+        payuOrderId: {
+            type: String,
+            trim: true
+        },
+        payuReferenceCode: {
+            type: String,
+            trim: true
+        },
+        payuResponseCode: {
+            type: String,
+            trim: true
+        },
         amountPaid: {
             type: Number,
             min: [0, 'El monto pagado no puede ser negativo']
@@ -199,6 +211,25 @@ const orderSchema = new mongoose.Schema({
             enum: ['visa', 'mastercard', 'amex', 'discover', 'other']
         }
     },
+    paymentLogs: [{
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        action: {
+            type: String,
+            enum: ['payment_initiated', 'payment_approved', 'payment_rejected', 'payment_pending', 'refund_initiated', 'refund_completed'],
+            required: true
+        },
+        details: {
+            type: mongoose.Schema.Types.Mixed
+        },
+        source: {
+            type: String,
+            enum: ['payu', 'admin', 'system'],
+            default: 'payu'
+        }
+    }],
     deliveryDate: {
         type: Date
     },
@@ -387,24 +418,101 @@ orderSchema.methods.updateStatus = function (newStatus, userId = null) {
 };
 
 // Método para actualizar estado de pago
-orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = {}) {
+orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = {}, source = 'payu') {
+    const oldStatus = this.paymentStatus;
     this.paymentStatus = newStatus;
 
+    // Actualizar transactionId
     if (paymentDetails.transactionId) {
         this.paymentDetails.transactionId = paymentDetails.transactionId;
     }
+    
+    // Actualizar PayU específicos
+    if (paymentDetails.payuOrderId) {
+        this.paymentDetails.payuOrderId = paymentDetails.payuOrderId;
+    }
+    if (paymentDetails.payuReferenceCode) {
+        this.paymentDetails.payuReferenceCode = paymentDetails.payuReferenceCode;
+    }
+    if (paymentDetails.payuResponseCode) {
+        this.paymentDetails.payuResponseCode = paymentDetails.payuResponseCode;
+    }
+    
+    // Actualizar montos y fechas
     if (paymentDetails.amountPaid) {
         this.paymentDetails.amountPaid = paymentDetails.amountPaid;
+    }
+    if (paymentDetails.currency) {
+        this.paymentDetails.currency = paymentDetails.currency;
     }
     if (paymentDetails.paymentDate) {
         this.paymentDetails.paymentDate = paymentDetails.paymentDate;
     }
+    
+    // Actualizar datos de tarjeta
     if (paymentDetails.cardLastFour) {
         this.paymentDetails.cardLastFour = paymentDetails.cardLastFour;
     }
     if (paymentDetails.cardBrand) {
         this.paymentDetails.cardBrand = paymentDetails.cardBrand;
     }
+
+    // Registrar log de cambio de estado
+    const logAction = this._getPaymentLogAction(oldStatus, newStatus);
+    if (logAction) {
+        this.paymentLogs.push({
+            action: logAction,
+            details: {
+                oldStatus,
+                newStatus,
+                ...paymentDetails
+            },
+            source
+        });
+    }
+
+    return this.save();
+};
+
+// Helper para determinar la acción del log
+orderSchema.methods._getPaymentLogAction = function(oldStatus, newStatus) {
+    if (newStatus === 'paid') {
+        return 'payment_approved';
+    }
+    if (newStatus === 'failed') {
+        return 'payment_rejected';
+    }
+    if (newStatus === 'pending' && oldStatus === 'pending') {
+        return null; // No duplicar logs de pending
+    }
+    if (newStatus === 'pending') {
+        return 'payment_pending';
+    }
+    if (newStatus === 'refunded') {
+        return 'refund_completed';
+    }
+    return null;
+};
+
+// Método para registrar inicio de pago
+orderSchema.methods.logPaymentInitiation = function(paymentDetails = {}) {
+    // Registrar transactionId si se proporciona
+    if (paymentDetails.transactionId) {
+        this.paymentDetails.transactionId = paymentDetails.transactionId;
+    }
+    if (paymentDetails.payuOrderId) {
+        this.paymentDetails.payuOrderId = paymentDetails.payuOrderId;
+    }
+    if (paymentDetails.payuReferenceCode) {
+        this.paymentDetails.payuReferenceCode = paymentDetails.payuReferenceCode;
+    }
+
+    // Agregar log de inicio de pago
+    this.paymentLogs.push({
+        action: 'payment_initiated',
+        details: paymentDetails,
+        source: 'system'
+    });
 
     return this.save();
 };
