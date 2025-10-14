@@ -52,6 +52,7 @@
     "test-customer-recommendations": "node scripts/test-customer-recommendations.js",
     "validate-recommendations": "node scripts/validate-recommendation-accuracy.js",
     "create-admin": "node scripts/create-admin-user.js",
+    "create-test-order": "node scripts/create-test-order.js",
     "test-payment-registration": "node scripts/test-payment-registration.js",
     "test-payu-sandbox": "node scripts/test-payu-sandbox.js",
     "test-webhook-signatures": "node scripts/test-webhook-signatures.js",
