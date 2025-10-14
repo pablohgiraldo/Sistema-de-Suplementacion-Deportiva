@@ -5,6 +5,7 @@ import Cart from '../models/Cart.js';
 import Inventory from '../models/Inventory.js';
 import mongoose from 'mongoose';
 import { syncCustomerAfterOrder } from '../services/customerSyncService.js';
+import webhookService from '../services/webhookService.js';
 
 // Función helper para detectar la marca de tarjeta
 function getCardBrand(cardNumber) {
@@ -118,6 +119,20 @@ export async function createOrder(req, res) {
         }
 
         await order.save();
+
+        // Disparar webhook de orden creada
+        await webhookService.triggerEvent('order.created', {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            total: order.total,
+            itemCount: order.items.length,
+            customer: {
+                userId: userId,
+                email: user.email,
+                name: user.nombre
+            },
+            createdAt: order.createdAt
+        });
 
         // Actualizar inventario (reservar stock)
         for (const item of cart.items) {
@@ -363,6 +378,25 @@ export async function updateOrderStatus(req, res) {
             } catch (syncError) {
                 console.error('⚠️  Error al sincronizar customer (no crítico):', syncError);
             }
+        }
+
+        // Disparar webhooks según el estado
+        const webhookEvents = {
+            'shipped': 'order.shipped',
+            'delivered': 'order.delivered',
+            'cancelled': 'order.cancelled'
+        };
+
+        if (webhookEvents[status]) {
+            await webhookService.triggerEvent(webhookEvents[status], {
+                orderId: order._id.toString(),
+                orderNumber: order.orderNumber,
+                status: order.statusFormatted,
+                paymentStatus: order.paymentStatusFormatted,
+                total: order.total,
+                updatedBy: userId,
+                updatedAt: new Date().toISOString()
+            });
         }
 
         await order.populate([

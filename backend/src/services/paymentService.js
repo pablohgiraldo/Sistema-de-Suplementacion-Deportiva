@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import mongoose from 'mongoose';
 import Order from '../models/Order.js';
+import webhookService from './webhookService.js';
 
 /**
  * Servicio de Pagos con PayU (Colombia y Latinoamérica)
@@ -366,6 +367,30 @@ async function handlePaymentSuccess(order, paymentData) {
         console.log(`   Transaction ID: ${paymentData.transactionId}`);
         console.log(`   Monto: $${paymentData.amount} ${paymentData.currency}`);
         
+        // Disparar webhooks de pago aprobado y orden pagada
+        await Promise.all([
+            webhookService.triggerEvent('payment.approved', {
+                orderId: order._id.toString(),
+                orderNumber: order.orderNumber,
+                transactionId: paymentData.transactionId,
+                amount: paymentData.amount,
+                currency: paymentData.currency,
+                paymentDate: paymentData.transactionDate,
+                customer: {
+                    userId: order.user._id?.toString() || order.user.toString(),
+                    email: order.user.email || null
+                }
+            }),
+            webhookService.triggerEvent('order.paid', {
+                orderId: order._id.toString(),
+                orderNumber: order.orderNumber,
+                total: order.total,
+                paymentStatus: 'Pagado',
+                transactionId: paymentData.transactionId,
+                paidAt: paymentData.transactionDate
+            })
+        ]);
+        
         return {
             success: true,
             message: 'Pago procesado exitosamente',
@@ -431,6 +456,20 @@ async function handlePaymentFailure(order, paymentData) {
         console.log(`❌ Pago fallido para orden ${order.orderNumber} (PayU)`);
         console.log(`   Transaction ID: ${paymentData.transactionId}`);
         console.log(`   Response Code: ${paymentData.responseCode}`);
+        
+        // Disparar webhook de pago rechazado
+        await webhookService.triggerEvent('payment.rejected', {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            transactionId: paymentData.transactionId,
+            responseCode: paymentData.responseCode,
+            reason: 'Payment rejected by PayU',
+            paymentDate: paymentData.transactionDate,
+            customer: {
+                userId: order.user._id?.toString() || order.user.toString(),
+                email: order.user.email || null
+            }
+        });
         
         return {
             success: true,

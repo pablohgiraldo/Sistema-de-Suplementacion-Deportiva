@@ -1,4 +1,5 @@
 import paymentService from '../services/paymentService.js';
+import webhookService from '../services/webhookService.js';
 import Order from '../models/Order.js';
 import mongoose from 'mongoose';
 
@@ -169,6 +170,18 @@ export const createRefund = async (req, res) => {
             reason,
             req.user.id
         );
+        
+        // Disparar webhook de reembolso
+        await webhookService.triggerEvent('payment.refunded', {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            transactionId: transactionId,
+            refundAmount: order.total,
+            currency: 'COP',
+            reason: reason,
+            refundedBy: req.user.id,
+            refundDate: new Date().toISOString()
+        });
         
         res.status(200).json({
             success: true,
