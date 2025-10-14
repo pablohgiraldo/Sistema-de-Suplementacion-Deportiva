@@ -243,6 +243,36 @@ const orderSchema = new mongoose.Schema({
         trim: true,
         maxlength: [50, 'La empresa de envío no puede exceder 50 caracteres']
     },
+    trackingUrl: {
+        type: String,
+        trim: true
+    },
+    estimatedDeliveryDate: {
+        type: Date
+    },
+    statusHistory: [{
+        status: {
+            type: String,
+            enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+            required: true
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        updatedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        notes: {
+            type: String,
+            maxlength: [500, 'Las notas no pueden exceder 500 caracteres']
+        },
+        location: {
+            type: String,
+            maxlength: [200, 'La ubicación no puede exceder 200 caracteres']
+        }
+    }],
     processedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -398,13 +428,25 @@ orderSchema.pre('save', function (next) {
     // Calcular total final
     this.total = this.subtotal + this.tax + this.shipping;
 
+    // Registrar estado inicial en el historial (solo para nuevas órdenes)
+    if (this.isNew && this.statusHistory.length === 0) {
+        this.statusHistory.push({
+            status: this.status || 'pending',
+            timestamp: new Date(),
+            notes: 'Orden creada',
+            location: null
+        });
+    }
+
     next();
 });
 
 // Método para actualizar estado de la orden
-orderSchema.methods.updateStatus = function (newStatus, userId = null) {
+orderSchema.methods.updateStatus = function (newStatus, userId = null, notes = null, location = null) {
+    const oldStatus = this.status;
     this.status = newStatus;
 
+    // Actualizar timestamps específicos
     if (newStatus === 'processing' && !this.processedAt) {
         this.processedAt = new Date();
         this.processedBy = userId;
@@ -413,6 +455,15 @@ orderSchema.methods.updateStatus = function (newStatus, userId = null) {
     } else if (newStatus === 'delivered' && !this.deliveredAt) {
         this.deliveredAt = new Date();
     }
+
+    // Registrar en historial de estados
+    this.statusHistory.push({
+        status: newStatus,
+        timestamp: new Date(),
+        updatedBy: userId,
+        notes: notes || `Estado cambiado de ${oldStatus} a ${newStatus}`,
+        location: location
+    });
 
     return this.save();
 };
@@ -540,27 +591,54 @@ orderSchema.methods.processOrder = function (userId) {
 };
 
 // Método para marcar como enviado
-orderSchema.methods.markAsShipped = function (trackingNumber, carrier, userId = null) {
+orderSchema.methods.markAsShipped = function (trackingNumber, carrier, userId = null, trackingUrl = null) {
     this.status = 'shipped';
     this.shippedAt = new Date();
     this.trackingNumber = trackingNumber;
     this.carrier = carrier;
+    
+    if (trackingUrl) {
+        this.trackingUrl = trackingUrl;
+    }
+
+    // Calcular fecha estimada de entrega (5 días hábiles)
+    const estimatedDate = new Date();
+    estimatedDate.setDate(estimatedDate.getDate() + 5);
+    this.estimatedDeliveryDate = estimatedDate;
 
     if (userId) {
         this.processedBy = userId;
     }
 
+    // Registrar en historial
+    this.statusHistory.push({
+        status: 'shipped',
+        timestamp: new Date(),
+        updatedBy: userId,
+        notes: `Orden enviada con ${carrier}. Tracking: ${trackingNumber}`,
+        location: 'Centro de distribución'
+    });
+
     return this.save();
 };
 
 // Método para marcar como entregado
-orderSchema.methods.markAsDelivered = function (userId = null) {
+orderSchema.methods.markAsDelivered = function (userId = null, deliveryNotes = null) {
     this.status = 'delivered';
     this.deliveredAt = new Date();
 
     if (userId) {
         this.processedBy = userId;
     }
+
+    // Registrar en historial
+    this.statusHistory.push({
+        status: 'delivered',
+        timestamp: new Date(),
+        updatedBy: userId,
+        notes: deliveryNotes || 'Orden entregada exitosamente',
+        location: this.shippingAddress?.city || 'Destino final'
+    });
 
     return this.save();
 };
