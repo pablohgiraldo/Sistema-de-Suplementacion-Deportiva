@@ -29,15 +29,17 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 
 ### Tecnologías Utilizadas
 
-- **Frontend**: React 18, Vite, Tailwind CSS, React Router DOM
+- **Frontend**: React 18, Vite, Tailwind CSS, React Router DOM, React Query
 - **Backend**: Node.js, Express.js, MongoDB, Mongoose
-- **Base de Datos**: MongoDB Atlas
-- **Autenticación**: JWT (JSON Web Tokens)
-- **Validación**: Express-validator
+- **Base de Datos**: MongoDB Atlas con índices optimizados
+- **Autenticación**: JWT (JSON Web Tokens) con refresh tokens
+- **Pagos**: PayU (pasarela de pagos Colombia)
+- **Validación**: Express-validator, middlewares personalizados
 - **Despliegue**: Render (Backend), Vercel (Frontend)
 - **Desarrollo**: Concurrently, Nodemon
-- **Inteligencia Artificial**: Python, Scikit-learn, TensorFlow (próximo sprint)
-- **Pagos**: Integración con pasarelas de pago seguras (próximo sprint)
+- **Inteligencia Artificial**: Sistema de recomendaciones (filtrado colaborativo híbrido)
+- **Webhooks**: Sistema de notificaciones automáticas con HMAC-SHA256
+- **Automatización**: Schedulers para órdenes y alertas
 
 ## Equipo de Desarrollo
 
@@ -46,11 +48,10 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 | Pablo Hurtado Giraldo | Desarrollador Full-Stack | pablo.hurtadog@upb.edu.co | 000196404 |
 | Nicole Yuqui Vásquez | Especialista UX/UI | nicole.yuqui@upb.edu.co | 000518165 |
 | Nicolás Ortega García | Desarrollador Backend | nicolas.ortegagarcia@upb.edu.co | 000528777 |
-| Michael Serna Roldán | Especialista en IA/ML | Michael.serna@upb.edu.co | 000462501 |
 
 ## Funcionalidades Principales
 
-### E-commerce ✅ COMPLETADO (Sprint 3)
+### E-commerce ✅ COMPLETADO (Sprints 1-4)
 - ✅ Catálogo de productos interactivo con filtros avanzados
 - ✅ Carrito de compras con persistencia y validación de stock
 - ✅ Sistema de autenticación completo con JWT y refresh tokens
@@ -61,8 +62,9 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 - ✅ **Sistema de wishlist persistente**
 - ✅ **Página de detalle de producto con reseñas**
 - ✅ **Confirmación y tracking de órdenes**
-- ⏳ Múltiples métodos de pago (Stripe/PayPal) - Sprint 4
-- ⏳ Sistema de cupones y descuentos - Sprint 4
+- ✅ **Integración con PayU (pasarela de pagos Colombia)** - Sprint 4
+- ✅ **Validación de transacciones y página de confirmación** - Sprint 4
+- ⏳ Sistema de cupones y descuentos - Futuro
 
 ### Sistema ERP ✅ COMPLETADO (Sprint 3)
 - ✅ **Control de inventario en tiempo real con CRUD completo**
@@ -75,22 +77,27 @@ El proyecto implementa una arquitectura modular e integrada que incluye:
 - ⏳ Predicción de demanda con IA - Sprint 4
 - ⏳ Sincronización con canales físicos - Sprint 4
 
-### CRM y Gestión de Clientes ✅ EN PROGRESO (Sprint 3)
-- ✅ **Base de datos unificada de clientes**
-- ✅ **Historial completo de órdenes por usuario**
+### CRM y Gestión de Clientes ✅ COMPLETADO (Sprint 4)
+- ✅ **Base de datos unificada de clientes con perfiles completos**
+- ✅ **Historial completo de órdenes y métricas por usuario**
 - ✅ **Gestión de perfiles y preferencias**
 - ✅ **Sistema de wishlist personalizado**
-- ⏳ Segmentación automática por comportamiento - Sprint 4
-- ⏳ Programas de fidelización con puntos - Sprint 4
-- ⏳ Email marketing personalizado - Sprint 4
-- ⏳ Sistema de notificaciones push - Sprint 4
+- ✅ **Segmentación automática** (VIP, Frecuente, Ocasional, Nuevo, Inactivo, En Riesgo) - Sprint 4
+- ✅ **Dashboard CRM admin con análisis de segmentos** - Sprint 4
+- ✅ **Sincronización automática de métricas** (LTV, total orders, churn risk) - Sprint 4
+- ✅ **Niveles de lealtad** (Bronce, Plata, Oro, Platino) - Sprint 4
+- ⏳ Email marketing personalizado - Futuro
+- ⏳ Sistema de notificaciones push - Futuro
 
-### Inteligencia Artificial ⏳ PLANIFICADO (Sprint 4+)
-- ⏳ Sistema de recomendaciones personalizadas con ML
-- ⏳ Análisis predictivo de comportamiento
-- ⏳ Optimización de precios dinámicos
-- ⏳ Detección de patrones de compra
-- ⏳ Chatbot inteligente para soporte al cliente
+### Inteligencia Artificial ✅ IMPLEMENTADO (Sprint 4)
+- ✅ **Sistema de recomendaciones personalizadas** (86.67% accuracy) - Sprint 4
+- ✅ **Filtrado colaborativo** (user-based e item-based) - Sprint 4
+- ✅ **Cross-sell y upsell inteligente** - Sprint 4
+- ✅ **Detección de patrones de compra** (co-ocurrencia) - Sprint 4
+- ✅ **Recomendaciones por segmento de cliente** - Sprint 4
+- ⏳ Análisis predictivo de demanda - Futuro
+- ⏳ Optimización de precios dinámicos - Futuro
+- ⏳ Chatbot inteligente para soporte - Futuro
 
 ## Instalación y Configuración
 
@@ -200,26 +207,46 @@ vercel --prod
 
 ### Enfoque Ágil - Scrum
 
-El proyecto utiliza metodología Scrum con sprints de 2 semanas:
-
-- **Sprint 1-2**: Arquitectura y diseño base
-- **Sprint 3-4**: Desarrollo E-commerce
-- **Sprint 5-6**: Implementación ERP
-- **Sprint 7-8**: Desarrollo CRM
-- **Sprint 9-10**: Sistema de IA
-- **Sprint 11-12**: Integración y testing
+El proyecto utiliza metodología Scrum con sprints de 3-4 semanas. Iniciado en agosto 2025.
 
 ### Cronograma de Entregables
 
-| Sprint | Entregable | Estado |
-|--------|------------|--------|
-| 1 | Arquitectura base y configuración | ✅ Completado |
-| 2 | Plataforma E-commerce básica | ✅ Completado |
-| 3 | Sistema de autenticación y carrito | ✅ Completado |
-| 4 | Sistema ERP | ⏳ En desarrollo |
-| 5 | CRM y base de datos | ⏳ Planificado |
-| 6 | Sistema de IA | ⏳ Planificado |
-| 7 | Testing e integración | ⏳ Planificado |
+| Sprint | Período | Entregables Principales | Estado |
+|--------|---------|------------------------|--------|
+| **1** | Ago 2025 | Arquitectura base, configuración inicial, E-commerce básico | ✅ Completado |
+| **2** | Sep 2025 | Autenticación JWT, carrito, wishlist, checkout | ✅ Completado |
+| **3** | Oct 2025 | Sistema ERP completo, inventario, alertas, dashboard admin | ✅ Completado |
+| **4** | Oct 2025 | CRM completo, IA/Recomendaciones, PayU, Webhooks, Automatizaciones | ✅ Completado |
+
+### Sprint 4 - Avances Destacados
+
+#### HU32 - CRM Básico ✅
+- Colección customers en MongoDB
+- CRUD de customers con métricas
+- Segmentación automática (6 segmentos)
+- Dashboard CRM con análisis
+- Sincronización con órdenes
+
+#### HU33 - Sistema de Recomendaciones IA ✅
+- Filtrado colaborativo (user-based, item-based)
+- Cross-sell y upsell inteligente
+- 86.67% de accuracy validado
+- 5 tipos de recomendaciones
+- Dataset de prueba con 15 usuarios
+
+#### HU34 - Checkout con PayU ✅
+- Integración completa con PayU
+- 7 validaciones de transacciones
+- Registro completo de pagos (paymentLogs)
+- Página de confirmación visual
+- Tests con sandbox
+
+#### HU35 - Sistema de Webhooks ✅
+- 14 eventos soportados
+- Firma HMAC-SHA256
+- Automatización de estados de órdenes
+- Webhooks de inventario crítico
+- Schedulers automáticos
 
 ## Testing y Calidad
 
@@ -377,66 +404,75 @@ GET /api/products/search?q=whey protein&sortBy=price&limit=20
 GET /api/products/:id
 ```
 
-## 🎉 Sprint 3 Completado (Enero 2025)
+## 🎉 Sprint 4 Completado (Octubre 2025)
 
-El **Sprint 3 ha sido completado exitosamente al 100%**, consolidando SuperGains como una plataforma robusta de e-commerce con sistema ERP integrado.
+El **Sprint 4 ha sido completado exitosamente**, consolidando SuperGains como una plataforma completa con CRM, IA, pagos seguros y webhooks.
 
-### 📊 Logros Clave
+### 📊 Logros Clave del Sprint 4
 
 | Categoría | Logro | Estado |
 |-----------|-------|--------|
-| **Historias de Usuario** | 18 completadas | ✅ 100% |
-| **Bugs Resueltos** | 2 críticos | ✅ 100% |
-| **Tests Implementados** | 411 automatizados | ✅ Completado |
-| **Cobertura E2E** | 243 tests | ✅ 100% |
-| **Optimización** | 65% más rápido | ✅ Superado |
-| **Documentación** | 15+ guías técnicas | ✅ Completada |
+| **Historias de Usuario** | 4 completadas (HU32-35) | ✅ 100% |
+| **Sistema CRM** | Segmentación, métricas, dashboard | ✅ Completado |
+| **IA/Recomendaciones** | 86.67% accuracy | ✅ Completado |
+| **Pasarela de Pagos** | PayU integrado | ✅ Completado |
+| **Webhooks** | 14 eventos automatizados | ✅ Completado |
+| **Documentación** | 6 guías técnicas nuevas | ✅ Completada |
 
-### 🚀 Funcionalidades Principales Implementadas
+### 🚀 Funcionalidades Implementadas en Sprint 4
 
-#### Backend
-- ✅ Sistema de inventario completo (CRUD + alertas)
-- ✅ Dashboard de administración con métricas en tiempo real
-- ✅ Sistema de órdenes con validación de stock
-- ✅ Alertas automáticas de reabastecimiento
-- ✅ Reportes exportables (CSV)
-- ✅ Gestión de usuarios con RBAC
-- ✅ Rate limiting balanceado (fix de error 429)
+#### CRM y Analytics
+- ✅ Modelo Customer con métricas completas (LTV, AOV, frecuencia)
+- ✅ Segmentación automática (VIP, Frecuente, Ocasional, Nuevo, Inactivo, En Riesgo)
+- ✅ Dashboard CRM admin con análisis de segmentos
+- ✅ Sincronización automática con órdenes
+- ✅ Cálculo de churn risk y niveles de lealtad
 
-#### Frontend
-- ✅ Checkout completo funcional
-- ✅ Wishlist persistente
-- ✅ Página de detalle con reseñas (Pravatar.cc)
-- ✅ Header y Footer según PRD
-- ✅ Sistema de diseño unificado
-- ✅ Accesibilidad móvil (WCAG AA)
+#### Inteligencia Artificial
+- ✅ Sistema de recomendaciones híbrido (6 algoritmos)
+- ✅ Filtrado colaborativo user-based e item-based
+- ✅ Cross-sell y upsell con detección de patrones
+- ✅ Recomendaciones por segmento CRM
+- ✅ Confidence scoring y validación con métricas
 
-#### Optimización y Calidad
-- ✅ React Query para caching inteligente
-- ✅ Índices de MongoDB optimizados (80% mejora)
-- ✅ Code splitting y lazy loading
-- ✅ 411 tests automatizados (E2E + Integración + Unitarios)
-- ✅ Seguridad avanzada (JWT + Helmet + Rate Limiting)
+#### Pagos Seguros
+- ✅ Integración completa con PayU (Colombia)
+- ✅ Soporte para tarjetas, PSE y efectivo
+- ✅ 7 middlewares de validación robusta
+- ✅ Registro completo con paymentLogs
+- ✅ Página de confirmación con estados visuales
+- ✅ Sistema de reembolsos para admin
 
-### 📚 Documentación del Sprint 3
+#### Webhooks y Automatización
+- ✅ 14 eventos (order.*, payment.*, inventory.*)
+- ✅ Firma HMAC-SHA256 con validación timing-safe
+- ✅ Scheduler de automatizaciones (cada 60 min)
+- ✅ Auto-entrega de órdenes (+7 días)
+- ✅ Auto-cancelación de órdenes sin pago (+24h)
+- ✅ Webhooks de inventario crítico
 
-- **[Sprint3.md](./Sprint3.md)** - Documentación completa con todas las HU
-- **[SPRINT3_FINAL_REPORT.md](./SPRINT3_FINAL_REPORT.md)** - Reporte ejecutivo final
-- **[SPRINT3_QA_REPORT.md](./SPRINT3_QA_REPORT.md)** - Reporte de QA detallado (568 líneas)
-- **[SPRINT3_INDEX.md](./SPRINT3_INDEX.md)** - Índice de toda la documentación
-- **[TESTING.md](./TESTING.md)** - Estrategia completa de testing
-- **[SECURITY.md](./SECURITY.md)** - Documentación de seguridad
-- **[PERFORMANCE.md](./PERFORMANCE.md)** - Guía de optimización
+### 📚 Documentación del Sprint 4
 
-### 🎯 Próximo: Sprint 4 (Febrero 2025)
+- **[RECOMMENDATIONS.md](./backend/docs/RECOMMENDATIONS.md)** - Sistema de recomendaciones IA
+- **[CRM_GUIDE.md](./backend/docs/CRM_GUIDE.md)** - Guía completa del CRM
+- **[CHECKOUT.md](./backend/docs/CHECKOUT.md)** - Sistema de checkout con PayU
+- **[PAYU_SETUP.md](./backend/docs/PAYU_SETUP.md)** - Configuración de PayU
+- **[PAYU_TESTING_GUIDE.md](./backend/docs/PAYU_TESTING_GUIDE.md)** - Guía de testing
+- **[WEBHOOKS.md](./backend/docs/WEBHOOKS.md)** - Sistema de webhooks
 
-Prioridades para el Sprint 4:
-- 🔄 Aumentar cobertura de tests unitarios (20% → 80%)
-- 💳 Integración con pasarelas de pago (Stripe/PayPal)
-- 🎫 Sistema de cupones y descuentos
-- 📧 Notificaciones por email
-- 📊 Analytics y tracking de usuarios
-- 🤖 Inicio de módulo de IA/ML
+### 📈 Métricas del Proyecto (Octubre 2025)
+
+| Métrica | Valor |
+|---------|-------|
+| **Líneas de código** | ~15,000+ |
+| **Archivos creados** | 120+ |
+| **Commits realizados** | 150+ |
+| **Endpoints API** | 60+ |
+| **Modelos de datos** | 10 |
+| **Páginas frontend** | 15+ |
+| **Scripts de utilidad** | 12 |
+| **Guías de documentación** | 20+ |
+| **Sprints completados** | 4/4 |
 
 ---
 
@@ -479,26 +515,29 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md
 
 - **Escuela**: Escuela de Ingenierías
 - **Programa**: Proyecto Aplicado en TIC 1
-- **Fecha**: 2025
+- **Período**: Agosto - Octubre 2025
 
 ---
 
 ## Roadmap Futuro
 
-### Fase 2 (Q3 2025)
-- Aplicación móvil nativa
-- Integración con redes sociales
-- Analytics avanzado con Big Data
-- Expansion a múltiples tiendas
+### Próximas Mejoras
+- 🎫 Sistema de cupones y descuentos
+- 📧 Email marketing personalizado
+- 📱 Aplicación móvil (PWA)
+- 📊 Analytics avanzado con dashboards interactivos
+- 🤖 Chatbot con IA para soporte
+- 🔔 Notificaciones push en tiempo real
 
-### Fase 3 (Q4 2025)
-- Realidad aumentada para productos
-- Blockchain para trazabilidad
-- IoT para inventario inteligente
-- Marketplace de terceros
+### Expansión
+- 🏪 Sincronización con tienda física
+- 🌎 Marketplace de suplementos
+- 💳 Más métodos de pago (Nequi, Daviplata)
+- 📦 Integración con logística de envíos
 
 ---
 
 **Desarrollado con dedicación por el equipo de SuperGains Digital Transformation**
 
-*Universidad Pontificia Bolivariana - Medellín, Colombia - 2025*
+*Universidad Pontificia Bolivariana - Medellín, Colombia*  
+*Agosto - Octubre 2025*
