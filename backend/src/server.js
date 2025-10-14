@@ -29,7 +29,9 @@ import customerRoutes from "./routes/customerRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
+import automationRoutes from "./routes/automationRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
+import orderAutomationScheduler from "./services/orderAutomationScheduler.js";
 
 const app = express();
 
@@ -180,6 +182,9 @@ app.use("/api/payments", paymentRoutes);
 // Rutas de webhooks - sistema de notificaciones automáticas
 app.use("/api/webhooks", webhookRoutes);
 
+// Rutas de automatizaciones - actualización automática de estados
+app.use("/api/automations", automationRoutes);
+
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
 
@@ -238,6 +243,13 @@ const startServer = async () => {
       console.log(`🔔 Sistema de alertas automáticas: ACTIVADO`);
       console.log(`   ⏰ Verificando alertas cada 5 minutos`);
       console.log(`   📧 Notificaciones por email: ${process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true' ? 'ACTIVADO' : 'DESACTIVADO'}`);
+
+      // Iniciar scheduler de automatizaciones de órdenes
+      orderAutomationScheduler.start();
+      console.log(`🤖 Sistema de automatizaciones de órdenes: ACTIVADO`);
+      console.log(`   ⏰ Ejecutando automatizaciones cada 60 minutos`);
+      console.log(`   📦 Auto-entrega de órdenes enviadas hace +7 días`);
+      console.log(`   ❌ Auto-cancelación de órdenes sin pago +24 horas`);
     });
   } catch (error) {
     console.error("❌ Error al conectar con la base de datos:", error);

@@ -3,6 +3,7 @@ import axios from 'axios';
 import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 import webhookService from './webhookService.js';
+import orderAutomationService from './orderAutomationService.js';
 
 /**
  * Servicio de Pagos con PayU (Colombia y Latinoamérica)
@@ -355,10 +356,8 @@ async function handlePaymentSuccess(order, paymentData) {
             cardBrand: paymentData.cardBrand
         }, 'payu');
         
-        // Cambiar estado de la orden a "processing"
-        if (order.status === 'pending') {
-            await order.updateStatus('processing');
-        }
+        // Procesar orden después del pago (transición automática de estado)
+        await orderAutomationService.processOrderAfterPayment(order);
         
         // Actualizar inventario (descontar stock vendido)
         await updateInventoryAfterPayment(order);
