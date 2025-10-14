@@ -224,25 +224,26 @@ export const handlePayUResponse = async (req, res) => {
         console.log('📋 Respuesta de PayU:', {
             referenceCode,
             state: transactionState,
+            lapState: lapTransactionState,
             message
         });
         
         // Redirigir al frontend con los parámetros
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        const redirectUrl = `${frontendUrl}/payment-result?` +
-            `ref=${referenceCode}&` +
-            `state=${transactionState}&` +
-            `lapState=${lapTransactionState}&` +
-            `message=${encodeURIComponent(message)}&` +
-            `value=${TX_VALUE}&` +
-            `currency=${currency}`;
+        const redirectUrl = `${frontendUrl}/payment-confirmation?` +
+            `ref=${referenceCode || ''}&` +
+            `state=${transactionState || lapTransactionState || ''}&` +
+            `lapState=${lapTransactionState || ''}&` +
+            `message=${encodeURIComponent(message || '')}&` +
+            `value=${TX_VALUE || ''}&` +
+            `currency=${currency || 'COP'}`;
         
         res.redirect(redirectUrl);
         
     } catch (error) {
         console.error('Error al procesar respuesta PayU:', error);
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/payment-error`);
+        res.redirect(`${frontendUrl}/payment-confirmation?state=error&message=${encodeURIComponent('Error al procesar el pago')}`);
     }
 };
 
