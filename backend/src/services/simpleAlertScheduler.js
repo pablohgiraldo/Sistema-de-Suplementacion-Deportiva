@@ -60,6 +60,12 @@ class SimpleAlertScheduler {
             let alertsSkipped = 0;
 
             for (const config of alertConfigs) {
+                // ✅ Validar que el producto existe y no fue eliminado
+                if (!config.product || !config.product._id) {
+                    console.warn(`AlertConfig ${config._id} tiene producto nulo o eliminado`);
+                    continue;
+                }
+                
                 const inventory = await Inventory.findOne({
                     product: config.product._id
                 });
