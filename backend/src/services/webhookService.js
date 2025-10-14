@@ -175,6 +175,12 @@ export const verifyWebhookSignature = (secret, signature, timestamp, payload) =>
         return false;
     }
     
+    // Validar que el timestamp no sea futuro
+    if (age < 0) {
+        console.error('❌ Timestamp inválido (fecha futura)');
+        return false;
+    }
+    
     // Generar firma esperada
     const expectedSignature = generateSignature(secret, timestamp, payload);
     

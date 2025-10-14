@@ -2,6 +2,11 @@ import express from 'express';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 import {
+    validateIncomingWebhookSignature,
+    validateWebhookCreation,
+    validateWebhookUpdate
+} from '../middleware/webhookValidation.js';
+import {
     createWebhook,
     getWebhooks,
     getWebhookById,
@@ -20,7 +25,13 @@ const router = express.Router();
 
 // Recibir evento de webhook externo
 // POST /api/webhooks/receive/:event
-router.post('/receive/:event', express.json(), receiveWebhookEvent);
+// Validar firma HMAC-SHA256
+router.post(
+    '/receive/:event',
+    express.json(),
+    validateIncomingWebhookSignature,
+    receiveWebhookEvent
+);
 
 /**
  * Rutas autenticadas (requieren login)
@@ -28,7 +39,14 @@ router.post('/receive/:event', express.json(), receiveWebhookEvent);
 
 // Crear webhook
 // POST /api/webhooks
-router.post('/', authMiddleware, requireAdmin, createWebhook);
+// Validar datos de creación
+router.post(
+    '/',
+    authMiddleware,
+    requireAdmin,
+    validateWebhookCreation,
+    createWebhook
+);
 
 // Obtener todos los webhooks
 // GET /api/webhooks
@@ -44,7 +62,14 @@ router.get('/:id', authMiddleware, requireAdmin, getWebhookById);
 
 // Actualizar webhook
 // PUT /api/webhooks/:id
-router.put('/:id', authMiddleware, requireAdmin, updateWebhook);
+// Validar datos de actualización
+router.put(
+    '/:id',
+    authMiddleware,
+    requireAdmin,
+    validateWebhookUpdate,
+    updateWebhook
+);
 
 // Eliminar webhook
 // DELETE /api/webhooks/:id

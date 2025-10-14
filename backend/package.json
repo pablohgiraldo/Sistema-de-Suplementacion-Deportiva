@@ -54,6 +54,7 @@
     "create-admin": "node scripts/create-admin-user.js",
     "test-payment-registration": "node scripts/test-payment-registration.js",
     "test-payu-sandbox": "node scripts/test-payu-sandbox.js",
+    "test-webhook-signatures": "node scripts/test-webhook-signatures.js",
     "build": "npm install"
   },
   "engines": {
