@@ -28,6 +28,7 @@ import securityRoutes from "./routes/securityRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 
 const app = express();
@@ -175,6 +176,9 @@ app.use("/api/recommendations", recommendationRoutes);
 
 // Rutas de pagos - incluye webhook público y endpoints autenticados
 app.use("/api/payments", paymentRoutes);
+
+// Rutas de webhooks - sistema de notificaciones automáticas
+app.use("/api/webhooks", webhookRoutes);
 
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
