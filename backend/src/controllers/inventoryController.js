@@ -1,6 +1,7 @@
 import Inventory from "../models/Inventory.js";
 import Product from "../models/Product.js";
 import AlertConfig from "../models/AlertConfig.js";
+import webhookService from "../services/webhookService.js";
 
 // Obtener todos los registros de inventario con filtros
 export async function getInventories(req, res) {
@@ -318,6 +319,22 @@ export async function restockInventory(req, res) {
         await inventory.save();
 
         console.log(`Inventario guardado exitosamente`);
+
+        // Disparar webhook de restock
+        const product = await Product.findById(inventory.product);
+        if (product) {
+            await webhookService.triggerEvent('inventory.restocked', {
+                productId: inventory.product.toString(),
+                productName: product.name,
+                productBrand: product.brand,
+                quantityRestocked: quantity,
+                currentStock: inventory.currentStock,
+                availableStock: inventory.availableStock,
+                inventoryId: inventory._id.toString(),
+                restockedAt: new Date().toISOString(),
+                notes: notes || null
+            });
+        }
 
         // Respuesta simple sin populate para evitar problemas
         res.json({

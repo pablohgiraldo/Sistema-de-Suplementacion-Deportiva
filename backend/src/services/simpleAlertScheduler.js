@@ -1,6 +1,7 @@
 import notificationService from './notificationService.js';
 import AlertConfig from '../models/AlertConfig.js';
 import Inventory from '../models/Inventory.js';
+import webhookService from './webhookService.js';
 
 class SimpleAlertScheduler {
     constructor() {
@@ -105,6 +106,20 @@ class SimpleAlertScheduler {
                         await config.updateLastAlertSent(alertType);
                         alertsSent++;
                         console.log(`   ✅ Alerta enviada: ${result.messageId}`);
+                        
+                        // Disparar webhook de inventario crítico
+                        const webhookEvent = alertType === 'out_of_stock' ? 'inventory.out_of_stock' : 'inventory.low_stock';
+                        await webhookService.triggerEvent(webhookEvent, {
+                            productId: config.product._id.toString(),
+                            productName: config.product.name,
+                            productBrand: config.product.brand,
+                            currentStock: currentStock,
+                            threshold: alertType === 'out_of_stock' ? 0 : config.lowStockThreshold,
+                            alertType: alertType,
+                            severity: alertType === 'out_of_stock' ? 'critical' : 'warning',
+                            inventoryId: inventory._id.toString(),
+                            alertedAt: new Date().toISOString()
+                        });
                     } else {
                         console.log(`   ❌ Error enviando alerta: ${result.message}`);
                     }
