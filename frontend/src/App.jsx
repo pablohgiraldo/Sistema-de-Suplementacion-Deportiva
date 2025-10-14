@@ -31,6 +31,7 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const PaymentConfirmation = lazy(() => import('./pages/PaymentConfirmation'));
 const Orders = lazy(() => import('./pages/Orders'));
+const OrderTracking = lazy(() => import('./pages/OrderTracking'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
@@ -281,6 +282,14 @@ function AuthenticatedApp({
               element={
                 <ProtectedRoute>
                   <Orders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:orderId/tracking"
+              element={
+                <ProtectedRoute>
+                  <OrderTracking />
                 </ProtectedRoute>
               }
             />

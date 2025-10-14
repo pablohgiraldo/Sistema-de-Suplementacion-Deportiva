@@ -754,3 +754,167 @@ export async function cancelOrder(req, res) {
         });
     }
 }
+
+/**
+ * Obtener estado detallado de una orden (tracking)
+ * GET /api/orders/:id/status
+ */
+export async function getOrderStatus(req, res) {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.rol;
+
+        // Buscar la orden
+        const order = await Order.findById(id)
+            .populate('user', 'nombre email')
+            .populate('items.product', 'name brand imageUrl')
+            .populate('processedBy', 'nombre')
+            .populate({
+                path: 'statusHistory.updatedBy',
+                select: 'nombre'
+            });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'Orden no encontrada'
+            });
+        }
+
+        // Verificar permisos (solo el dueño de la orden o admin)
+        if (userRole !== 'admin' && order.user._id.toString() !== userId) {
+            return res.status(403).json({
+                success: false,
+                error: 'No tienes permisos para ver esta orden'
+            });
+        }
+
+        // Calcular progreso
+        const statusOrder = ['pending', 'processing', 'shipped', 'delivered'];
+        const currentIndex = statusOrder.indexOf(order.status);
+        const progress = order.status === 'cancelled' ? 0 : ((currentIndex + 1) / statusOrder.length * 100);
+
+        // Preparar respuesta con tracking completo
+        const trackingInfo = {
+            orderNumber: order.orderNumber,
+            currentStatus: order.statusFormatted,
+            paymentStatus: order.paymentStatusFormatted,
+            progress: Math.round(progress),
+            
+            // Información de tracking
+            trackingNumber: order.trackingNumber || null,
+            carrier: order.carrier || null,
+            trackingUrl: order.trackingUrl || null,
+            estimatedDeliveryDate: order.estimatedDeliveryDate || null,
+            
+            // Fechas importantes
+            createdAt: order.createdAt,
+            processedAt: order.processedAt,
+            shippedAt: order.shippedAt,
+            deliveredAt: order.deliveredAt,
+            cancelledAt: order.cancelledAt,
+            
+            // Historial completo de estados
+            statusHistory: order.statusHistory.map(entry => ({
+                status: entry.status,
+                statusFormatted: getStatusFormatted(entry.status),
+                timestamp: entry.timestamp,
+                updatedBy: entry.updatedBy?.nombre || 'Sistema',
+                notes: entry.notes,
+                location: entry.location
+            })),
+            
+            // Información del pedido
+            items: order.items.map(item => ({
+                productId: item.product._id,
+                name: item.product.name,
+                brand: item.product.brand,
+                imageUrl: item.product.imageUrl,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            
+            total: order.total,
+            
+            // Dirección de envío
+            shippingAddress: {
+                fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
+                street: order.shippingAddress.street,
+                city: order.shippingAddress.city,
+                state: order.shippingAddress.state,
+                zipCode: order.shippingAddress.zipCode,
+                phone: order.shippingAddress.phone
+            },
+            
+            // Próximo estado esperado
+            nextStatus: getNextExpectedStatus(order.status, order.paymentStatus),
+            
+            // Mensaje para el cliente
+            customerMessage: getCustomerMessage(order)
+        };
+
+        res.json({
+            success: true,
+            data: trackingInfo
+        });
+
+    } catch (error) {
+        console.error('Error al obtener estado de orden:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor al obtener estado de la orden'
+        });
+    }
+}
+
+// Helper: Formatear estado
+function getStatusFormatted(status) {
+    const statusMap = {
+        'pending': 'Pendiente',
+        'processing': 'En Proceso',
+        'shipped': 'Enviada',
+        'delivered': 'Entregada',
+        'cancelled': 'Cancelada'
+    };
+    return statusMap[status] || status;
+}
+
+// Helper: Obtener próximo estado esperado
+function getNextExpectedStatus(currentStatus, paymentStatus) {
+    if (currentStatus === 'cancelled' || currentStatus === 'delivered') {
+        return null; // Estados finales
+    }
+    
+    if (currentStatus === 'pending' && paymentStatus !== 'paid') {
+        return 'Esperando confirmación de pago';
+    }
+    
+    const nextSteps = {
+        'pending': 'En Proceso',
+        'processing': 'Enviada',
+        'shipped': 'Entregada'
+    };
+    
+    return nextSteps[currentStatus] || null;
+}
+
+// Helper: Mensaje personalizado para el cliente
+function getCustomerMessage(order) {
+    switch (order.status) {
+        case 'pending':
+            return order.paymentStatus === 'paid'
+                ? '¡Gracias por tu compra! Estamos preparando tu pedido.'
+                : 'Estamos esperando la confirmación de tu pago.';
+        case 'processing':
+            return 'Tu pedido está siendo preparado y será enviado pronto.';
+        case 'shipped':
+            return `Tu pedido está en camino. ${order.trackingNumber ? `Número de seguimiento: ${order.trackingNumber}` : 'Te notificaremos cuando sea despachado.'}`;
+        case 'delivered':
+            return '¡Tu pedido ha sido entregado! Esperamos que disfrutes tus productos.';
+        case 'cancelled':
+            return `Tu pedido ha sido cancelado. ${order.cancellationReason || 'Contáctanos si tienes dudas.'}`;
+        default:
+            return 'Información de tu pedido';
+    }
+}

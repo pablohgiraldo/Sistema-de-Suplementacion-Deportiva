@@ -308,6 +308,13 @@ const Orders = () => {
                                             <EyeIcon className="h-4 w-4" />
                                             <span className="text-sm font-medium">Ver detalles</span>
                                         </Link>
+                                        <Link
+                                            to={`/orders/${order._id}/tracking`}
+                                            className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
+                                        >
+                                            <TruckIcon className="h-4 w-4" />
+                                            <span className="text-sm font-medium">Ver seguimiento</span>
+                                        </Link>
                                     </div>
                                     <div className="flex items-center space-x-4">
                                         {order.status === 'pending' && (

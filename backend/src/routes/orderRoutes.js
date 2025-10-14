@@ -9,7 +9,8 @@ import {
     getSalesByPeriod,
     getTopSellingProducts,
     getOrdersSummary,
-    cancelOrder
+    cancelOrder,
+    getOrderStatus
 } from '../controllers/orderController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
@@ -66,6 +67,14 @@ router.get('/summary',
     requireAdmin,
     validateGetOrdersSummary,
     getOrdersSummary
+);
+
+// Obtener estado detallado de una orden (tracking) - DEBE IR ANTES DE /:id
+router.get('/:id/status',
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    getOrderStatus
 );
 
 // Obtener orden específica
