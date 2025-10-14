@@ -14,7 +14,7 @@ async function updateUserCredentials() {
 
         // Buscar usuario
         const user = await User.findOne({ email: 'pablo.giral04@gmail.com' });
-        
+
         if (!user) {
             console.error('❌ Usuario pablo.giral04@gmail.com no encontrado');
             process.exit(1);
@@ -27,15 +27,15 @@ async function updateUserCredentials() {
         console.log(`   - Rol: ${user.rol}\n`);
 
         // Nueva contraseña
-        const newPassword = 'Pablo123!';
-        
+        const newPassword = 'LinaGiraldo31';
+
         console.log('🔐 Actualizando contraseña...');
         console.log(`   Nueva contraseña: ${newPassword}\n`);
 
         // Hashear la nueva contraseña
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
-        
+
         await user.save();
 
         console.log('✅ Credenciales actualizadas exitosamente!\n');
