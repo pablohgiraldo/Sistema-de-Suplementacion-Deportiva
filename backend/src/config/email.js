@@ -276,11 +276,160 @@ export const sendAlertsSummaryEmail = async (summaryData) => {
     }
 };
 
+// Función para enviar notificación de cambio de estado de orden
+export const sendOrderStatusChangeEmail = async (orderData) => {
+    try {
+        const transporter = createTransporter();
+        const { order, customerEmail, customerName, oldStatus, newStatus } = orderData;
+
+        // Templates de email según el estado
+        const statusTemplates = {
+            processing: {
+                subject: `✅ Tu pedido #${order.orderNumber} está siendo preparado`,
+                icon: '📦',
+                title: 'Tu pedido está en proceso',
+                message: 'Hemos confirmado tu pago y estamos preparando tu pedido para el envío.',
+                color: '#3b82f6',
+                showTracking: false
+            },
+            shipped: {
+                subject: `🚚 Tu pedido #${order.orderNumber} ha sido enviado`,
+                icon: '🚚',
+                title: 'Tu pedido está en camino',
+                message: 'Tu pedido ha sido despachado y está en camino a tu dirección.',
+                color: '#8b5cf6',
+                showTracking: true
+            },
+            delivered: {
+                subject: `🎉 Tu pedido #${order.orderNumber} ha sido entregado`,
+                icon: '✅',
+                title: '¡Pedido entregado exitosamente!',
+                message: 'Tu pedido ha sido entregado. ¡Esperamos que lo disfrutes!',
+                color: '#10b981',
+                showTracking: false
+            },
+            cancelled: {
+                subject: `❌ Tu pedido #${order.orderNumber} ha sido cancelado`,
+                icon: '❌',
+                title: 'Pedido cancelado',
+                message: 'Tu pedido ha sido cancelado. Si realizaste un pago, será reembolsado en los próximos días.',
+                color: '#ef4444',
+                showTracking: false
+            }
+        };
+
+        const template = statusTemplates[newStatus] || statusTemplates.processing;
+
+        const mailOptions = {
+            from: `"SuperGains" <${process.env.EMAIL_USER}>`,
+            to: customerEmail,
+            subject: template.subject,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <!-- Header -->
+                    <div style="background: ${template.color}; color: white; padding: 30px 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">${template.icon}</div>
+                        <h1 style="margin: 0; font-size: 24px;">${template.title}</h1>
+                        <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 16px;">Orden #${order.orderNumber}</p>
+                    </div>
+                    
+                    <!-- Body -->
+                    <div style="padding: 30px 20px;">
+                        <p style="font-size: 16px; color: #374151; margin-bottom: 20px;">
+                            Hola <strong>${customerName}</strong>,
+                        </p>
+                        <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
+                            ${template.message}
+                        </p>
+                        
+                        <!-- Order Details -->
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 15px 0; color: #1f2937; font-size: 18px;">Detalles del Pedido</h3>
+                            
+                            <div style="display: grid; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">Número de orden:</span>
+                                    <span style="color: #1f2937; font-weight: bold;">${order.orderNumber}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">Total:</span>
+                                    <span style="color: #1f2937; font-weight: bold;">$${order.total.toLocaleString('es-CO')}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">Estado:</span>
+                                    <span style="color: ${template.color}; font-weight: bold;">${template.title}</span>
+                                </div>
+                                ${template.showTracking && order.trackingNumber ? `
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">Tracking:</span>
+                                    <span style="color: #1f2937; font-weight: bold;">${order.trackingNumber}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">Transportadora:</span>
+                                    <span style="color: #1f2937; font-weight: bold;">${order.carrier || 'Por asignar'}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        ${template.showTracking && order.trackingUrl ? `
+                        <!-- Tracking Button -->
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${order.trackingUrl}" style="display: inline-block; background: ${template.color}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                                🚚 Rastrear mi pedido
+                            </a>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Shipping Address -->
+                        ${order.shippingAddress ? `
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-top: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #1f2937; font-size: 16px;">Dirección de Envío</h4>
+                            <p style="margin: 0; color: #6b7280; line-height: 1.6;">
+                                ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}<br>
+                                ${order.shippingAddress.street}<br>
+                                ${order.shippingAddress.city}, ${order.shippingAddress.state}<br>
+                                ${order.shippingAddress.zipCode}<br>
+                                Tel: ${order.shippingAddress.phone}
+                            </p>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Support Info -->
+                        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">
+                                ¿Necesitas ayuda? Contáctanos en <a href="mailto:support@supergains.com" style="color: ${template.color};">support@supergains.com</a>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                        <p style="margin: 0; color: #6b7280; font-size: 12px;">
+                            Este email fue enviado automáticamente desde SuperGains<br>
+                            Por favor no respondas a este mensaje<br>
+                            Fecha: ${new Date().toLocaleString('es-CO')}
+                        </p>
+                    </div>
+                </div>
+            `
+        };
+
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email de cambio de estado enviado a ${customerEmail}:`, result.messageId);
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.error('❌ Error enviando email de cambio de estado:', error.message);
+        return { success: false, message: error.message };
+    }
+};
+
 export default {
     createTransporter,
     createCustomTransporter,
     verifyEmailConfig,
     sendTestEmail,
     sendStockAlertEmail,
-    sendAlertsSummaryEmail
+    sendAlertsSummaryEmail,
+    sendOrderStatusChangeEmail
 };

@@ -6,6 +6,7 @@ import Inventory from '../models/Inventory.js';
 import mongoose from 'mongoose';
 import { syncCustomerAfterOrder } from '../services/customerSyncService.js';
 import webhookService from '../services/webhookService.js';
+import notificationService from '../services/notificationService.js';
 
 // Función helper para detectar la marca de tarjeta
 function getCardBrand(cardNumber) {
@@ -336,6 +337,9 @@ export async function updateOrderStatus(req, res) {
             });
         }
 
+        // Guardar estado anterior antes de actualizar
+        const oldStatus = order.status;
+
         // Actualizar estado
         await order.updateStatus(status, userId);
 
@@ -397,6 +401,37 @@ export async function updateOrderStatus(req, res) {
                 updatedBy: userId,
                 updatedAt: new Date().toISOString()
             });
+        }
+
+        // Enviar notificación por email al cliente
+        if (oldStatus !== status && ['processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+            try {
+                // Obtener datos del usuario antes de popular
+                const user = await User.findById(order.user);
+                if (user && user.email) {
+                    notificationService.addToQueue({
+                        type: 'order_status_change',
+                        data: {
+                            order: {
+                                _id: order._id,
+                                orderNumber: order.orderNumber,
+                                total: order.total,
+                                trackingNumber: order.trackingNumber,
+                                carrier: order.carrier,
+                                trackingUrl: order.trackingUrl,
+                                shippingAddress: order.shippingAddress
+                            },
+                            customerEmail: user.email,
+                            customerName: user.nombre || user.email,
+                            oldStatus: oldStatus,
+                            newStatus: status
+                        }
+                    });
+                    console.log(`📧 Email de cambio de estado encolado para ${user.email}`);
+                }
+            } catch (emailError) {
+                console.error('⚠️  Error al encolar email de cambio de estado (no crítico):', emailError);
+            }
         }
 
         await order.populate([

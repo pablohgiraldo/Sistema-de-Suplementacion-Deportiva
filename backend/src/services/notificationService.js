@@ -1,4 +1,4 @@
-import { sendStockAlertEmail, sendAlertsSummaryEmail, sendTestEmail } from '../config/email.js';
+import { sendStockAlertEmail, sendAlertsSummaryEmail, sendTestEmail, sendOrderStatusChangeEmail } from '../config/email.js';
 import AlertConfig from '../models/AlertConfig.js';
 import Inventory from '../models/Inventory.js';
 import Product from '../models/Product.js';
@@ -63,6 +63,8 @@ class NotificationService {
                     return await this.sendAlertsSummary(notification.data);
                 case 'test_email':
                     return await this.sendTest(notification.data);
+                case 'order_status_change':
+                    return await this.sendOrderStatusChange(notification.data);
                 default:
                     console.log(`⚠️ Tipo de notificación no reconocido: ${notification.type}`);
                     return { success: false, message: 'Tipo de notificación no reconocido' };
@@ -173,6 +175,17 @@ class NotificationService {
             return result;
         } catch (error) {
             console.error('❌ Error enviando email de prueba:', error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    // Enviar notificación de cambio de estado de orden
+    async sendOrderStatusChange(orderData) {
+        try {
+            const result = await sendOrderStatusChangeEmail(orderData);
+            return result;
+        } catch (error) {
+            console.error('❌ Error enviando notificación de cambio de estado:', error);
             return { success: false, message: error.message };
         }
     }
