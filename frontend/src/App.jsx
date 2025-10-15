@@ -46,7 +46,7 @@ function AppContent() {
   const [showRegister, setShowRegister] = useState(false);
 
   // Determinar qué header mostrar
-  const shouldShowHeader = !['/cart', '/login', '/register'].includes(location.pathname);
+  const shouldShowHeader = !['/login', '/register'].includes(location.pathname);
   const isAdminPage = location.pathname.startsWith('/admin');
 
   // Preload de componentes según la ruta actual

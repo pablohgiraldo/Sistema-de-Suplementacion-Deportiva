@@ -3,6 +3,27 @@ import { useCart } from '../contexts/CartContext.jsx';
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 
+// Imágenes de productos - mismas que en ProductCard
+const sampleProductImages = [
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center"
+];
+
+// Función para obtener una imagen basada en el ID del producto
+const getProductImage = (productId) => {
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = seed % sampleProductImages.length;
+  return sampleProductImages[index];
+};
+
 export default function Cart() {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
@@ -18,18 +39,33 @@ export default function Cart() {
     } = useCart();
 
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [removingItem, setRemovingItem] = useState(null);
 
-    // Costos de envío (simulados, puedes conectarlos a tu lógica)
-    const shippingCost = cartItems.length > 0 ? 5000 : 0;
+    // Cálculos de costos
     const subtotal = getCartTotal();
-    const total = subtotal + shippingCost;
+    const shippingCost = cartItems.length > 0 ? 5000 : 0;
+    const taxRate = 0.19; // IVA 19% en Colombia
+    const taxes = subtotal * taxRate;
+    const total = subtotal + shippingCost + taxes;
 
     const handleUpdateQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
-            await removeFromCart(productId);
+            setRemovingItem(productId);
+            setTimeout(async () => {
+                await removeFromCart(productId);
+                setRemovingItem(null);
+            }, 300);
             return;
         }
         await updateQuantity(productId, newQuantity);
+    };
+
+    const handleRemoveItem = async (productId) => {
+        setRemovingItem(productId);
+        setTimeout(async () => {
+            await removeFromCart(productId);
+            setRemovingItem(null);
+        }, 300);
     };
 
     const handleClearCart = () => {
@@ -75,9 +111,16 @@ export default function Cart() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                        🛒 Mi Carrito
-                    </h1>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="bg-blue-100 p-3 rounded-xl">
+                            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-4xl font-bold text-gray-900">
+                            Mi Carrito
+                        </h1>
+                    </div>
                     <p className="text-gray-600">
                         {cartItems.length > 0
                             ? `${getCartItemCount()} producto${getCartItemCount() !== 1 ? 's' : ''} en tu carrito`
@@ -99,15 +142,15 @@ export default function Cart() {
 
                 {cartItems.length === 0 ? (
                     /* Carrito Vacío */
-                    <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-                        <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                        <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                             </svg>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">Tu carrito está vacío</h3>
                         <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                            ¡Descubre nuestros increíbles productos y comienza a llenar tu carrito!
+                            Descubre nuestros increíbles productos y comienza a llenar tu carrito
                         </p>
                         <Link
                             to="/"
@@ -127,20 +170,24 @@ export default function Cart() {
                             {cartItems.map((item) => (
                                 <div
                                     key={item._id}
-                                    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+                                    className={`bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 ${
+                                        removingItem === item._id ? 'opacity-0 scale-95 -translate-x-4' : 'opacity-100 scale-100 translate-x-0'
+                                    }`}
                                 >
                                     <div className="flex flex-col sm:flex-row gap-6">
                                         {/* Imagen del producto */}
                                         <div className="flex-shrink-0">
                                             <div className="relative w-full sm:w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden group">
                                                 <img
-                                                    src={item.imageUrl || '/placeholder-product.svg'}
+                                                    src={item.imageUrl || getProductImage(item._id)}
                                                     alt={item.name}
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                                     loading="lazy"
                                                     onError={(e) => {
-                                                        if (!e.target.src.includes('placeholder-product.svg')) {
-                                                            e.target.src = '/placeholder-product.svg';
+                                                        // Intentar con imagen generada si falla la original
+                                                        if (!e.target.dataset.retried) {
+                                                            e.target.dataset.retried = 'true';
+                                                            e.target.src = getProductImage(item._id);
                                                         }
                                                     }}
                                                 />
@@ -157,8 +204,8 @@ export default function Cart() {
                                                     <p className="text-sm text-gray-600 mb-2">{item.brand}</p>
                                                 </div>
                                                 <button
-                                                    onClick={() => removeFromCart(item._id)}
-                                                    disabled={loading}
+                                                    onClick={() => handleRemoveItem(item._id)}
+                                                    disabled={loading || removingItem === item._id}
                                                     className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg disabled:opacity-50"
                                                     title="Eliminar del carrito"
                                                 >
@@ -180,21 +227,21 @@ export default function Cart() {
                                                 {/* Control de cantidad */}
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-sm text-gray-600 font-medium">Cantidad:</span>
-                                                    <div className="flex items-center bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
+                                                    <div className="flex items-center bg-gray-100 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                                                         <button
                                                             onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                                                             disabled={loading}
-                                                            className="px-4 py-2 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 font-bold"
+                                                            className="px-4 py-2 text-gray-700 hover:bg-gray-200 active:bg-gray-300 transition-all disabled:opacity-50 font-bold hover:scale-110"
                                                         >
                                                             −
                                                         </button>
-                                                        <span className="px-6 py-2 font-bold text-gray-900 bg-white border-x border-gray-200">
+                                                        <span className="px-6 py-2 font-bold text-gray-900 bg-white border-x border-gray-200 min-w-[60px] text-center transition-all">
                                                             {item.quantity}
                                                         </span>
                                                         <button
                                                             onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                                                             disabled={loading}
-                                                            className="px-4 py-2 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 font-bold"
+                                                            className="px-4 py-2 text-gray-700 hover:bg-gray-200 active:bg-gray-300 transition-all disabled:opacity-50 font-bold hover:scale-110"
                                                         >
                                                             +
                                                         </button>
@@ -276,11 +323,22 @@ export default function Cart() {
                                             ${shippingCost.toLocaleString('es-CO')}
                                         </span>
                                     </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 flex items-center gap-1">
+                                            IVA (19%)
+                                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            </svg>
+                                        </span>
+                                        <span className="font-semibold text-gray-900">
+                                            ${taxes.toLocaleString('es-CO')}
+                                        </span>
+                                    </div>
 
-                                    <div className="pt-4 border-t border-gray-200">
+                                    <div className="pt-4 border-t-2 border-gray-200">
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-bold text-gray-900">Total</span>
-                                            <span className="text-2xl font-bold text-blue-600">
+                                            <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                                 ${total.toLocaleString('es-CO')}
                                             </span>
                                         </div>
