@@ -862,10 +862,10 @@ export async function getOrderStatus(req, res) {
             
             // Información del pedido
             items: order.items.map(item => ({
-                productId: item.product._id,
-                name: item.product.name,
-                brand: item.product.brand,
-                imageUrl: item.product.imageUrl,
+                productId: item.product?._id || null,
+                name: item.product?.name || 'Producto no disponible',
+                brand: item.product?.brand || 'Marca no disponible',
+                imageUrl: item.product?.imageUrl || null,
                 quantity: item.quantity,
                 price: item.price
             })),
@@ -873,14 +873,14 @@ export async function getOrderStatus(req, res) {
             total: order.total,
             
             // Dirección de envío
-            shippingAddress: {
+            shippingAddress: order.shippingAddress ? {
                 fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
                 street: order.shippingAddress.street,
                 city: order.shippingAddress.city,
                 state: order.shippingAddress.state,
                 zipCode: order.shippingAddress.zipCode,
                 phone: order.shippingAddress.phone
-            },
+            } : null,
             
             // Próximo estado esperado
             nextStatus: getNextExpectedStatus(order.status, order.paymentStatus),
