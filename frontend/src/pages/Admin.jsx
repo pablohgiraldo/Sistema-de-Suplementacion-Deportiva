@@ -9,6 +9,7 @@ import {
     LazyNotificationContainer,
     LazySalesChart
 } from '../components/LazyComponents';
+import OmnichannelDashboard from '../components/OmnichannelDashboard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useNotifications from '../hooks/useNotifications';
 import { useInventoryAlertsSummary } from '../hooks/useInventoryAlerts';
@@ -187,6 +188,13 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Dashboard Omnicanal */}
+                <div className="mb-8">
+                    <Suspense fallback={<LoadingSpinner text="Cargando dashboard omnicanal..." />}>
+                        <OmnichannelDashboard />
+                    </Suspense>
+                </div>
 
                 {/* Métricas Principales */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
