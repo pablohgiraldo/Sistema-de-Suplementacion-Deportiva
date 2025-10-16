@@ -62,6 +62,9 @@
     "test-redis-connection": "node scripts/test-redis-connection.js",
     "test-cache-middleware": "node scripts/test-cache-middleware.js",
     "test-fallback-strategy": "node scripts/test-fallback-strategy.js",
+    "test-dashboard": "node scripts/test-dashboard.js",
+    "test-dashboard-simple": "node scripts/test-dashboard-simple.js",
+    "test-dashboard-native": "node scripts/test-dashboard-native.js",
     "build": "npm install"
   },
   "engines": {

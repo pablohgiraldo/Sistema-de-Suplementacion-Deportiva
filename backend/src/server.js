@@ -33,6 +33,7 @@ import recommendationRoutes from "./routes/recommendationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import automationRoutes from "./routes/automationRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 import orderAutomationScheduler from "./services/orderAutomationScheduler.js";
 
@@ -129,14 +130,14 @@ app.get("/api/health", async (_req, res) => {
   const cacheStats = await cacheService.getStats();
   const mongoHealth = checkMongoDBHealth();
   const fallbackStats = fallbackService.getStats();
-  
+
   const isHealthy = mongoHealth.connected || fallbackService.isInFallbackMode();
   const statusCode = isHealthy ? 200 : 503;
-  
+
   res.status(statusCode).json({
     status: isHealthy ? "OK" : "DEGRADED",
-    message: fallbackService.isInFallbackMode() ? 
-      "Server running in fallback mode" : 
+    message: fallbackService.isInFallbackMode() ?
+      "Server running in fallback mode" :
       "Server is running normally",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
@@ -205,6 +206,9 @@ app.use("/api/webhooks", webhookRoutes);
 
 // Rutas de automatizaciones - actualización automática de estados
 app.use("/api/automations", automationRoutes);
+
+// Dashboard omnicanal routes (solo administradores)
+app.use("/api/dashboard", dashboardRoutes);
 
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);
