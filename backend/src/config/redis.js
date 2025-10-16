@@ -32,7 +32,7 @@ export function createRedisClient() {
 
   try {
     redisClient = new Redis(redisConfig);
-    
+
     // Eventos de conexión
     redisClient.on('connect', () => {
       console.log('✅ Redis conectado exitosamente');
@@ -97,15 +97,15 @@ export async function checkRedisHealth() {
 // Configuración de caché por defecto
 export const CACHE_CONFIG = {
   // TTL por defecto (en segundos)
-  DEFAULT_TTL: 300, // 5 minutos
-  
+  DEFAULT_TTL: Number(process.env.CACHE_DEFAULT_TTL || 600), // 10 minutos
+
   // TTL específicos por tipo de dato
-  PRODUCTS_TTL: 600, // 10 minutos
-  CATEGORIES_TTL: 1800, // 30 minutos
-  USER_SESSION_TTL: 3600, // 1 hora
-  CART_TTL: 1800, // 30 minutos
-  RECOMMENDATIONS_TTL: 900, // 15 minutos
-  
+  PRODUCTS_TTL: Number(process.env.CACHE_PRODUCTS_TTL || 600), // 10 minutos
+  CATEGORIES_TTL: Number(process.env.CACHE_CATEGORIES_TTL || 600), // 10 minutos
+  USER_SESSION_TTL: Number(process.env.CACHE_USER_SESSION_TTL || 3600), // 1 hora
+  CART_TTL: Number(process.env.CACHE_CART_TTL || 600), // 10 minutos
+  RECOMMENDATIONS_TTL: Number(process.env.CACHE_RECOMMENDATIONS_TTL || 600), // 10 minutos
+
   // Prefijos para diferentes tipos de datos
   PREFIXES: {
     PRODUCT: 'product:',
