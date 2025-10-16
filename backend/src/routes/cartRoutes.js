@@ -18,6 +18,10 @@ import {
     validateRemoveFromCart,
     validateClearCart
 } from '../validators/cartValidators.js';
+import {
+    cartCacheMiddleware,
+    invalidateCartCacheMiddleware
+} from '../middleware/cacheMiddleware.js';
 
 const router = express.Router();
 
@@ -28,14 +32,14 @@ router.use(tokenRefreshSuggestionMiddleware);
 router.use(cartRateLimit);
 
 // Rutas del carrito
-router.get('/', validateGetCart, getCart);
-router.post('/add', validateAddToCart, addToCart);
-router.put('/item/:productId', validateUpdateCartItem, updateCartItem);
-router.delete('/item/:productId', validateRemoveFromCart, removeFromCart);
-router.delete('/clear', validateClearCart, clearCart);
+router.get('/', validateGetCart, cartCacheMiddleware(), getCart);
+router.post('/add', validateAddToCart, addToCart, invalidateCartCacheMiddleware());
+router.put('/item/:productId', validateUpdateCartItem, updateCartItem, invalidateCartCacheMiddleware());
+router.delete('/item/:productId', validateRemoveFromCart, removeFromCart, invalidateCartCacheMiddleware());
+router.delete('/clear', validateClearCart, clearCart, invalidateCartCacheMiddleware());
 
 // Rutas de validación de stock
-router.get('/validate', validateGetCart, validateCartStock);
-router.post('/sync', validateGetCart, syncCartWithInventory);
+router.get('/validate', validateGetCart, cartCacheMiddleware(), validateCartStock);
+router.post('/sync', validateGetCart, syncCartWithInventory, invalidateCartCacheMiddleware());
 
 export default router;

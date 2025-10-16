@@ -5,7 +5,10 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { connectDB } from "./config/db.js";
+import { connectDB, checkMongoDBHealth } from "./config/db.js";
+import { createRedisClient, closeRedisConnection, checkRedisHealth } from "./config/redis.js";
+import cacheService from "./services/cacheService.js";
+import fallbackService from "./services/fallbackService.js";
 import { configureSecurity } from "./middleware/securityMiddleware.js";
 import {
   validateSecurityHeaders,
@@ -120,19 +123,37 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Healthcheck mejorado
-app.get("/api/health", (_req, res) =>
-  res.json({
-    status: "OK",
-    message: "Server is running",
+// Healthcheck mejorado con Redis y Fallback
+app.get("/api/health", async (_req, res) => {
+  const redisStatus = await checkRedisHealth();
+  const cacheStats = await cacheService.getStats();
+  const mongoHealth = checkMongoDBHealth();
+  const fallbackStats = fallbackService.getStats();
+  
+  const isHealthy = mongoHealth.connected || fallbackService.isInFallbackMode();
+  const statusCode = isHealthy ? 200 : 503;
+  
+  res.status(statusCode).json({
+    status: isHealthy ? "OK" : "DEGRADED",
+    message: fallbackService.isInFallbackMode() ? 
+      "Server running in fallback mode" : 
+      "Server is running normally",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
     services: {
-      database: "connected",
-      auth: "active"
-    }
-  })
-);
+      database: mongoHealth.connected ? "connected" : "disconnected",
+      databaseState: mongoHealth.stateName,
+      auth: "active",
+      cache: redisStatus ? "connected" : "disconnected",
+      redis: redisStatus,
+      fallback: fallbackService.isInFallbackMode() ? "active" : "inactive"
+    },
+    mongodb: mongoHealth,
+    cache: cacheStats,
+    fallback: fallbackStats,
+    degraded: fallbackService.isInFallbackMode()
+  });
+});
 
 // Ruta raíz
 app.get("/", (_req, res) => {
@@ -215,11 +236,26 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// Conectar a la base de datos y levantar servidor
+// Conectar a la base de datos, Redis y levantar servidor
 const startServer = async () => {
   try {
+    // Conectar a MongoDB
     await connectDB(MONGODB_URI);
     console.log("✅ Base de datos conectada");
+
+    // Inicializar Redis
+    try {
+      createRedisClient();
+      const redisStatus = await checkRedisHealth();
+      if (redisStatus) {
+        console.log("✅ Redis conectado exitosamente");
+      } else {
+        console.warn("⚠️ Redis no disponible - funcionando sin caché");
+      }
+    } catch (redisError) {
+      console.warn("⚠️ Error conectando Redis:", redisError.message);
+      console.warn("⚠️ Continuando sin caché...");
+    }
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 API escuchando en puerto ${PORT}`);
@@ -258,5 +294,18 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Manejo de cierre graceful
+process.on('SIGTERM', async () => {
+  console.log('🛑 Recibida señal SIGTERM, cerrando servidor...');
+  await closeRedisConnection();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 Recibida señal SIGINT, cerrando servidor...');
+  await closeRedisConnection();
+  process.exit(0);
+});
 
 export default app;

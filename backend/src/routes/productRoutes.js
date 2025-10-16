@@ -26,6 +26,22 @@ import {
     validateProductUpdateSecurity,
     handleValidationErrors
 } from "../validators/enhancedProductValidators.js";
+import {
+    productCacheMiddleware,
+    searchCacheMiddleware,
+    invalidateProductCacheMiddleware
+} from "../middleware/cacheMiddleware.js";
+import {
+    checkDatabaseStatus,
+    withFallback,
+    readOnlyInFallback
+} from "../middleware/databaseFallbackMiddleware.js";
+import {
+    getProductsFallback,
+    getProductByIdFallback,
+    searchProductsFallback,
+    writeOperationFallback
+} from "../controllers/fallbackControllers.js";
 
 const router = express.Router();
 
@@ -33,13 +49,17 @@ const router = express.Router();
 router.use(sanitizeInput);
 router.use(detectCommonAttacks);
 
+// Middleware para verificar estado de MongoDB
+router.use(checkDatabaseStatus);
+
 // Rutas públicas (no requieren autenticación)
 router.get("/",
     productRateLimit,
     validateProductSearchSecurity,
     handleValidationErrors,
     validateGetProducts,
-    getProducts
+    productCacheMiddleware(),
+    withFallback(getProducts, getProductsFallback)
 );
 
 router.get("/search",
@@ -47,13 +67,15 @@ router.get("/search",
     validateProductSearchSecurity,
     handleValidationErrors,
     validateSearchProducts,
-    searchProducts
+    searchCacheMiddleware(),
+    withFallback(searchProducts, searchProductsFallback)
 );
 
 router.get("/:id",
     productRateLimit,
     validateGetProductById,
-    getProductById
+    productCacheMiddleware(),
+    withFallback(getProductById, getProductByIdFallback)
 );
 
 // Rutas protegidas (requieren autenticación)
@@ -62,11 +84,13 @@ router.post("/",
     tokenExpirationMiddleware,
     tokenRefreshSuggestionMiddleware,
     adminRateLimit,
+    readOnlyInFallback,
     validateContentType(['application/json']),
     validateProductSecurity,
     handleValidationErrors,
     validateCreateProduct,
-    createProduct
+    withFallback(createProduct, writeOperationFallback),
+    invalidateProductCacheMiddleware()
 );
 
 router.put("/:id",
@@ -74,11 +98,13 @@ router.put("/:id",
     tokenExpirationMiddleware,
     tokenRefreshSuggestionMiddleware,
     adminRateLimit,
+    readOnlyInFallback,
     validateContentType(['application/json']),
     validateProductUpdateSecurity,
     handleValidationErrors,
     validateUpdateProduct,
-    updateProduct
+    withFallback(updateProduct, writeOperationFallback),
+    invalidateProductCacheMiddleware()
 );
 
 router.delete("/:id",
@@ -87,8 +113,10 @@ router.delete("/:id",
     tokenRefreshSuggestionMiddleware,
     requireAdmin,
     adminRateLimit,
+    readOnlyInFallback,
     validateDeleteProduct,
-    deleteProduct
+    withFallback(deleteProduct, writeOperationFallback),
+    invalidateProductCacheMiddleware()
 );
 
 export default router;
