@@ -3,6 +3,7 @@ import Inventory from '../models/Inventory.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { checkRedisHealth } from '../config/redis.js';
 
 // ==================== DASHBOARD OMNICANAL ====================
 
@@ -168,16 +169,18 @@ async function getStockDiscrepancyMetrics() {
         status: 'active'
     }).populate('product', 'name brand price').limit(20);
 
-    return discrepancies.map(item => ({
-        productId: item.product._id,
-        productName: item.product.name,
-        brand: item.product.brand,
-        physicalStock: item.channels.physical.stock,
-        digitalStock: item.channels.digital.stock,
-        difference: Math.abs(item.channels.physical.stock - item.channels.digital.stock),
-        lastPhysicalUpdate: item.channels.physical.lastUpdated,
-        lastDigitalUpdate: item.channels.digital.lastUpdated
-    }));
+    return discrepancies
+        .filter(item => item.product && item.product._id) // Filtrar productos nulos
+        .map(item => ({
+            productId: item.product._id,
+            productName: item.product.name,
+            brand: item.product.brand,
+            physicalStock: item.channels.physical.stock,
+            digitalStock: item.channels.digital.stock,
+            difference: Math.abs(item.channels.physical.stock - item.channels.digital.stock),
+            lastPhysicalUpdate: item.channels.physical.lastUpdated,
+            lastDigitalUpdate: item.channels.digital.lastUpdated
+        }));
 }
 
 // Métricas de productos pendientes de sincronización
@@ -190,15 +193,17 @@ async function getPendingSyncMetrics() {
         status: 'active'
     }).populate('product', 'name brand').limit(20);
 
-    return pendingSync.map(item => ({
-        productId: item.product._id,
-        productName: item.product.name,
-        brand: item.product.brand,
-        physicalSyncStatus: item.channels.physical.syncStatus,
-        digitalSyncStatus: item.channels.digital.syncStatus,
-        lastPhysicalUpdate: item.channels.physical.lastUpdated,
-        lastDigitalUpdate: item.channels.digital.lastUpdated
-    }));
+    return pendingSync
+        .filter(item => item.product && item.product._id) // Filtrar productos nulos
+        .map(item => ({
+            productId: item.product._id,
+            productName: item.product.name,
+            brand: item.product.brand,
+            physicalSyncStatus: item.channels.physical.syncStatus,
+            digitalSyncStatus: item.channels.digital.syncStatus,
+            lastPhysicalUpdate: item.channels.physical.lastUpdated,
+            lastDigitalUpdate: item.channels.digital.lastUpdated
+        }));
 }
 
 // Ventas físicas recientes
@@ -213,22 +218,24 @@ async function getRecentPhysicalSales(limit = 10) {
         .sort({ createdAt: -1 })
         .limit(limit);
 
-    return sales.map(sale => ({
-        orderId: sale._id,
-        orderNumber: sale.orderNumber,
-        customer: {
-            name: `${sale.user.firstName} ${sale.user.lastName}`,
-            id: sale.user._id
-        },
-        cashier: {
-            name: sale.physicalSale.cashierName,
-            id: sale.physicalSale.cashierId
-        },
-        total: sale.total,
-        itemsCount: sale.items.length,
-        createdAt: sale.createdAt,
-        storeLocation: sale.physicalSale.storeLocation
-    }));
+    return sales
+        .filter(sale => sale.user && sale.user._id) // Filtrar usuarios nulos
+        .map(sale => ({
+            orderId: sale._id,
+            orderNumber: sale.orderNumber,
+            customer: {
+                name: `${sale.user.firstName} ${sale.user.lastName}`,
+                id: sale.user._id
+            },
+            cashier: {
+                name: sale.physicalSale.cashierName,
+                id: sale.physicalSale.cashierId
+            },
+            total: sale.total,
+            itemsCount: sale.items.length,
+            createdAt: sale.createdAt,
+            storeLocation: sale.physicalSale.storeLocation
+        }));
 }
 
 // Productos más vendidos por canal
@@ -307,22 +314,30 @@ async function getLowStockAlerts() {
         status: 'active'
     }).populate('product', 'name brand price').limit(20);
 
-    return lowStockProducts.map(item => ({
-        productId: item.product._id,
-        productName: item.product.name,
-        brand: item.product.brand,
-        physicalStock: item.channels.physical.stock,
-        digitalStock: item.channels.digital.stock,
-        minStock: item.minStock,
-        needsRestock: item.needsRestock,
-        stockStatus: item.stockStatus
-    }));
+    return lowStockProducts
+        .filter(item => item.product && item.product._id) // Filtrar productos nulos
+        .map(item => ({
+            productId: item.product._id,
+            productName: item.product.name,
+            brand: item.product.brand,
+            physicalStock: item.channels.physical.stock,
+            digitalStock: item.channels.digital.stock,
+            minStock: item.minStock,
+            needsRestock: item.needsRestock,
+            stockStatus: item.stockStatus
+        }));
 }
 
 // Métricas de salud del sistema
 async function getSystemHealthMetrics() {
     const now = new Date();
     const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    // Verificar salud de MongoDB
+    const mongoHealth = mongoose.connection.readyState === 1;
+
+    // Verificar salud de Redis
+    const redisHealth = await checkRedisHealth();
 
     const [
         totalOrders,
@@ -341,6 +356,10 @@ async function getSystemHealthMetrics() {
     ]);
 
     return {
+        database: {
+            mongodb: mongoHealth,
+            redis: redisHealth
+        },
         orders: {
             total: totalOrders,
             last24Hours: recentOrders
