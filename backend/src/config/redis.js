@@ -26,6 +26,14 @@ const redisConfig = {
 let redisClient = null;
 
 export function createRedisClient() {
+  // Verificar si Redis está habilitado
+  const CACHE_ENABLED = process.env.CACHE_ENABLED === 'true';
+
+  if (!CACHE_ENABLED) {
+    console.log('ℹ️ Redis está deshabilitado por configuración (CACHE_ENABLED=false)');
+    return null;
+  }
+
   if (redisClient) {
     return redisClient;
   }
@@ -44,6 +52,10 @@ export function createRedisClient() {
 
     redisClient.on('error', (err) => {
       console.error('❌ Error de Redis:', err.message);
+      // No reintentar si Redis está deshabilitado
+      if (!CACHE_ENABLED) {
+        redisClient = null;
+      }
     });
 
     redisClient.on('close', () => {
@@ -57,12 +69,19 @@ export function createRedisClient() {
     return redisClient;
   } catch (error) {
     console.error('❌ Error creando cliente Redis:', error.message);
-    throw error;
+    redisClient = null;
+    return null;
   }
 }
 
 // Función para obtener el cliente Redis
 export function getRedisClient() {
+  const CACHE_ENABLED = process.env.CACHE_ENABLED === 'true';
+
+  if (!CACHE_ENABLED) {
+    return null;
+  }
+
   if (!redisClient) {
     redisClient = createRedisClient();
   }
@@ -84,8 +103,17 @@ export async function closeRedisConnection() {
 
 // Función para verificar el estado de Redis
 export async function checkRedisHealth() {
+  const CACHE_ENABLED = process.env.CACHE_ENABLED === 'true';
+
+  if (!CACHE_ENABLED) {
+    return false; // Redis deshabilitado
+  }
+
   try {
     const client = getRedisClient();
+    if (!client) {
+      return false;
+    }
     const pong = await client.ping();
     return pong === 'PONG';
   } catch (error) {

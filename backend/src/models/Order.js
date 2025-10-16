@@ -71,8 +71,38 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['credit_card', 'paypal', 'pse'],
+        enum: ['credit_card', 'paypal', 'pse', 'cash', 'card_physical'],
         required: [true, 'El método de pago es requerido']
+    },
+    // Canal de venta para gestión omnicanal
+    salesChannel: {
+        type: String,
+        enum: ['online', 'physical_store', 'phone', 'mobile_app'],
+        default: 'online',
+        required: [true, 'El canal de venta es requerido']
+    },
+    // Información específica para ventas físicas
+    physicalSale: {
+        storeLocation: {
+            type: String,
+            maxlength: [100, 'La ubicación de la tienda no puede exceder 100 caracteres']
+        },
+        cashierId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        cashierName: {
+            type: String,
+            maxlength: [100, 'El nombre del cajero no puede exceder 100 caracteres']
+        },
+        registerNumber: {
+            type: String,
+            maxlength: [20, 'El número de caja no puede exceder 20 caracteres']
+        },
+        receiptNumber: {
+            type: String,
+            maxlength: [50, 'El número de recibo no puede exceder 50 caracteres']
+        }
     },
     shippingAddress: {
         firstName: {
@@ -477,7 +507,7 @@ orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = 
     if (paymentDetails.transactionId) {
         this.paymentDetails.transactionId = paymentDetails.transactionId;
     }
-    
+
     // Actualizar PayU específicos
     if (paymentDetails.payuOrderId) {
         this.paymentDetails.payuOrderId = paymentDetails.payuOrderId;
@@ -488,7 +518,7 @@ orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = 
     if (paymentDetails.payuResponseCode) {
         this.paymentDetails.payuResponseCode = paymentDetails.payuResponseCode;
     }
-    
+
     // Actualizar montos y fechas
     if (paymentDetails.amountPaid) {
         this.paymentDetails.amountPaid = paymentDetails.amountPaid;
@@ -499,7 +529,7 @@ orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = 
     if (paymentDetails.paymentDate) {
         this.paymentDetails.paymentDate = paymentDetails.paymentDate;
     }
-    
+
     // Actualizar datos de tarjeta
     if (paymentDetails.cardLastFour) {
         this.paymentDetails.cardLastFour = paymentDetails.cardLastFour;
@@ -526,7 +556,7 @@ orderSchema.methods.updatePaymentStatus = function (newStatus, paymentDetails = 
 };
 
 // Helper para determinar la acción del log
-orderSchema.methods._getPaymentLogAction = function(oldStatus, newStatus) {
+orderSchema.methods._getPaymentLogAction = function (oldStatus, newStatus) {
     if (newStatus === 'paid') {
         return 'payment_approved';
     }
@@ -546,7 +576,7 @@ orderSchema.methods._getPaymentLogAction = function(oldStatus, newStatus) {
 };
 
 // Método para registrar inicio de pago
-orderSchema.methods.logPaymentInitiation = function(paymentDetails = {}) {
+orderSchema.methods.logPaymentInitiation = function (paymentDetails = {}) {
     // Registrar transactionId si se proporciona
     if (paymentDetails.transactionId) {
         this.paymentDetails.transactionId = paymentDetails.transactionId;
@@ -596,7 +626,7 @@ orderSchema.methods.markAsShipped = function (trackingNumber, carrier, userId = 
     this.shippedAt = new Date();
     this.trackingNumber = trackingNumber;
     this.carrier = carrier;
-    
+
     if (trackingUrl) {
         this.trackingUrl = trackingUrl;
     }
@@ -782,6 +812,137 @@ orderSchema.statics.getSalesByPeriod = async function (startDate, endDate, group
     ]);
 };
 
+// Métodos específicos para ventas físicas y gestión omnicanal
+
+// Método para procesar venta física y ajustar stock
+orderSchema.methods.processPhysicalSale = async function (cashierInfo = {}) {
+    try {
+        // Actualizar información de venta física
+        this.salesChannel = 'physical_store';
+        this.physicalSale = {
+            storeLocation: cashierInfo.storeLocation || 'Tienda Principal',
+            cashierId: cashierInfo.cashierId,
+            cashierName: cashierInfo.cashierName || 'Cajero',
+            registerNumber: cashierInfo.registerNumber || 'Caja 1',
+            receiptNumber: cashierInfo.receiptNumber || `REC-${Date.now()}`
+        };
+
+        // Marcar como pagado inmediatamente para ventas físicas
+        this.paymentStatus = 'paid';
+        this.status = 'processing';
+
+        // Ajustar stock físico para cada item
+        const Inventory = mongoose.model('Inventory');
+        const stockAdjustments = [];
+
+        for (const item of this.items) {
+            try {
+                const inventory = await Inventory.findOne({ product: item.product });
+                if (inventory) {
+                    // Reducir stock físico
+                    await inventory.sellFromChannel(item.quantity, 'physical');
+                    stockAdjustments.push({
+                        productId: item.product,
+                        quantity: item.quantity,
+                        channel: 'physical',
+                        success: true
+                    });
+                } else {
+                    stockAdjustments.push({
+                        productId: item.product,
+                        quantity: item.quantity,
+                        channel: 'physical',
+                        success: false,
+                        error: 'Inventario no encontrado'
+                    });
+                }
+            } catch (error) {
+                stockAdjustments.push({
+                    productId: item.product,
+                    quantity: item.quantity,
+                    channel: 'physical',
+                    success: false,
+                    error: error.message
+                });
+            }
+        }
+
+        // Guardar la orden
+        await this.save();
+
+        return {
+            success: true,
+            orderId: this._id,
+            orderNumber: this.orderNumber,
+            stockAdjustments,
+            message: 'Venta física procesada y stock ajustado'
+        };
+
+    } catch (error) {
+        console.error('Error processing physical sale:', error);
+        throw new Error(`Error al procesar venta física: ${error.message}`);
+    }
+};
+
+// Método estático para obtener estadísticas de ventas por canal
+orderSchema.statics.getSalesChannelStats = function (startDate, endDate) {
+    const matchStage = {
+        createdAt: {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate)
+        },
+        status: { $ne: 'cancelled' }
+    };
+
+    return this.aggregate([
+        { $match: matchStage },
+        {
+            $group: {
+                _id: '$salesChannel',
+                totalOrders: { $sum: 1 },
+                totalRevenue: { $sum: '$total' },
+                totalItems: { $sum: { $sum: '$items.quantity' } },
+                averageOrderValue: { $avg: '$total' }
+            }
+        },
+        { $sort: { totalRevenue: -1 } }
+    ]);
+};
+
+// Método estático para obtener ventas físicas
+orderSchema.statics.getPhysicalSales = function (filters = {}) {
+    const query = {
+        salesChannel: 'physical_store',
+        ...filters
+    };
+
+    return this.find(query)
+        .populate('user', 'firstName lastName email')
+        .populate('items.product', 'name brand price')
+        .populate('physicalSale.cashierId', 'firstName lastName')
+        .sort({ createdAt: -1 });
+};
+
+// Método para verificar si es una venta física
+orderSchema.methods.isPhysicalSale = function () {
+    return this.salesChannel === 'physical_store';
+};
+
+// Método para obtener información del cajero
+orderSchema.methods.getCashierInfo = function () {
+    if (!this.isPhysicalSale()) {
+        return null;
+    }
+
+    return {
+        cashierId: this.physicalSale.cashierId,
+        cashierName: this.physicalSale.cashierName,
+        registerNumber: this.physicalSale.registerNumber,
+        storeLocation: this.physicalSale.storeLocation,
+        receiptNumber: this.physicalSale.receiptNumber
+    };
+};
+
 // Índices para optimizar consultas
 // orderNumber ya tiene índice único definido en el schema
 orderSchema.index({ user: 1 });
@@ -793,6 +954,9 @@ orderSchema.index({ 'shippingAddress.city': 1 });
 orderSchema.index({ 'shippingAddress.state': 1 });
 orderSchema.index({ 'shippingAddress.country': 1 });
 orderSchema.index({ paymentMethod: 1 });
+orderSchema.index({ salesChannel: 1 });
+orderSchema.index({ 'physicalSale.cashierId': 1 });
+orderSchema.index({ 'physicalSale.storeLocation': 1 });
 orderSchema.index({ total: 1 });
 orderSchema.index({ processedBy: 1 });
 orderSchema.index({ shippedAt: -1 });
@@ -815,6 +979,12 @@ orderSchema.index({
     status: 1,
     paymentStatus: 1
 });
+
+// Índices compuestos para ventas omnicanales
+orderSchema.index({ salesChannel: 1, createdAt: -1 });
+orderSchema.index({ salesChannel: 1, status: 1 });
+orderSchema.index({ 'physicalSale.cashierId': 1, createdAt: -1 });
+orderSchema.index({ 'physicalSale.storeLocation': 1, createdAt: -1 });
 
 const Order = mongoose.model('Order', orderSchema);
 

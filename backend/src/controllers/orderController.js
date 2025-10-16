@@ -836,20 +836,20 @@ export async function getOrderStatus(req, res) {
             currentStatus: order.statusFormatted,
             paymentStatus: order.paymentStatusFormatted,
             progress: Math.round(progress),
-            
+
             // Información de tracking
             trackingNumber: order.trackingNumber || null,
             carrier: order.carrier || null,
             trackingUrl: order.trackingUrl || null,
             estimatedDeliveryDate: order.estimatedDeliveryDate || null,
-            
+
             // Fechas importantes
             createdAt: order.createdAt,
             processedAt: order.processedAt,
             shippedAt: order.shippedAt,
             deliveredAt: order.deliveredAt,
             cancelledAt: order.cancelledAt,
-            
+
             // Historial completo de estados
             statusHistory: order.statusHistory.map(entry => ({
                 status: entry.status,
@@ -859,7 +859,7 @@ export async function getOrderStatus(req, res) {
                 notes: entry.notes,
                 location: entry.location
             })),
-            
+
             // Información del pedido
             items: order.items.map(item => ({
                 productId: item.product?._id || null,
@@ -869,9 +869,9 @@ export async function getOrderStatus(req, res) {
                 quantity: item.quantity,
                 price: item.price
             })),
-            
+
             total: order.total,
-            
+
             // Dirección de envío
             shippingAddress: order.shippingAddress ? {
                 fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
@@ -881,10 +881,10 @@ export async function getOrderStatus(req, res) {
                 zipCode: order.shippingAddress.zipCode,
                 phone: order.shippingAddress.phone
             } : null,
-            
+
             // Próximo estado esperado
             nextStatus: getNextExpectedStatus(order.status, order.paymentStatus),
-            
+
             // Mensaje para el cliente
             customerMessage: getCustomerMessage(order)
         };
@@ -920,17 +920,17 @@ function getNextExpectedStatus(currentStatus, paymentStatus) {
     if (currentStatus === 'cancelled' || currentStatus === 'delivered') {
         return null; // Estados finales
     }
-    
+
     if (currentStatus === 'pending' && paymentStatus !== 'paid') {
         return 'Esperando confirmación de pago';
     }
-    
+
     const nextSteps = {
         'pending': 'En Proceso',
         'processing': 'Enviada',
         'shipped': 'Entregada'
     };
-    
+
     return nextSteps[currentStatus] || null;
 }
 
@@ -951,5 +951,362 @@ function getCustomerMessage(order) {
             return `Tu pedido ha sido cancelado. ${order.cancellationReason || 'Contáctanos si tienes dudas.'}`;
         default:
             return 'Información de tu pedido';
+    }
+}
+
+// ==================== CONTROLADORES PARA VENTAS FÍSICAS ====================
+
+// Crear orden para venta física
+export async function createPhysicalSale(req, res) {
+    try {
+        const {
+            items,
+            customerInfo,
+            cashierInfo,
+            paymentMethod = 'cash',
+            notes = ''
+        } = req.body;
+
+        // Validar datos requeridos
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Los items de la venta son requeridos'
+            });
+        }
+
+        if (!customerInfo || !customerInfo.firstName || !customerInfo.lastName) {
+            return res.status(400).json({
+                success: false,
+                error: 'La información del cliente es requerida'
+            });
+        }
+
+        // Validar que los productos existan y tengan stock
+        const productIds = items.map(item => item.product);
+        const products = await Product.find({ _id: { $in: productIds } });
+
+        if (products.length !== productIds.length) {
+            return res.status(400).json({
+                success: false,
+                error: 'Uno o más productos no existen'
+            });
+        }
+
+        // Verificar stock físico disponible
+        const stockChecks = [];
+        for (const item of items) {
+            const inventory = await Inventory.findOne({ product: item.product });
+            if (!inventory) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Inventario no encontrado para el producto ${item.product}`
+                });
+            }
+
+            if (inventory.channels.physical.stock < item.quantity) {
+                stockChecks.push({
+                    productId: item.product,
+                    requested: item.quantity,
+                    available: inventory.channels.physical.stock,
+                    insufficient: true
+                });
+            }
+        }
+
+        if (stockChecks.some(check => check.insufficient)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Stock físico insuficiente para algunos productos',
+                stockIssues: stockChecks.filter(check => check.insufficient)
+            });
+        }
+
+        // Crear usuario temporal si no existe
+        let customer;
+        if (customerInfo.email) {
+            customer = await User.findOne({ email: customerInfo.email });
+            if (!customer) {
+                // Crear usuario temporal para venta física
+                customer = new User({
+                    firstName: customerInfo.firstName,
+                    lastName: customerInfo.lastName,
+                    email: customerInfo.email,
+                    phone: customerInfo.phone,
+                    role: 'customer',
+                    isTemporary: true, // Marcar como usuario temporal
+                    createdBy: req.user.id
+                });
+                await customer.save();
+            }
+        } else {
+            // Usuario anónimo para ventas físicas sin email
+            customer = new User({
+                firstName: customerInfo.firstName,
+                lastName: customerInfo.lastName,
+                phone: customerInfo.phone,
+                role: 'customer',
+                isTemporary: true,
+                isAnonymous: true,
+                createdBy: req.user.id
+            });
+            await customer.save();
+        }
+
+        // Calcular totales
+        let subtotal = 0;
+        const orderItems = [];
+
+        for (const item of items) {
+            const product = products.find(p => p._id.toString() === item.product);
+            const itemSubtotal = product.price * item.quantity;
+
+            orderItems.push({
+                product: item.product,
+                quantity: item.quantity,
+                price: product.price,
+                subtotal: itemSubtotal
+            });
+
+            subtotal += itemSubtotal;
+        }
+
+        const tax = subtotal * 0.19; // IVA 19%
+        const total = subtotal + tax;
+
+        // Crear la orden
+        const order = new Order({
+            user: customer._id,
+            items: orderItems,
+            subtotal,
+            tax,
+            shipping: 0, // Sin envío para ventas físicas
+            total,
+            paymentMethod,
+            salesChannel: 'physical_store',
+            physicalSale: {
+                storeLocation: cashierInfo.storeLocation || 'Tienda Principal',
+                cashierId: req.user.id,
+                cashierName: cashierInfo.cashierName || req.user.firstName + ' ' + req.user.lastName,
+                registerNumber: cashierInfo.registerNumber || 'Caja 1',
+                receiptNumber: cashierInfo.receiptNumber || `REC-${Date.now()}`
+            },
+            shippingAddress: {
+                firstName: customerInfo.firstName,
+                lastName: customerInfo.lastName,
+                street: customerInfo.address || 'Retiro en tienda',
+                city: customerInfo.city || 'Ciudad',
+                state: customerInfo.state || 'Estado',
+                zipCode: customerInfo.zipCode || '00000',
+                country: customerInfo.country || 'Colombia',
+                phone: customerInfo.phone || ''
+            },
+            notes: notes,
+            paymentStatus: 'paid', // Pagado inmediatamente
+            status: 'processing'
+        });
+
+        // Procesar la venta física y ajustar stock
+        const result = await order.processPhysicalSale(cashierInfo);
+
+        // Enviar notificación si el cliente tiene email
+        if (customer.email && !customer.isAnonymous) {
+            try {
+                await notificationService.sendOrderConfirmation(customer.email, {
+                    orderNumber: order.orderNumber,
+                    total: order.total,
+                    items: orderItems,
+                    salesChannel: 'physical_store'
+                });
+            } catch (notificationError) {
+                console.warn('Error enviando notificación de venta física:', notificationError.message);
+            }
+        }
+
+        res.status(201).json({
+            success: true,
+            message: 'Venta física registrada exitosamente',
+            data: {
+                order: order.toObject(),
+                stockAdjustments: result.stockAdjustments,
+                customer: {
+                    id: customer._id,
+                    name: `${customer.firstName} ${customer.lastName}`,
+                    email: customer.email,
+                    phone: customer.phone
+                },
+                cashier: {
+                    id: req.user.id,
+                    name: `${req.user.firstName} ${req.user.lastName}`
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error creating physical sale:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al registrar venta física'
+        });
+    }
+}
+
+// Obtener ventas físicas
+export async function getPhysicalSales(req, res) {
+    try {
+        const {
+            startDate,
+            endDate,
+            cashierId,
+            storeLocation,
+            limit = 50,
+            page = 1
+        } = req.query;
+
+        // Construir filtros
+        const filters = {};
+
+        if (startDate && endDate) {
+            filters.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
+
+        if (cashierId) {
+            filters['physicalSale.cashierId'] = cashierId;
+        }
+
+        if (storeLocation) {
+            filters['physicalSale.storeLocation'] = storeLocation;
+        }
+
+        // Configurar paginación
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Obtener ventas físicas
+        const physicalSales = await Order.getPhysicalSales(filters)
+            .skip(skip)
+            .limit(limitNum);
+
+        const totalCount = await Order.countDocuments({
+            salesChannel: 'physical_store',
+            ...filters
+        });
+
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        res.json({
+            success: true,
+            count: physicalSales.length,
+            totalCount,
+            data: physicalSales,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1,
+                limit: limitNum
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting physical sales:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener ventas físicas'
+        });
+    }
+}
+
+// Obtener estadísticas de ventas por canal
+export async function getSalesChannelStats(req, res) {
+    try {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Las fechas de inicio y fin son requeridas'
+            });
+        }
+
+        const stats = await Order.getSalesChannelStats(startDate, endDate);
+
+        // Calcular totales generales
+        const totals = stats.reduce((acc, stat) => {
+            acc.totalOrders += stat.totalOrders;
+            acc.totalRevenue += stat.totalRevenue;
+            acc.totalItems += stat.totalItems;
+            return acc;
+        }, { totalOrders: 0, totalRevenue: 0, totalItems: 0 });
+
+        res.json({
+            success: true,
+            data: {
+                channelStats: stats,
+                totals,
+                period: {
+                    startDate,
+                    endDate
+                },
+                lastUpdated: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting sales channel stats:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener estadísticas de canales de venta'
+        });
+    }
+}
+
+// Obtener información de una venta física específica
+export async function getPhysicalSaleById(req, res) {
+    try {
+        const { id } = req.params;
+
+        const order = await Order.findById(id)
+            .populate('user', 'firstName lastName email phone')
+            .populate('items.product', 'name brand price imageUrl')
+            .populate('physicalSale.cashierId', 'firstName lastName email');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'Orden no encontrada'
+            });
+        }
+
+        if (!order.isPhysicalSale()) {
+            return res.status(400).json({
+                success: false,
+                error: 'Esta no es una venta física'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: {
+                order: order.toObject(),
+                cashierInfo: order.getCashierInfo(),
+                isPhysicalSale: order.isPhysicalSale()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting physical sale by id:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener venta física'
+        });
     }
 }

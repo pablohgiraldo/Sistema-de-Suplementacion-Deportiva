@@ -750,3 +750,530 @@ export async function getInventoryAlerts(req, res) {
         });
     }
 }
+
+// ==================== MÉTODOS OMNICANALES ====================
+
+// Obtener discrepancias entre canales
+export async function getChannelDiscrepancies(req, res) {
+    try {
+        const { limit = 50, page = 1 } = req.query;
+
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        const discrepancies = await Inventory.getChannelDiscrepancies()
+            .skip(skip)
+            .limit(limitNum)
+            .sort({ 'channels.physical.lastUpdated': -1 });
+
+        const totalCount = await Inventory.countDocuments({
+            $expr: {
+                $ne: ['$channels.physical.stock', '$channels.digital.stock']
+            },
+            status: 'active'
+        });
+
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        res.json({
+            success: true,
+            count: discrepancies.length,
+            totalCount,
+            data: discrepancies.map(item => ({
+                ...item.toObject(),
+                channelDifferences: item.getChannelDifferences()
+            })),
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1,
+                limit: limitNum
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting channel discrepancies:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener discrepancias entre canales'
+        });
+    }
+}
+
+// Actualizar stock físico
+export async function updatePhysicalStock(req, res) {
+    try {
+        const { id } = req.params;
+        const { quantity, location } = req.body;
+
+        if (!quantity && quantity !== 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad es obligatoria'
+            });
+        }
+
+        const inventory = await Inventory.findById(id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                message: 'Inventario no encontrado'
+            });
+        }
+
+        await inventory.updatePhysicalStock(quantity, location);
+
+        res.json({
+            success: true,
+            message: 'Stock físico actualizado correctamente',
+            data: {
+                inventory: inventory.toObject(),
+                channelDifferences: inventory.getChannelDifferences()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error updating physical stock:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al actualizar stock físico'
+        });
+    }
+}
+
+// Actualizar stock digital
+export async function updateDigitalStock(req, res) {
+    try {
+        const { id } = req.params;
+        const { quantity, platform = 'website' } = req.body;
+
+        if (!quantity && quantity !== 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad es obligatoria'
+            });
+        }
+
+        const inventory = await Inventory.findById(id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                message: 'Inventario no encontrado'
+            });
+        }
+
+        await inventory.updateDigitalStock(quantity, platform);
+
+        res.json({
+            success: true,
+            message: 'Stock digital actualizado correctamente',
+            data: {
+                inventory: inventory.toObject(),
+                channelDifferences: inventory.getChannelDifferences()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error updating digital stock:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al actualizar stock digital'
+        });
+    }
+}
+
+// Sincronizar canales
+export async function syncChannels(req, res) {
+    try {
+        const { id } = req.params;
+
+        const inventory = await Inventory.findById(id);
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                message: 'Inventario no encontrado'
+            });
+        }
+
+        await inventory.syncChannels();
+
+        res.json({
+            success: true,
+            message: 'Canales sincronizados correctamente',
+            data: {
+                inventory: inventory.toObject(),
+                channelDifferences: inventory.getChannelDifferences()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error syncing channels:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al sincronizar canales'
+        });
+    }
+}
+
+// Obtener estadísticas omnicanales
+export async function getOmnichannelStats(req, res) {
+    try {
+        const stats = await Inventory.getOmnichannelStats();
+        const result = stats[0] || {
+            totalProducts: 0,
+            totalPhysicalStock: 0,
+            totalDigitalStock: 0,
+            totalStock: 0,
+            productsWithDiscrepancies: 0,
+            productsPendingSync: 0,
+            productsWithSyncErrors: 0
+        };
+
+        // Calcular porcentajes
+        const discrepancyRate = result.totalProducts > 0
+            ? (result.productsWithDiscrepancies / result.totalProducts * 100).toFixed(2)
+            : 0;
+
+        const syncErrorRate = result.totalProducts > 0
+            ? (result.productsWithSyncErrors / result.totalProducts * 100).toFixed(2)
+            : 0;
+
+        res.json({
+            success: true,
+            data: {
+                ...result,
+                discrepancyRate: parseFloat(discrepancyRate),
+                syncErrorRate: parseFloat(syncErrorRate),
+                lastUpdated: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting omnichannel stats:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener estadísticas omnicanales'
+        });
+    }
+}
+
+// Obtener productos con stock físico bajo
+export async function getLowPhysicalStockProducts(req, res) {
+    try {
+        const { limit = 50, page = 1 } = req.query;
+
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        const products = await Inventory.getLowPhysicalStockProducts()
+            .skip(skip)
+            .limit(limitNum)
+            .sort({ 'channels.physical.stock': 1 });
+
+        const totalCount = await Inventory.countDocuments({
+            $expr: { $lte: ['$channels.physical.stock', '$minStock'] },
+            status: 'active'
+        });
+
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        res.json({
+            success: true,
+            count: products.length,
+            totalCount,
+            data: products,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1,
+                limit: limitNum
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting low physical stock products:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener productos con stock físico bajo'
+        });
+    }
+}
+
+// Obtener productos con stock digital bajo
+export async function getLowDigitalStockProducts(req, res) {
+    try {
+        const { limit = 50, page = 1 } = req.query;
+
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        const products = await Inventory.getLowDigitalStockProducts()
+            .skip(skip)
+            .limit(limitNum)
+            .sort({ 'channels.digital.stock': 1 });
+
+        const totalCount = await Inventory.countDocuments({
+            $expr: { $lte: ['$channels.digital.stock', '$minStock'] },
+            status: 'active'
+        });
+
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        res.json({
+            success: true,
+            count: products.length,
+            totalCount,
+            data: products,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1,
+                limit: limitNum
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting low digital stock products:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener productos con stock digital bajo'
+        });
+    }
+}
+
+// Obtener productos pendientes de sincronización
+export async function getPendingSyncProducts(req, res) {
+    try {
+        const { limit = 50, page = 1 } = req.query;
+
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const skip = (pageNum - 1) * limitNum;
+
+        const products = await Inventory.getPendingSyncProducts()
+            .skip(skip)
+            .limit(limitNum)
+            .sort({ 'channels.physical.lastUpdated': -1 });
+
+        const totalCount = await Inventory.countDocuments({
+            $or: [
+                { 'channels.physical.syncStatus': 'pending' },
+                { 'channels.digital.syncStatus': 'pending' }
+            ],
+            status: 'active'
+        });
+
+        const totalPages = Math.ceil(totalCount / limitNum);
+
+        res.json({
+            success: true,
+            count: products.length,
+            totalCount,
+            data: products.map(item => ({
+                ...item.toObject(),
+                channelDifferences: item.getChannelDifferences()
+            })),
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1,
+                limit: limitNum
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting pending sync products:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al obtener productos pendientes de sincronización'
+        });
+    }
+}
+
+// Sincronizar todos los canales (endpoint principal /api/inventory/sync)
+export async function syncAllChannels(req, res) {
+    try {
+        const {
+            force = false,
+            channel = 'both',
+            dryRun = false,
+            batchSize = 50
+        } = req.body;
+
+        console.log(`🔄 Iniciando sincronización omnicanal - Canal: ${channel}, Forzar: ${force}, Dry Run: ${dryRun}`);
+
+        // Obtener productos que necesitan sincronización
+        let query = {};
+
+        if (!force) {
+            query = {
+                $or: [
+                    { 'channels.physical.syncStatus': 'pending' },
+                    { 'channels.digital.syncStatus': 'pending' },
+                    { 'channels.physical.syncStatus': 'error' },
+                    { 'channels.digital.syncStatus': 'error' }
+                ],
+                status: 'active'
+            };
+        } else {
+            query = { status: 'active' };
+        }
+
+        const totalProducts = await Inventory.countDocuments(query);
+
+        if (totalProducts === 0) {
+            return res.json({
+                success: true,
+                message: 'No hay productos que requieran sincronización',
+                data: {
+                    totalProcessed: 0,
+                    synced: 0,
+                    errors: 0,
+                    discrepancies: 0,
+                    dryRun
+                }
+            });
+        }
+
+        const batchSizeNum = Math.min(100, Math.max(1, parseInt(batchSize) || 50));
+        const totalBatches = Math.ceil(totalProducts / batchSizeNum);
+
+        let processed = 0;
+        let synced = 0;
+        let errors = 0;
+        let discrepancies = 0;
+        const errorDetails = [];
+        const discrepancyDetails = [];
+
+        // Procesar en lotes
+        for (let batch = 0; batch < totalBatches; batch++) {
+            const skip = batch * batchSizeNum;
+            const inventories = await Inventory.find(query)
+                .skip(skip)
+                .limit(batchSizeNum)
+                .populate('product', 'name brand');
+
+            for (const inventory of inventories) {
+                try {
+                    processed++;
+
+                    // Obtener diferencias antes de sincronizar
+                    const differences = inventory.getChannelDifferences();
+
+                    if (differences.hasDiscrepancy) {
+                        discrepancies++;
+                        discrepancyDetails.push({
+                            productId: inventory.product._id,
+                            productName: inventory.product.name,
+                            physicalStock: differences.physicalStock,
+                            digitalStock: differences.digitalStock,
+                            difference: differences.difference
+                        });
+                    }
+
+                    if (!dryRun) {
+                        // Aplicar estrategia de sincronización según el canal
+                        if (channel === 'physical' || channel === 'both') {
+                            // Sincronizar digital hacia físico
+                            if (differences.digitalStock !== differences.physicalStock) {
+                                await inventory.updatePhysicalStock(differences.digitalStock);
+                            }
+                        }
+
+                        if (channel === 'digital' || channel === 'both') {
+                            // Sincronizar físico hacia digital
+                            if (differences.physicalStock !== differences.digitalStock) {
+                                await inventory.updateDigitalStock(differences.physicalStock);
+                            }
+                        }
+
+                        // Marcar como sincronizado
+                        await inventory.syncChannels();
+                        synced++;
+                    } else {
+                        // En modo dry run, solo contar
+                        synced++;
+                    }
+
+                } catch (error) {
+                    errors++;
+                    errorDetails.push({
+                        productId: inventory.product._id,
+                        productName: inventory.product.name,
+                        error: error.message
+                    });
+                    console.error(`Error sincronizando producto ${inventory.product.name}:`, error.message);
+                }
+            }
+
+            // Pequeña pausa entre lotes para no sobrecargar la BD
+            if (batch < totalBatches - 1) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        // Obtener estadísticas finales
+        const finalStats = await Inventory.getOmnichannelStats();
+        const finalResult = finalStats[0] || {};
+
+        const response = {
+            success: true,
+            message: dryRun
+                ? `Dry run completado: ${processed} productos analizados`
+                : `Sincronización completada: ${synced} productos sincronizados`,
+            data: {
+                totalProcessed: processed,
+                synced,
+                errors,
+                discrepancies,
+                dryRun,
+                channel,
+                batchSize: batchSizeNum,
+                totalBatches,
+                finalStats: {
+                    totalProducts: finalResult.totalProducts || 0,
+                    productsWithDiscrepancies: finalResult.productsWithDiscrepancies || 0,
+                    productsPendingSync: finalResult.productsPendingSync || 0,
+                    productsWithSyncErrors: finalResult.productsWithSyncErrors || 0
+                },
+                errorDetails: errors > 0 ? errorDetails : undefined,
+                discrepancyDetails: discrepancies > 0 ? discrepancyDetails : undefined
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        // Log del resultado
+        console.log(`✅ Sincronización omnicanal completada:`, {
+            processed,
+            synced,
+            errors,
+            discrepancies,
+            dryRun
+        });
+
+        res.json(response);
+
+    } catch (error) {
+        console.error('Error in sync all channels:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: 'Error al sincronizar todos los canales'
+        });
+    }
+}

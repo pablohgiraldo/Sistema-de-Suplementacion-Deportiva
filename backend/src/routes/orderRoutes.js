@@ -10,7 +10,12 @@ import {
     getTopSellingProducts,
     getOrdersSummary,
     cancelOrder,
-    getOrderStatus
+    getOrderStatus,
+    // Controladores para ventas físicas
+    createPhysicalSale,
+    getPhysicalSales,
+    getSalesChannelStats,
+    getPhysicalSaleById
 } from '../controllers/orderController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
@@ -144,6 +149,45 @@ router.get('/reports/top-products',
     requireAdmin,
     validateGetTopSellingProducts,
     getTopSellingProducts
+);
+
+// ==================== RUTAS PARA VENTAS FÍSICAS ====================
+
+// Crear venta física (solo administradores)
+router.post('/physical-sale',
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    requireAdmin,
+    adminRateLimit,
+    createPhysicalSale
+);
+
+// Obtener ventas físicas (solo administradores)
+router.get('/physical-sales',
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    requireAdmin,
+    getPhysicalSales
+);
+
+// Obtener estadísticas de canales de venta (solo administradores)
+router.get('/channel-stats',
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    requireAdmin,
+    getSalesChannelStats
+);
+
+// Obtener venta física específica (solo administradores)
+router.get('/physical-sale/:id',
+    authMiddleware,
+    tokenExpirationMiddleware,
+    tokenRefreshSuggestionMiddleware,
+    requireAdmin,
+    getPhysicalSaleById
 );
 
 export default router;
