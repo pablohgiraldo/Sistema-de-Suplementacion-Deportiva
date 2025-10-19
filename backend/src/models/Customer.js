@@ -132,6 +132,49 @@ const contactInfoSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
+// Sub-schema para transacciones de puntos de lealtad
+const loyaltyTransactionSchema = new mongoose.Schema({
+    type: {
+        type: String,
+        enum: ['earned', 'redeemed', 'expired', 'adjusted'],
+        required: true
+    },
+    points: {
+        type: Number,
+        required: true
+    },
+    reason: {
+        type: String,
+        required: true,
+        maxlength: 500
+    },
+    orderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        default: null
+    },
+    balanceBefore: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    balanceAfter: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    expirationDate: {
+        type: Date,
+        default: null
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    }
+}, {
+    timestamps: true
+});
+
 // Schema principal de Customer
 const customerSchema = new mongoose.Schema({
     // Referencia al usuario base
@@ -176,6 +219,18 @@ const customerSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         min: 0
+    },
+
+    // Historial de transacciones de puntos de lealtad
+    loyaltyTransactions: {
+        type: [loyaltyTransactionSchema],
+        default: []
+    },
+
+    // Fecha de vencimiento de puntos (opcional, puede ser global o por transacción)
+    loyaltyPointsExpirationDate: {
+        type: Date,
+        default: null
     },
 
     // Preferencias del cliente
@@ -423,6 +478,220 @@ customerSchema.methods.updateLoyaltyLevel = function () {
     } else {
         this.loyaltyLevel = 'Bronce';
     }
+};
+
+// ==================== MÉTODOS DE LEALTAD ====================
+
+// Método para acumular puntos por compra
+customerSchema.methods.earnLoyaltyPoints = function (orderTotal, orderId = null, reason = 'Compra') {
+    // Configuración: 1 punto por cada $1 USD gastado (ajustar según negocio)
+    const pointsPerDollar = 1;
+    const pointsEarned = Math.floor(orderTotal * pointsPerDollar);
+
+    if (pointsEarned <= 0) {
+        return { success: false, message: 'No se acumularon puntos', pointsEarned: 0 };
+    }
+
+    const balanceBefore = this.loyaltyPoints;
+    this.loyaltyPoints += pointsEarned;
+    const balanceAfter = this.loyaltyPoints;
+
+    // Calcular fecha de expiración (1 año desde hoy, ajustar según política)
+    const expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+
+    // Registrar transacción
+    this.loyaltyTransactions.unshift({
+        type: 'earned',
+        points: pointsEarned,
+        reason: `${reason} - $${orderTotal.toFixed(2)} USD`,
+        orderId,
+        balanceBefore,
+        balanceAfter,
+        expirationDate,
+        metadata: {
+            orderTotal,
+            conversionRate: pointsPerDollar
+        }
+    });
+
+    // Mantener historial limitado (últimas 50 transacciones)
+    if (this.loyaltyTransactions.length > 50) {
+        this.loyaltyTransactions = this.loyaltyTransactions.slice(0, 50);
+    }
+
+    return {
+        success: true,
+        message: `¡Ganaste ${pointsEarned} puntos!`,
+        pointsEarned,
+        newBalance: balanceAfter
+    };
+};
+
+// Método para canjear puntos
+customerSchema.methods.redeemLoyaltyPoints = function (pointsToRedeem, orderId = null, reason = 'Canje en compra') {
+    if (pointsToRedeem <= 0) {
+        return { success: false, message: 'Cantidad de puntos inválida', discount: 0 };
+    }
+
+    if (this.loyaltyPoints < pointsToRedeem) {
+        return {
+            success: false,
+            message: `Puntos insuficientes. Disponibles: ${this.loyaltyPoints}, Solicitados: ${pointsToRedeem}`,
+            discount: 0
+        };
+    }
+
+    const balanceBefore = this.loyaltyPoints;
+    this.loyaltyPoints -= pointsToRedeem;
+    const balanceAfter = this.loyaltyPoints;
+
+    // Configuración: 1 punto = $0.01 USD de descuento (ajustar según negocio)
+    const dollarValuePerPoint = 0.01;
+    const discountAmount = pointsToRedeem * dollarValuePerPoint;
+
+    // Registrar transacción
+    this.loyaltyTransactions.unshift({
+        type: 'redeemed',
+        points: -pointsToRedeem,
+        reason: `${reason} - Descuento: $${discountAmount.toFixed(2)} USD`,
+        orderId,
+        balanceBefore,
+        balanceAfter,
+        expirationDate: null,
+        metadata: {
+            discountAmount,
+            conversionRate: dollarValuePerPoint
+        }
+    });
+
+    // Mantener historial limitado
+    if (this.loyaltyTransactions.length > 50) {
+        this.loyaltyTransactions = this.loyaltyTransactions.slice(0, 50);
+    }
+
+    return {
+        success: true,
+        message: `Canjeaste ${pointsToRedeem} puntos por $${discountAmount.toFixed(2)} USD`,
+        pointsRedeemed: pointsToRedeem,
+        discountAmount: Math.round(discountAmount * 100) / 100,
+        newBalance: balanceAfter
+    };
+};
+
+// Método para ajustar puntos manualmente (admin)
+customerSchema.methods.adjustLoyaltyPoints = function (pointsChange, reason = 'Ajuste manual') {
+    const balanceBefore = this.loyaltyPoints;
+    const newBalance = Math.max(0, this.loyaltyPoints + pointsChange);
+    const actualChange = newBalance - balanceBefore;
+
+    this.loyaltyPoints = newBalance;
+
+    if (actualChange !== 0) {
+        this.loyaltyTransactions.unshift({
+            type: 'adjusted',
+            points: actualChange,
+            reason,
+            orderId: null,
+            balanceBefore,
+            balanceAfter: newBalance,
+            expirationDate: null,
+            metadata: {
+                requestedChange: pointsChange,
+                actualChange
+            }
+        });
+
+        // Mantener historial limitado
+        if (this.loyaltyTransactions.length > 50) {
+            this.loyaltyTransactions = this.loyaltyTransactions.slice(0, 50);
+        }
+    }
+
+    return {
+        success: true,
+        message: actualChange > 0
+            ? `Se agregaron ${actualChange} puntos`
+            : `Se removieron ${Math.abs(actualChange)} puntos`,
+        pointsChanged: actualChange,
+        newBalance
+    };
+};
+
+// Método para expirar puntos vencidos
+customerSchema.methods.expireLoyaltyPoints = function () {
+    const now = new Date();
+    let totalExpired = 0;
+
+    // Buscar transacciones de puntos ganados que hayan expirado
+    const expiredTransactions = this.loyaltyTransactions.filter(
+        transaction => transaction.type === 'earned' &&
+            transaction.expirationDate &&
+            transaction.expirationDate < now &&
+            !transaction.metadata?.expired
+    );
+
+    if (expiredTransactions.length > 0) {
+        for (const transaction of expiredTransactions) {
+            // Marcar transacción original como expirada
+            transaction.metadata = { ...transaction.metadata, expired: true };
+
+            // Calcular puntos que realmente expiran (pueden haber sido canjeados parcialmente)
+            const pointsToExpire = Math.min(transaction.points, this.loyaltyPoints);
+            totalExpired += pointsToExpire;
+        }
+
+        if (totalExpired > 0) {
+            const balanceBefore = this.loyaltyPoints;
+            this.loyaltyPoints = Math.max(0, this.loyaltyPoints - totalExpired);
+
+            // Registrar la expiración
+            this.loyaltyTransactions.unshift({
+                type: 'expired',
+                points: -totalExpired,
+                reason: `Expiración de ${expiredTransactions.length} transacción(es)`,
+                orderId: null,
+                balanceBefore,
+                balanceAfter: this.loyaltyPoints,
+                expirationDate: null,
+                metadata: {
+                    expiredTransactionsCount: expiredTransactions.length
+                }
+            });
+        }
+    }
+
+    return {
+        success: true,
+        pointsExpired: totalExpired,
+        transactionsExpired: expiredTransactions.length,
+        newBalance: this.loyaltyPoints
+    };
+};
+
+// Método para obtener resumen de puntos
+customerSchema.methods.getLoyaltyPointsSummary = function () {
+    const totalEarned = this.loyaltyTransactions
+        .filter(t => t.type === 'earned')
+        .reduce((sum, t) => sum + t.points, 0);
+
+    const totalRedeemed = Math.abs(this.loyaltyTransactions
+        .filter(t => t.type === 'redeemed')
+        .reduce((sum, t) => sum + t.points, 0));
+
+    const totalExpired = Math.abs(this.loyaltyTransactions
+        .filter(t => t.type === 'expired')
+        .reduce((sum, t) => sum + t.points, 0));
+
+    return {
+        currentBalance: this.loyaltyPoints,
+        totalEarned,
+        totalRedeemed,
+        totalExpired,
+        totalAdjustments: totalEarned - totalRedeemed - totalExpired - this.loyaltyPoints,
+        recentTransactions: this.loyaltyTransactions.slice(0, 10),
+        valueInDollars: (this.loyaltyPoints * 0.01).toFixed(2) // 1 punto = $0.01
+    };
 };
 
 // Método para agregar interacción al historial
