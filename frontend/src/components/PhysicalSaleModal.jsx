@@ -27,16 +27,22 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
     const [errors, setErrors] = useState({});
     const queryClient = useQueryClient();
 
-    // Obtener productos para el selector
-    const { data: productsData, isLoading: productsLoading } = useQuery({
-        queryKey: ['products-for-sale'],
-        queryFn: async () => {
-            const response = await api.get('/products?limit=1000');
-            return response.data;
-        },
-        staleTime: 5 * 60 * 1000, // 5 minutos
-        retry: 3
-    });
+  // Obtener productos para el selector
+  const { data: productsData, isLoading: productsLoading, error: productsError } = useQuery({
+    queryKey: ['products-for-sale'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/products?limit=1000');
+        console.log('Products API response:', response);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        throw error;
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 3
+  });
 
     // Mutation para crear venta física
     const createPhysicalSaleMutation = useMutation({
@@ -56,14 +62,17 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
     });
 
     const products = productsData?.data || [];
-
+    
     // Debug temporal
     useEffect(() => {
-        if (productsData) {
-            console.log('Products data:', productsData);
-            console.log('Products array:', products);
-        }
-    }, [productsData, products]);
+        console.log('Products debug:', {
+            productsData,
+            products,
+            productsLoading,
+            productsError,
+            productsLength: products?.length
+        });
+    }, [productsData, products, productsLoading, productsError]);
 
     useEffect(() => {
         if (isOpen) {
@@ -268,16 +277,22 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
                                             disabled={productsLoading}
                                         >
                                             <option value="">
-                                                {productsLoading ? 'Cargando productos...' : 'Selecciona un producto'}
+                                                {productsLoading ? 'Cargando productos...' : 
+                                                 productsError ? 'Error al cargar productos' :
+                                                 products.length === 0 ? 'No hay productos disponibles' : 
+                                                 'Selecciona un producto'}
                                             </option>
-                                            {products.length > 0 ? products.map(product => (
+                                            {products.length > 0 && products.map(product => (
                                                 <option key={product._id} value={product._id}>
                                                     {product.name} - ${product.price?.toLocaleString()}
                                                 </option>
-                                            )) : !productsLoading && (
-                                                <option value="" disabled>No hay productos disponibles</option>
-                                            )}
+                                            ))}
                                         </select>
+                                        {productsError && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                Error al cargar productos: {productsError.message}
+                                            </p>
+                                        )}
                                         {errors[`item_${index}_product`] && (
                                             <p className="mt-1 text-sm text-red-600">{errors[`item_${index}_product`]}</p>
                                         )}

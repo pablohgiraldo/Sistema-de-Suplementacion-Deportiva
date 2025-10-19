@@ -15,7 +15,11 @@ const OmnichannelDashboard = () => {
   // Mutation para sincronizar inventario
   const syncInventoryMutation = useMutation({
     mutationFn: async () => {
-      const response = await api.post('/inventory/sync');
+      const response = await api.post('/inventory/sync', {
+        force: true,
+        channel: 'both',
+        dryRun: false
+      });
       return response.data;
     },
     onSuccess: () => {

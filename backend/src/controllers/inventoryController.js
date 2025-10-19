@@ -1113,7 +1113,7 @@ export async function syncAllChannels(req, res) {
             channel = 'both',
             dryRun = false,
             batchSize = 50
-        } = req.body;
+        } = req.body || {};
 
         console.log(`🔄 Iniciando sincronización omnicanal - Canal: ${channel}, Forzar: ${force}, Dry Run: ${dryRun}`);
 
