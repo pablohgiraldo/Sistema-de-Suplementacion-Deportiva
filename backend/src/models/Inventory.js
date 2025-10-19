@@ -319,14 +319,31 @@ inventorySchema.methods.sellStock = function (quantity) {
         throw new Error(`Stock insuficiente. Disponible: ${this.availableStock}, Solicitado: ${quantity}`);
     }
 
-    this.currentStock -= quantity;
+    const newStock = this.currentStock - quantity;
+    
+    // Actualizar stock total
+    this.currentStock = newStock;
     // Solo reducir reservedStock si hay stock reservado
     if (this.reservedStock > 0) {
         this.reservedStock = Math.max(0, this.reservedStock - quantity);
     }
     this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
+    
+    // IMPORTANTE: Sincronizar ambos canales con el stock real
+    this.channels.physical.stock = newStock;
+    this.channels.digital.stock = newStock;
+    
+    // Actualizar timestamps y estado de sincronización
+    const now = new Date();
+    this.channels.physical.lastUpdated = now;
+    this.channels.digital.lastUpdated = now;
+    this.channels.physical.lastSync = now;
+    this.channels.digital.lastSync = now;
+    this.channels.physical.syncStatus = 'synced';
+    this.channels.digital.syncStatus = 'synced';
+    
     this.totalSold += quantity;
-    this.lastSold = new Date();
+    this.lastSold = now;
 
     return this.save();
 };
@@ -335,7 +352,21 @@ inventorySchema.methods.sellStock = function (quantity) {
 inventorySchema.methods.restock = function (quantity, notes = '') {
     this.currentStock += quantity;
     this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
-    this.lastRestocked = new Date();
+    
+    // IMPORTANTE: Sincronizar ambos canales con el stock real
+    this.channels.physical.stock = this.currentStock;
+    this.channels.digital.stock = this.currentStock;
+    
+    // Actualizar timestamps y estado de sincronización
+    const now = new Date();
+    this.channels.physical.lastUpdated = now;
+    this.channels.digital.lastUpdated = now;
+    this.channels.physical.lastSync = now;
+    this.channels.digital.lastSync = now;
+    this.channels.physical.syncStatus = 'synced';
+    this.channels.digital.syncStatus = 'synced';
+    
+    this.lastRestocked = now;
 
     if (notes) {
         this.notes = notes;
@@ -412,26 +443,41 @@ inventorySchema.methods.sellFromChannel = function (quantity, channel = 'physica
         throw new Error(`Stock insuficiente. Disponible: ${this.availableStock}, Solicitado: ${quantity}`);
     }
 
-    // Reducir stock del canal específico
+    // Verificar que el canal específico tenga stock suficiente
     if (channel === 'physical') {
         if (this.channels.physical.stock < quantity) {
             throw new Error(`Stock físico insuficiente. Disponible: ${this.channels.physical.stock}, Solicitado: ${quantity}`);
         }
-        this.channels.physical.stock -= quantity;
-        this.channels.physical.lastUpdated = new Date();
-        this.channels.physical.syncStatus = 'pending';
     } else if (channel === 'digital') {
         if (this.channels.digital.stock < quantity) {
             throw new Error(`Stock digital insuficiente. Disponible: ${this.channels.digital.stock}, Solicitado: ${quantity}`);
         }
-        this.channels.digital.stock -= quantity;
-        this.channels.digital.lastUpdated = new Date();
-        this.channels.digital.syncStatus = 'pending';
     }
+
+    // IMPORTANTE: En un inventario unificado, cuando se vende desde cualquier canal,
+    // ambos canales deben reflejar el mismo stock real del almacén
+    const newStock = this.currentStock - quantity;
+    
+    // Actualizar stock total del inventario
+    this.currentStock = newStock;
+    this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
+    
+    // Sincronizar AMBOS canales al mismo stock (reflejan el mismo inventario físico)
+    this.channels.physical.stock = newStock;
+    this.channels.digital.stock = newStock;
+    
+    // Actualizar timestamps y estado de sincronización
+    const now = new Date();
+    this.channels.physical.lastUpdated = now;
+    this.channels.digital.lastUpdated = now;
+    this.channels.physical.lastSync = now;
+    this.channels.digital.lastSync = now;
+    this.channels.physical.syncStatus = 'synced';
+    this.channels.digital.syncStatus = 'synced';
 
     // Actualizar métricas generales
     this.totalSold += quantity;
-    this.lastSold = new Date();
+    this.lastSold = now;
 
     return this.save();
 };

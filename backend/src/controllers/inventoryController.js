@@ -1198,23 +1198,30 @@ export async function syncAllChannels(req, res) {
                     }
 
                     if (!dryRun) {
-                        // Aplicar estrategia de sincronización según el canal
-                        if (channel === 'physical' || channel === 'both') {
-                            // Sincronizar digital hacia físico
-                            if (differences.digitalStock !== differences.physicalStock) {
-                                await inventory.updatePhysicalStock(differences.digitalStock);
+                        // CORRECCIÓN: En un inventario unificado, ambos canales deben reflejar el stock real
+                        // No hay transferencia entre canales, sino sincronización al stock actual real
+                        if (differences.hasDiscrepancy) {
+                            // Obtener el documento actualizado del inventario
+                            const inventoryDoc = await Inventory.findById(inventory._id);
+                            if (inventoryDoc) {
+                                // Sincronizar ambos canales al stock total (que es la realidad física)
+                                const realStock = inventoryDoc.currentStock;
+                                inventoryDoc.channels.physical.stock = realStock;
+                                inventoryDoc.channels.digital.stock = realStock;
+                                
+                                // Marcar como sincronizado
+                                const now = new Date();
+                                inventoryDoc.channels.physical.lastSync = now;
+                                inventoryDoc.channels.digital.lastSync = now;
+                                inventoryDoc.channels.physical.lastUpdated = now;
+                                inventoryDoc.channels.digital.lastUpdated = now;
+                                inventoryDoc.channels.physical.syncStatus = 'synced';
+                                inventoryDoc.channels.digital.syncStatus = 'synced';
+                                
+                                await inventoryDoc.save();
                             }
                         }
 
-                        if (channel === 'digital' || channel === 'both') {
-                            // Sincronizar físico hacia digital
-                            if (differences.physicalStock !== differences.digitalStock) {
-                                await inventory.updateDigitalStock(differences.physicalStock);
-                            }
-                        }
-
-                        // Marcar como sincronizado
-                        await inventory.syncChannels();
                         synced++;
                     } else {
                         // En modo dry run, solo contar
