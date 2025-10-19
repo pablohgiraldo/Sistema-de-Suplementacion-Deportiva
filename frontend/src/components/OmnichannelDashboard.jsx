@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useOmnichannelDashboard, useRealTimeMetrics, useExecutiveSummary } from '../hooks/useOmnichannelDashboard';
 import LoadingSpinner from './LoadingSpinner';
@@ -11,6 +11,23 @@ const OmnichannelDashboard = () => {
   const { data: realtimeData, isLoading: realtimeLoading } = useRealTimeMetrics();
   const { data: executiveData, isLoading: executiveLoading } = useExecutiveSummary();
   const [showPhysicalSaleModal, setShowPhysicalSaleModal] = useState(false);
+
+  // Listener para actualizaciones de inventario (reabastecimiento, etc.)
+  useEffect(() => {
+    const handleInventoryUpdate = (event) => {
+      console.log('Inventory update detected:', event.detail);
+      // Invalidar todas las queries del dashboard para refrescar datos
+      queryClient.invalidateQueries(['omnichannel-dashboard']);
+      queryClient.invalidateQueries(['realtime-metrics']);
+      queryClient.invalidateQueries(['executive-summary']);
+    };
+
+    window.addEventListener('inventoryUpdated', handleInventoryUpdate);
+    
+    return () => {
+      window.removeEventListener('inventoryUpdated', handleInventoryUpdate);
+    };
+  }, [queryClient]);
 
   // Mutation para sincronizar inventario
   const syncInventoryMutation = useMutation({

@@ -32,9 +32,28 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
     queryKey: ['products-for-sale'],
     queryFn: async () => {
       try {
-        const response = await api.get('/products?limit=1000');
-        console.log('Products API response:', response);
-        return response.data;
+        let allProducts = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const response = await api.get(`/products?limit=100&page=${page}`);
+          console.log('Products API response page', page, ':', response);
+          
+          if (response.data.success && response.data.data.length > 0) {
+            allProducts = allProducts.concat(response.data.data);
+            hasMore = response.data.data.length === 100;
+            page++;
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        return {
+          success: true,
+          data: allProducts,
+          totalCount: allProducts.length
+        };
       } catch (error) {
         console.error('Error fetching products:', error);
         throw error;
