@@ -41,8 +41,10 @@ export const useInventoryTable = () => {
             });
 
             const response = await api.get(`/inventory?${params}`);
+            console.log('Inventory API response:', response.data);
 
             if (response.data.success) {
+                console.log('Setting inventory data:', response.data.data);
                 setInventory(response.data.data);
                 setPagination(prev => ({
                     ...prev,
@@ -50,6 +52,7 @@ export const useInventoryTable = () => {
                     totalCount: response.data.totalCount
                 }));
             } else {
+                console.error('Inventory API returned success: false', response.data);
                 setError('Error al cargar el inventario');
             }
         } catch (err) {
@@ -68,6 +71,35 @@ export const useInventoryTable = () => {
     // Efecto para cargar inventario inicial
     useEffect(() => {
         fetchInventory();
+    }, [fetchInventory]);
+
+    // Listener para actualizaciones de inventario
+    useEffect(() => {
+        let lastUpdateTime = 0;
+        
+        const handleInventoryUpdate = (event) => {
+            const now = Date.now();
+            
+            // Throttle: solo actualizar si han pasado al menos 2 segundos desde la última vez
+            if (now - lastUpdateTime < 2000) {
+                console.log('InventoryTable: Update throttled');
+                return;
+            }
+            
+            lastUpdateTime = now;
+            console.log('InventoryTable: Inventory update detected:', event.detail);
+            
+            // Refrescar datos cuando hay actualizaciones
+            setTimeout(() => {
+                fetchInventory();
+            }, 300); // Pequeño delay para evitar conflictos
+        };
+
+        window.addEventListener('inventoryUpdated', handleInventoryUpdate);
+        
+        return () => {
+            window.removeEventListener('inventoryUpdated', handleInventoryUpdate);
+        };
     }, [fetchInventory]);
 
     // Polling optimizado con backoff exponencial
@@ -145,16 +177,17 @@ export const useInventoryTable = () => {
             }
 
             if (response.data.success) {
-                // Actualizar la tabla inmediatamente
-                await fetchInventory();
+                console.log('Stock action successful, refreshing inventory...');
+                
+                // Actualizar la tabla inmediatamente - forzar refresh
+                setTimeout(async () => {
+                    await fetchInventory();
+                }, 500);
 
                 // Notificar a otros componentes que se actualicen
-                if (action === 'restock') {
-                    // Disparar evento personalizado para notificar actualización
-                    window.dispatchEvent(new CustomEvent('inventoryUpdated', {
-                        detail: { action, itemId, data }
-                    }));
-                }
+                window.dispatchEvent(new CustomEvent('inventoryUpdated', {
+                    detail: { action, itemId, data, response: response.data }
+                }));
 
                 return { success: true, message: response.data.message };
             } else {

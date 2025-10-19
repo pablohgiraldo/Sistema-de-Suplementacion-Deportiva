@@ -24,10 +24,11 @@ export const useRealTimeMetrics = () => {
       const response = await api.get('/dashboard/realtime');
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 segundos
-    refetchInterval: 30 * 1000, // Refetch cada 30 segundos
-    retry: 3,
-    retryDelay: 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    refetchInterval: 5 * 60 * 1000, // Refetch cada 5 minutos (menos frecuente)
+    refetchIntervalInBackground: false, // No refetch cuando la tab no está activa
+    retry: 2, // Menos reintentos
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Backoff exponencial
   });
 };
 

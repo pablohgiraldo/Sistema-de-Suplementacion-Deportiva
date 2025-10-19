@@ -14,11 +14,23 @@ const OmnichannelDashboard = () => {
 
   // Listener para actualizaciones de inventario (reabastecimiento, etc.)
   useEffect(() => {
+    let lastUpdateTime = 0;
+    
     const handleInventoryUpdate = (event) => {
+      const now = Date.now();
+      
+      // Throttle: solo actualizar si han pasado al menos 5 segundos desde la última vez
+      if (now - lastUpdateTime < 5000) {
+        console.log('Inventory update throttled');
+        return;
+      }
+      
+      lastUpdateTime = now;
       console.log('Inventory update detected:', event.detail);
-      // Invalidar todas las queries del dashboard para refrescar datos
+      
+      // Solo invalidar las queries principales, no las de tiempo real que se refrescan automáticamente
       queryClient.invalidateQueries(['omnichannel-dashboard']);
-      queryClient.invalidateQueries(['realtime-metrics']);
+      // No invalidar realtime-metrics para evitar rate limiting excesivo
       queryClient.invalidateQueries(['executive-summary']);
     };
 
