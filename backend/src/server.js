@@ -29,6 +29,7 @@ import schedulerRoutes from "./routes/schedulerRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import securityRoutes from "./routes/securityRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
+import loyaltyRoutes from "./routes/loyaltyRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
@@ -194,6 +195,9 @@ app.use("/api/scheduler", schedulerRoutes);
 
 // Rutas de CRM customers - solo para administradores
 app.use("/api/customers", customerRoutes);
+
+// Rutas de loyalty (puntos de lealtad) - usuarios autenticados
+app.use("/api/loyalty", loyaltyRoutes);
 
 // Rutas de recomendaciones - sin rate limiting para recomendaciones públicas
 app.use("/api/recommendations", recommendationRoutes);
