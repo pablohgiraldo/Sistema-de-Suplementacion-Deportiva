@@ -33,7 +33,7 @@ export async function syncCustomerAfterOrder(userId, order) {
         if (order) {
             customer.addInteraction(
                 'Compra',
-                `Orden ${order.orderNumber} - $${order.total.toLocaleString()} COP`,
+                `Orden ${order.orderNumber} - $${order.total.toFixed(2)} USD`,
                 {
                     orderId: order._id,
                     orderNumber: order.orderNumber,
@@ -41,6 +41,22 @@ export async function syncCustomerAfterOrder(userId, order) {
                     items: order.items.length
                 }
             );
+
+            // ==================== ACUMULAR PUNTOS DE LEALTAD ====================
+            // Solo acumular puntos si la orden está pagada y no es una cancelación
+            if (order.paymentStatus === 'paid' && order.status !== 'cancelled') {
+                const loyaltyResult = customer.earnLoyaltyPoints(
+                    order.total,
+                    order._id,
+                    `Compra - Orden ${order.orderNumber}`
+                );
+
+                if (loyaltyResult.success) {
+                    console.log(`🎁 ${loyaltyResult.message} para customer ${customer.customerCode}`);
+                } else {
+                    console.log(`⚠️  No se acumularon puntos para orden ${order.orderNumber}: ${loyaltyResult.message}`);
+                }
+            }
         }
 
         await customer.save();

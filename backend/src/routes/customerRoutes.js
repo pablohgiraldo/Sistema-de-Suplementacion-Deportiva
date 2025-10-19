@@ -19,6 +19,7 @@ import {
     getChurnRiskCustomers,
     getCRMDashboard,
     updateLoyaltyPoints,
+    getMyLoyaltyPoints,
     getCustomerByUserId,
     getCustomerPurchaseHistory,
     syncCustomersWithOrders,
@@ -81,6 +82,14 @@ router.get(
     requireAdmin,
     adminRateLimit,
     getChurnRiskCustomers
+);
+
+// ==================== RUTAS DE USUARIO ACTUAL ====================
+
+// Obtener resumen de puntos de lealtad del usuario actual
+router.get(
+    '/me/loyalty',
+    getMyLoyaltyPoints
 );
 
 // ==================== RUTAS DE SEGMENTACIÓN ====================

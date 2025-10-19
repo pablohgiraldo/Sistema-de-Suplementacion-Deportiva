@@ -1108,6 +1108,15 @@ export async function createPhysicalSale(req, res) {
         // Procesar la venta física y ajustar stock
         const result = await order.processPhysicalSale(cashierInfo);
 
+        // Sincronizar customer y acumular puntos de lealtad
+        try {
+            await syncCustomerAfterOrder(customer._id, order);
+            console.log(`📊 Customer sincronizado y puntos acumulados para venta física ${order.orderNumber}`);
+        } catch (syncError) {
+            console.error('⚠️  Error al sincronizar customer tras venta física (no crítico):', syncError);
+            // No bloqueamos la venta física si falla la sincronización
+        }
+
         // Enviar notificación si el cliente tiene email válido
         if (customer.email && !customer.email.includes('temp_')) {
             try {

@@ -563,6 +563,45 @@ export const updateLoyaltyPoints = async (req, res) => {
     }
 };
 
+// @desc    Obtener resumen de puntos de lealtad del usuario actual
+// @route   GET /api/customers/me/loyalty
+// @access  Private
+export const getMyLoyaltyPoints = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Buscar o crear customer para este usuario
+        let customer = await Customer.findOne({ user: userId });
+
+        if (!customer) {
+            // Si no existe customer, crearlo
+            const { createCustomerFromUser } = await import('../services/customerSyncService.js');
+            customer = await createCustomerFromUser(userId);
+        }
+
+        // Obtener resumen de puntos
+        const loyaltySummary = customer.getLoyaltyPointsSummary();
+
+        res.status(200).json({
+            success: true,
+            data: {
+                customerCode: customer.customerCode,
+                loyaltyLevel: customer.loyaltyLevel,
+                segment: customer.segment,
+                ...loyaltySummary
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al obtener puntos de lealtad:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener los puntos de lealtad',
+            message: error.message
+        });
+    }
+};
+
 // @desc    Obtener customer por userId
 // @route   GET /api/customers/user/:userId
 // @access  Private
@@ -733,28 +772,28 @@ export const syncCustomersWithOrders = async (req, res) => {
     try {
         // PASO 1: Crear customers para usuarios que no tengan uno
         console.log('📊 Paso 1: Creando customers faltantes...');
-        
+
         // Obtener usuarios únicos que tienen órdenes
         const usersWithOrders = await Order.distinct('user');
         console.log(`🔍 Encontrados ${usersWithOrders.length} usuarios con órdenes`);
-        
+
         const results = {
             created: 0,
             updated: 0,
             errors: 0
         };
-        
+
         // ⚡ OPTIMIZACIÓN: Procesar en lotes de 10 en paralelo para mayor velocidad
         const BATCH_SIZE = 10;
         for (let i = 0; i < usersWithOrders.length; i += BATCH_SIZE) {
             const batch = usersWithOrders.slice(i, i + BATCH_SIZE);
-            
+
             const batchResults = await Promise.all(batch.map(async (userId) => {
                 try {
                     // Verificar si ya existe un customer para este usuario
                     let customer = await Customer.findOne({ user: userId });
                     let wasCreated = false;
-                    
+
                     if (!customer) {
                         // Crear nuevo customer
                         const user = await User.findById(userId);
@@ -762,7 +801,7 @@ export const syncCustomersWithOrders = async (req, res) => {
                             console.warn(`⚠️ Usuario ${userId} no encontrado, omitiendo...`);
                             return { status: 'skipped' };
                         }
-                        
+
                         customer = new Customer({
                             user: userId,
                             segment: 'Nuevo',
@@ -770,27 +809,27 @@ export const syncCustomersWithOrders = async (req, res) => {
                             status: 'Activo',
                             acquisitionSource: 'Directo'
                         });
-                        
+
                         await customer.save();
                         console.log(`✅ Customer creado: ${customer.customerCode}`);
                         wasCreated = true;
                     }
-                    
+
                     // PASO 2: Actualizar métricas desde órdenes
                     await customer.updateMetricsFromOrders();
-                    
-                    return { 
+
+                    return {
                         status: 'success',
                         created: wasCreated,
                         updated: true
                     };
-                    
+
                 } catch (error) {
                     console.error(`❌ Error procesando usuario ${userId}:`, error);
                     return { status: 'error' };
                 }
             }));
-            
+
             // Contar resultados del batch
             batchResults.forEach(result => {
                 if (result.status === 'success') {
@@ -801,7 +840,7 @@ export const syncCustomersWithOrders = async (req, res) => {
                 }
             });
         }
-        
+
         console.log(`📊 Sincronización completada: ${results.created} creados, ${results.updated} actualizados, ${results.errors} errores`);
 
         res.status(200).json({
@@ -1126,6 +1165,7 @@ export default {
     getChurnRiskCustomers,
     getCRMDashboard,
     updateLoyaltyPoints,
+    getMyLoyaltyPoints,
     getCustomerByUserId,
     getCustomerPurchaseHistory,
     syncCustomersWithOrders,
