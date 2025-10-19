@@ -303,7 +303,7 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
                                             </option>
                                             {products.length > 0 && products.map(product => (
                                                 <option key={product._id} value={product._id}>
-                                                    {product.name} - ${product.price?.toLocaleString()}
+                                                    {product.name} - ${product.price?.toFixed(2)} USD
                                                 </option>
                                             ))}
                                         </select>
@@ -343,7 +343,7 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
 
                                     <div className="flex space-x-2">
                                         <div className="text-sm font-medium text-gray-700 pt-2">
-                                            ${((products.find(p => p._id === item.product)?.price || 0) * item.quantity).toLocaleString()}
+                                            ${((products.find(p => p._id === item.product)?.price || 0) * item.quantity).toFixed(2)} USD
                                         </div>
                                         {formData.items.length > 1 && (
                                             <button

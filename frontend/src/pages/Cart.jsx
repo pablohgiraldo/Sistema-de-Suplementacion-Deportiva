@@ -219,7 +219,7 @@ export default function Cart() {
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
                                                 <div>
                                                     <p className="text-2xl font-bold text-blue-600">
-                                                        ${item.price.toLocaleString('es-CO')}
+                                                        ${item.price.toFixed(2)} USD
                                                     </p>
                                                     <p className="text-sm text-gray-500">Precio unitario</p>
                                                 </div>
@@ -251,7 +251,7 @@ export default function Cart() {
                                                 {/* Subtotal del producto */}
                                                 <div className="text-right">
                                                     <p className="text-xl font-bold text-gray-900">
-                                                        ${(item.price * item.quantity).toLocaleString('es-CO')}
+                                                        ${(item.price * item.quantity).toFixed(2)} USD
                                                     </p>
                                                     <p className="text-sm text-gray-500">Subtotal</p>
                                                 </div>

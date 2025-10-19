@@ -78,8 +78,8 @@ export async function createOrder(req, res) {
         }));
 
         const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
-        const tax = subtotal * 0.19; // IVA 19%
-        const shipping = subtotal > 100000 ? 0 : 5000; // Envío gratis sobre $100,000
+        const tax = subtotal * 0.19; // IVA 19% sobre USD
+        const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
         const total = subtotal + tax + shipping;
 
         // Extraer datos de pago si es tarjeta de crédito
@@ -89,7 +89,7 @@ export async function createOrder(req, res) {
             paymentDetails = {
                 cardLastFour: cardNumber.slice(-4),
                 cardBrand: getCardBrand(cardNumber),
-                currency: 'COP'
+                currency: 'USD'
             };
         }
 
@@ -1069,7 +1069,7 @@ export async function createPhysicalSale(req, res) {
             subtotal += itemSubtotal;
         }
 
-        const tax = subtotal * 0.19; // IVA 19%
+        const tax = subtotal * 0.19; // IVA 19% sobre USD
         const total = subtotal + tax;
 
         // Crear la orden
