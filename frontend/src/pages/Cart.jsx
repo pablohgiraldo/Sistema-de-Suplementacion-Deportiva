@@ -43,10 +43,10 @@ export default function Cart() {
 
     // Cálculos de costos
     const subtotal = getCartTotal();
-    const shippingCost = cartItems.length > 0 ? 5000 : 0;
-    const taxRate = 0.19; // IVA 19% en Colombia
-    const taxes = subtotal * taxRate;
-    const total = subtotal + shippingCost + taxes;
+    const shippingCost = cartItems.length > 0 ? (subtotal > 100 ? 0 : 2.5) : 0; // Envío gratis sobre $100 USD
+    const taxRate = 0.19; // IVA 19% sobre USD
+    const taxes = Math.round((subtotal * taxRate) * 100) / 100;
+    const total = Math.round((subtotal + shippingCost + taxes) * 100) / 100;
 
     const handleUpdateQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
@@ -309,7 +309,7 @@ export default function Cart() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600">Subtotal ({getCartItemCount()} productos)</span>
                                         <span className="font-semibold text-gray-900">
-                                            ${subtotal.toLocaleString('es-CO')}
+                                            ${subtotal.toFixed(2)} USD
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
@@ -320,7 +320,7 @@ export default function Cart() {
                                             </svg>
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            ${shippingCost.toLocaleString('es-CO')}
+                                            ${shippingCost.toFixed(2)} USD
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
@@ -331,7 +331,7 @@ export default function Cart() {
                                             </svg>
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            ${taxes.toLocaleString('es-CO')}
+                                            ${taxes.toFixed(2)} USD
                                         </span>
                                     </div>
 
@@ -339,7 +339,7 @@ export default function Cart() {
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-bold text-gray-900">Total</span>
                                             <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                                ${total.toLocaleString('es-CO')}
+                                                ${total.toFixed(2)} USD
                                             </span>
                                         </div>
                                     </div>

@@ -484,18 +484,19 @@ const Checkout = () => {
 
     // Formatear precio
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(price);
     };
 
     // Calcular totales
     const subtotal = cartTotal;
-    const shipping = 15000; // Costo fijo de envío
-    const tax = Math.round(subtotal * 0.19); // IVA 19%
-    const total = subtotal + shipping + tax;
+    const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
+    const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD
+    const total = Math.round((subtotal + shipping + tax) * 100) / 100;
 
     if (cartItems.length === 0) {
         return (
