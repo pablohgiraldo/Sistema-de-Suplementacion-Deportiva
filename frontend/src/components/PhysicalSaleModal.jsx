@@ -28,13 +28,14 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
     const queryClient = useQueryClient();
 
     // Obtener productos para el selector
-    const { data: productsData } = useQuery({
-        queryKey: ['products'],
+    const { data: productsData, isLoading: productsLoading } = useQuery({
+        queryKey: ['products-for-sale'],
         queryFn: async () => {
             const response = await api.get('/products?limit=1000');
             return response.data;
         },
-        enabled: isOpen
+        staleTime: 5 * 60 * 1000, // 5 minutos
+        retry: 3
     });
 
     // Mutation para crear venta física
@@ -55,6 +56,14 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
     });
 
     const products = productsData?.data || [];
+
+    // Debug temporal
+    useEffect(() => {
+        if (productsData) {
+            console.log('Products data:', productsData);
+            console.log('Products array:', products);
+        }
+    }, [productsData, products]);
 
     useEffect(() => {
         if (isOpen) {
@@ -256,13 +265,18 @@ const PhysicalSaleModal = ({ isOpen, onClose, onSuccess }) => {
                                             value={item.product}
                                             onChange={(e) => handleItemChange(index, 'product', e.target.value)}
                                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={productsLoading}
                                         >
-                                            <option value="">Selecciona un producto</option>
-                                            {products.map(product => (
+                                            <option value="">
+                                                {productsLoading ? 'Cargando productos...' : 'Selecciona un producto'}
+                                            </option>
+                                            {products.length > 0 ? products.map(product => (
                                                 <option key={product._id} value={product._id}>
                                                     {product.name} - ${product.price?.toLocaleString()}
                                                 </option>
-                                            ))}
+                                            )) : !productsLoading && (
+                                                <option value="" disabled>No hay productos disponibles</option>
+                                            )}
                                         </select>
                                         {errors[`item_${index}_product`] && (
                                             <p className="mt-1 text-sm text-red-600">{errors[`item_${index}_product`]}</p>

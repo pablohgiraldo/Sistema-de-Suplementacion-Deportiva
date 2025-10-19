@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useOmnichannelDashboard, useRealTimeMetrics, useExecutiveSummary } from '../hooks/useOmnichannelDashboard';
 import LoadingSpinner from './LoadingSpinner';
 import PhysicalSaleModal from './PhysicalSaleModal';
+import api from '../services/api';
 
 const OmnichannelDashboard = () => {
   const queryClient = useQueryClient();
@@ -10,6 +11,22 @@ const OmnichannelDashboard = () => {
   const { data: realtimeData, isLoading: realtimeLoading } = useRealTimeMetrics();
   const { data: executiveData, isLoading: executiveLoading } = useExecutiveSummary();
   const [showPhysicalSaleModal, setShowPhysicalSaleModal] = useState(false);
+
+  // Mutation para sincronizar inventario
+  const syncInventoryMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post('/inventory/sync');
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['omnichannel-dashboard']);
+      queryClient.invalidateQueries(['realtime-metrics']);
+      queryClient.invalidateQueries(['executive-summary']);
+    },
+    onError: (error) => {
+      console.error('Error syncing inventory:', error);
+    }
+  });
 
   if (dashboardLoading) {
     return <LoadingSpinner text="Cargando dashboard omnicanal..." />;
@@ -150,8 +167,8 @@ const OmnichannelDashboard = () => {
               <div key={channel._id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className={`w-4 h-4 rounded-full mr-3 ${channel._id === 'online' ? 'bg-blue-500' :
-                      channel._id === 'physical_store' ? 'bg-green-500' :
-                        channel._id === 'mobile_app' ? 'bg-purple-500' : 'bg-gray-500'
+                    channel._id === 'physical_store' ? 'bg-green-500' :
+                      channel._id === 'mobile_app' ? 'bg-purple-500' : 'bg-gray-500'
                     }`}></div>
                   <span className="text-sm font-medium text-gray-900 capitalize">
                     {channel._id === 'physical_store' ? 'Tienda Física' :
@@ -311,25 +328,36 @@ const OmnichannelDashboard = () => {
             <div className="space-y-4">
               {executive.recommendations.map((rec, index) => (
                 <div key={index} className={`p-4 rounded-lg border-l-4 ${rec.severity === 'high' ? 'bg-red-50 border-red-400' :
-                    rec.severity === 'medium' ? 'bg-yellow-50 border-yellow-400' :
-                      'bg-blue-50 border-blue-400'
+                  rec.severity === 'medium' ? 'bg-yellow-50 border-yellow-400' :
+                    'bg-blue-50 border-blue-400'
                   }`}>
-                  <div className="flex items-start">
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${rec.severity === 'high' ? 'bg-red-500' :
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start">
+                      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${rec.severity === 'high' ? 'bg-red-500' :
                         rec.severity === 'medium' ? 'bg-yellow-500' :
                           'bg-blue-500'
-                      }`}>
-                      {rec.severity === 'high' ? '!' : rec.severity === 'medium' ? '⚠' : 'i'}
-                    </div>
-                    <div className="ml-3">
-                      <div className="text-sm font-medium text-gray-900">
-                        {rec.type} - {rec.severity === 'high' ? 'Alta Prioridad' :
-                          rec.severity === 'medium' ? 'Prioridad Media' : 'Baja Prioridad'}
+                        }`}>
+                        {rec.severity === 'high' ? '!' : rec.severity === 'medium' ? '⚠' : 'i'}
                       </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {rec.message}
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-gray-900">
+                          {rec.type} - {rec.severity === 'high' ? 'Alta Prioridad' :
+                            rec.severity === 'medium' ? 'Prioridad Media' : 'Baja Prioridad'}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {rec.message}
+                        </div>
                       </div>
                     </div>
+                    {rec.type === 'sync' && (
+                      <button
+                        onClick={() => syncInventoryMutation.mutate()}
+                        disabled={syncInventoryMutation.isPending}
+                        className="ml-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        {syncInventoryMutation.isPending ? 'Sincronizando...' : 'Ejecutar'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
