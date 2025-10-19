@@ -151,40 +151,63 @@ const OmnichannelDashboard = () => {
           </div>
         </div>
 
-        {/* Stock Físico */}
+        {/* Stock Total Unificado */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
-                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <div className="w-8 h-8 bg-indigo-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Stock Físico</p>
+              <p className="text-sm font-medium text-gray-500">Stock Total</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {dashboard?.inventory?.summary?.totalPhysicalStock?.toLocaleString() || '0'}
+                {dashboard?.inventory?.summary?.totalStock?.toLocaleString() || '0'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1 flex items-center">
+                <svg className="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Sincronizado
               </p>
             </div>
           </div>
         </div>
 
-        {/* Stock Digital */}
+        {/* Ventas por Canal */}
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Stock Digital</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {dashboard?.inventory?.summary?.totalDigitalStock?.toLocaleString() || '0'}
-              </p>
+            <div className="ml-4 flex-1">
+              <p className="text-sm font-medium text-gray-500 mb-2">Ventas por Canal</p>
+              <div className="flex justify-between items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                  <div>
+                    <p className="text-xs text-gray-500">Física</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {dashboard?.sales?.channelBreakdown?.find(c => c._id === 'physical_store')?.totalOrders || '0'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                  <div>
+                    <p className="text-xs text-gray-500">Online</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {dashboard?.sales?.channelBreakdown?.find(c => c._id === 'online')?.totalOrders || '0'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -224,9 +247,9 @@ const OmnichannelDashboard = () => {
         </div>
       </div>
 
-      {/* Alertas de Inventario */}
+      {/* Métricas de Inventario */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stock Bajo General */}
+        {/* Productos con Stock Bajo */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -237,47 +260,54 @@ const OmnichannelDashboard = () => {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Stock Bajo General</p>
+              <p className="text-sm font-medium text-gray-500">Productos Stock Bajo</p>
               <p className="text-2xl font-semibold text-red-600">
                 {dashboard?.inventory?.lowStock?.general || '0'}
               </p>
+              <p className="text-xs text-gray-500 mt-1">Requieren reabastecimiento</p>
             </div>
           </div>
         </div>
 
-        {/* Stock Bajo Físico */}
+        {/* Ingresos por Canal Físico */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
-                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Stock Bajo Físico</p>
-              <p className="text-2xl font-semibold text-orange-600">
-                {dashboard?.inventory?.lowStock?.physical || '0'}
+              <p className="text-sm font-medium text-gray-500">Ingresos Tienda Física</p>
+              <p className="text-2xl font-semibold text-green-600">
+                ${dashboard?.sales?.channelBreakdown?.find(c => c._id === 'physical_store')?.totalRevenue?.toLocaleString() || '0'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {dashboard?.sales?.channelBreakdown?.find(c => c._id === 'physical_store')?.totalOrders || '0'} ventas
               </p>
             </div>
           </div>
         </div>
 
-        {/* Stock Bajo Digital */}
+        {/* Ingresos por Canal Online */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Stock Bajo Digital</p>
-              <p className="text-2xl font-semibold text-purple-600">
-                {dashboard?.inventory?.lowStock?.digital || '0'}
+              <p className="text-sm font-medium text-gray-500">Ingresos Online</p>
+              <p className="text-2xl font-semibold text-blue-600">
+                ${dashboard?.sales?.channelBreakdown?.find(c => c._id === 'online')?.totalRevenue?.toLocaleString() || '0'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {dashboard?.sales?.channelBreakdown?.find(c => c._id === 'online')?.totalOrders || '0'} ventas
               </p>
             </div>
           </div>
