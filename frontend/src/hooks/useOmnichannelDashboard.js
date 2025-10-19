@@ -11,6 +11,8 @@ export const useOmnichannelDashboard = (period = 'monthly') => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchInterval: 2 * 60 * 1000, // Refetch cada 2 minutos
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
@@ -24,6 +26,8 @@ export const useRealTimeMetrics = () => {
     },
     staleTime: 30 * 1000, // 30 segundos
     refetchInterval: 30 * 1000, // Refetch cada 30 segundos
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
@@ -36,5 +40,7 @@ export const useExecutiveSummary = (period = 'monthly') => {
       return response.data;
     },
     staleTime: 10 * 60 * 1000, // 10 minutos
+    retry: 3,
+    retryDelay: 1000,
   });
 };

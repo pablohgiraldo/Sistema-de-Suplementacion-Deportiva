@@ -43,32 +43,53 @@ export async function getOmnichannelDashboard(req, res) {
         // Calcular métricas consolidadas
         const consolidatedMetrics = calculateConsolidatedMetrics(salesChannelStats, inventoryStats);
 
+        // Transformar datos para que coincidan con lo que espera el frontend
+        const transformedData = {
+            period: {
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
+                days: Math.ceil((end - start) / (1000 * 60 * 60 * 24))
+            },
+            sales: {
+                totalRevenue: consolidatedMetrics.sales.totalRevenue,
+                totalOrders: consolidatedMetrics.sales.totalOrders,
+                channelBreakdown: salesChannelStats.map(stat => ({
+                    _id: stat.channel,
+                    totalRevenue: stat.totalRevenue,
+                    totalOrders: stat.totalOrders,
+                    totalItems: stat.totalItems,
+                    averageOrderValue: stat.averageOrderValue
+                })),
+                topProducts: topSellingProducts,
+                recentPhysicalSales
+            },
+            inventory: {
+                summary: {
+                    totalPhysicalStock: inventoryStats.totalPhysicalStock,
+                    totalDigitalStock: inventoryStats.totalDigitalStock,
+                    totalStock: inventoryStats.totalStock
+                },
+                lowStock: {
+                    general: lowStockAlerts.length,
+                    physical: lowStockAlerts.filter(item => item.physicalStock <= item.minStock).length,
+                    digital: lowStockAlerts.filter(item => item.digitalStock <= item.minStock).length
+                },
+                discrepancies: {
+                    count: stockDiscrepancies.length,
+                    pendingSync: pendingSyncProducts.length,
+                    syncErrors: inventoryStats.productsWithSyncErrors
+                }
+            },
+            system: {
+                health: systemHealth,
+                syncStatus: consolidatedMetrics.sync
+            },
+            lastUpdated: new Date().toISOString()
+        };
+
         res.json({
             success: true,
-            data: {
-                period: {
-                    startDate: start.toISOString(),
-                    endDate: end.toISOString(),
-                    days: Math.ceil((end - start) / (1000 * 60 * 60 * 24))
-                },
-                sales: {
-                    channelStats: salesChannelStats,
-                    consolidated: consolidatedMetrics.sales,
-                    topProducts: topSellingProducts,
-                    recentPhysicalSales
-                },
-                inventory: {
-                    overview: inventoryStats,
-                    discrepancies: stockDiscrepancies,
-                    pendingSync: pendingSyncProducts,
-                    lowStockAlerts
-                },
-                system: {
-                    health: systemHealth,
-                    syncStatus: consolidatedMetrics.sync
-                },
-                lastUpdated: new Date().toISOString()
-            }
+            data: transformedData
         });
 
     } catch (error) {
@@ -439,9 +460,34 @@ export async function getRealTimeMetrics(req, res) {
             getSystemHealthMetrics()
         ]);
 
+        // Agregar métricas adicionales para el frontend
+        const [
+            activeUsers,
+            pendingOrders,
+            processingOrders,
+            lowStockCount
+        ] = await Promise.all([
+            User.countDocuments({ activo: true }),
+            Order.countDocuments({ status: 'pending' }),
+            Order.countDocuments({ status: 'processing' }),
+            Inventory.countDocuments({
+                $expr: {
+                    $or: [
+                        { $lte: ['$channels.physical.stock', '$minStock'] },
+                        { $lte: ['$channels.digital.stock', '$minStock'] }
+                    ]
+                },
+                status: 'active'
+            })
+        ]);
+
         res.json({
             success: true,
             data: {
+                activeUsers,
+                pendingOrders,
+                processingOrders,
+                lowStockCount,
                 stockDiscrepancies: currentStockDiscrepancies,
                 pendingSync: pendingSyncCount,
                 physicalSalesLast24h: recentPhysicalSales,
@@ -535,7 +581,7 @@ function generateRecommendations(salesMetrics, inventoryMetrics) {
     if (parseFloat(inventoryMetrics.discrepancyRate) > 10) {
         recommendations.push({
             type: 'sync',
-            priority: 'high',
+            severity: 'high',
             message: `Alto porcentaje de discrepancias de stock (${inventoryMetrics.discrepancyRate}%). Se recomienda ejecutar sincronización inmediata.`,
             action: 'Ejecutar /api/inventory/sync'
         });
@@ -548,7 +594,7 @@ function generateRecommendations(salesMetrics, inventoryMetrics) {
     if (physicalRevenue > onlineRevenue * 1.5) {
         recommendations.push({
             type: 'sales',
-            priority: 'medium',
+            severity: 'low',
             message: 'Las ventas físicas superan significativamente las ventas online. Considerar estrategias de marketing digital.',
             action: 'Revisar estrategia de ventas online'
         });
@@ -558,7 +604,7 @@ function generateRecommendations(salesMetrics, inventoryMetrics) {
     if (inventoryMetrics.productsPendingSync > 20) {
         recommendations.push({
             type: 'inventory',
-            priority: 'high',
+            severity: 'high',
             message: `${inventoryMetrics.productsPendingSync} productos pendientes de sincronización. Priorizar sincronización.`,
             action: 'Revisar productos pendientes de sincronización'
         });

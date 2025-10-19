@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOmnichannelDashboard, useRealTimeMetrics, useExecutiveSummary } from '../hooks/useOmnichannelDashboard';
 import LoadingSpinner from './LoadingSpinner';
+import PhysicalSaleModal from './PhysicalSaleModal';
 
 const OmnichannelDashboard = () => {
+  const queryClient = useQueryClient();
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useOmnichannelDashboard();
   const { data: realtimeData, isLoading: realtimeLoading } = useRealTimeMetrics();
   const { data: executiveData, isLoading: executiveLoading } = useExecutiveSummary();
+  const [showPhysicalSaleModal, setShowPhysicalSaleModal] = useState(false);
 
   if (dashboardLoading) {
     return <LoadingSpinner text="Cargando dashboard omnicanal..." />;
@@ -37,9 +41,20 @@ const OmnichannelDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900">Dashboard Omnicanal</h2>
             <p className="text-gray-600">Vista consolidada de todos los canales de venta</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600">Tiempo real</span>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowPhysicalSaleModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Venta Física</span>
+            </button>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600">Tiempo real</span>
+            </div>
           </div>
         </div>
       </div>
@@ -134,14 +149,13 @@ const OmnichannelDashboard = () => {
             {dashboard?.sales?.channelBreakdown?.map((channel) => (
               <div key={channel._id} className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className={`w-4 h-4 rounded-full mr-3 ${
-                    channel._id === 'online' ? 'bg-blue-500' :
-                    channel._id === 'physical_store' ? 'bg-green-500' :
-                    channel._id === 'mobile_app' ? 'bg-purple-500' : 'bg-gray-500'
-                  }`}></div>
+                  <div className={`w-4 h-4 rounded-full mr-3 ${channel._id === 'online' ? 'bg-blue-500' :
+                      channel._id === 'physical_store' ? 'bg-green-500' :
+                        channel._id === 'mobile_app' ? 'bg-purple-500' : 'bg-gray-500'
+                    }`}></div>
                   <span className="text-sm font-medium text-gray-900 capitalize">
-                    {channel._id === 'physical_store' ? 'Tienda Física' : 
-                     channel._id === 'mobile_app' ? 'App Móvil' : channel._id}
+                    {channel._id === 'physical_store' ? 'Tienda Física' :
+                      channel._id === 'mobile_app' ? 'App Móvil' : channel._id}
                   </span>
                 </div>
                 <div className="text-right">
@@ -296,23 +310,21 @@ const OmnichannelDashboard = () => {
           <div className="p-6">
             <div className="space-y-4">
               {executive.recommendations.map((rec, index) => (
-                <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                  rec.severity === 'high' ? 'bg-red-50 border-red-400' :
-                  rec.severity === 'medium' ? 'bg-yellow-50 border-yellow-400' :
-                  'bg-blue-50 border-blue-400'
-                }`}>
+                <div key={index} className={`p-4 rounded-lg border-l-4 ${rec.severity === 'high' ? 'bg-red-50 border-red-400' :
+                    rec.severity === 'medium' ? 'bg-yellow-50 border-yellow-400' :
+                      'bg-blue-50 border-blue-400'
+                  }`}>
                   <div className="flex items-start">
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      rec.severity === 'high' ? 'bg-red-500' :
-                      rec.severity === 'medium' ? 'bg-yellow-500' :
-                      'bg-blue-500'
-                    }`}>
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${rec.severity === 'high' ? 'bg-red-500' :
+                        rec.severity === 'medium' ? 'bg-yellow-500' :
+                          'bg-blue-500'
+                      }`}>
                       {rec.severity === 'high' ? '!' : rec.severity === 'medium' ? '⚠' : 'i'}
                     </div>
                     <div className="ml-3">
                       <div className="text-sm font-medium text-gray-900">
-                        {rec.type} - {rec.severity === 'high' ? 'Alta Prioridad' : 
-                         rec.severity === 'medium' ? 'Prioridad Media' : 'Baja Prioridad'}
+                        {rec.type} - {rec.severity === 'high' ? 'Alta Prioridad' :
+                          rec.severity === 'medium' ? 'Prioridad Media' : 'Baja Prioridad'}
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
                         {rec.message}
@@ -324,6 +336,21 @@ const OmnichannelDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Venta Física */}
+      {showPhysicalSaleModal && (
+        <PhysicalSaleModal
+          isOpen={showPhysicalSaleModal}
+          onClose={() => setShowPhysicalSaleModal(false)}
+          onSuccess={() => {
+            setShowPhysicalSaleModal(false);
+            // Refrescar datos del dashboard usando React Query
+            queryClient.invalidateQueries(['omnichannel-dashboard']);
+            queryClient.invalidateQueries(['realtime-metrics']);
+            queryClient.invalidateQueries(['executive-summary']);
+          }}
+        />
       )}
     </div>
   );
