@@ -52,9 +52,11 @@ const OmnichannelDashboard = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['omnichannel-dashboard']);
-      queryClient.invalidateQueries(['realtime-metrics']);
-      queryClient.invalidateQueries(['executive-summary']);
+      // Solo invalidar la query principal y dar tiempo para evitar rate limiting
+      setTimeout(() => {
+        queryClient.invalidateQueries(['omnichannel-dashboard']);
+        queryClient.invalidateQueries(['executive-summary']);
+      }, 2000); // Esperar 2 segundos antes de invalidar
     },
     onError: (error) => {
       console.error('Error syncing inventory:', error);
@@ -406,10 +408,11 @@ const OmnichannelDashboard = () => {
           onClose={() => setShowPhysicalSaleModal(false)}
           onSuccess={() => {
             setShowPhysicalSaleModal(false);
-            // Refrescar datos del dashboard usando React Query
-            queryClient.invalidateQueries(['omnichannel-dashboard']);
-            queryClient.invalidateQueries(['realtime-metrics']);
-            queryClient.invalidateQueries(['executive-summary']);
+            // Refrescar datos del dashboard usando React Query con delay para evitar rate limiting
+            setTimeout(() => {
+              queryClient.invalidateQueries(['omnichannel-dashboard']);
+              queryClient.invalidateQueries(['executive-summary']);
+            }, 1000);
           }}
         />
       )}
