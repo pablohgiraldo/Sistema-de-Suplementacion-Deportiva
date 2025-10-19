@@ -1172,6 +1172,17 @@ export async function syncAllChannels(req, res) {
                 try {
                     processed++;
 
+                    // Verificar que el producto existe
+                    if (!inventory.product || !inventory.product._id) {
+                        console.log(`⚠️ Inventario ${inventory._id} sin producto válido, saltando...`);
+                        errors++;
+                        errorDetails.push({
+                            inventoryId: inventory._id,
+                            error: 'Producto no encontrado o referencia inválida'
+                        });
+                        continue;
+                    }
+
                     // Obtener diferencias antes de sincronizar
                     const differences = inventory.getChannelDifferences();
 
@@ -1179,7 +1190,7 @@ export async function syncAllChannels(req, res) {
                         discrepancies++;
                         discrepancyDetails.push({
                             productId: inventory.product._id,
-                            productName: inventory.product.name,
+                            productName: inventory.product.name || 'Producto sin nombre',
                             physicalStock: differences.physicalStock,
                             digitalStock: differences.digitalStock,
                             difference: differences.difference

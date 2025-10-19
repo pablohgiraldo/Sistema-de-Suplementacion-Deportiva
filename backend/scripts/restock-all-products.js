@@ -34,13 +34,13 @@ async function restockAllProducts(dryRun = true) {
 
         if (inventories.length === 0) {
             console.log("✅ No se encontraron productos que necesiten reabastecimiento");
-            
+
             // Mostrar algunos ejemplos de productos existentes
             const sampleInventories = await Inventory.find({})
                 .populate('product', 'name')
                 .limit(5)
                 .lean();
-            
+
             console.log("\n📋 Muestra de productos existentes:");
             sampleInventories.forEach(inv => {
                 console.log(`   - ${inv.product?.name || 'Sin nombre'}: ${inv.currentStock} unidades`);
@@ -58,7 +58,7 @@ async function restockAllProducts(dryRun = true) {
             try {
                 // Buscar el documento completo (no lean) para poder usar los métodos
                 const inventoryDoc = await Inventory.findById(inventory._id);
-                
+
                 if (!inventoryDoc) {
                     console.log(`⚠️  No se encontró inventario para: ${inventory.product?.name || 'ID: ' + inventory._id}`);
                     errors++;
@@ -147,26 +147,28 @@ async function restockAllProducts(dryRun = true) {
         console.error("❌ Error en reabastecimiento masivo:", error.message);
         console.error(error.stack);
     } finally {
+        // Esperar un poco para asegurar que se muestren todos los logs
+        await new Promise(resolve => setTimeout(resolve, 2000));
         await mongoose.disconnect();
         console.log("🔌 Desconectado de MongoDB");
     }
 }
 
 // Ejecutar si es llamado directamente
-if (import.meta.url === `file://${process.argv[1]}`) {
-    const shouldExecute = process.argv.includes('--execute');
-    
-    if (shouldExecute) {
-        console.log("⚠️  ADVERTENCIA: Ejecutando en modo PRODUCCIÓN");
-        console.log("Este script modificará la base de datos en producción.");
-        console.log("Presiona Ctrl+C para cancelar en los próximos 5 segundos...");
-        
-        setTimeout(() => {
-            restockAllProducts(false);
-        }, 5000);
-    } else {
-        restockAllProducts(true); // Modo preview por defecto
-    }
+console.log("🚀 Iniciando script de reabastecimiento...");
+const shouldExecute = process.argv.includes('--execute');
+console.log(`🔧 Modo ejecución: ${shouldExecute ? 'REAL' : 'PREVIEW'}`);
+
+if (shouldExecute) {
+    console.log("⚠️  ADVERTENCIA: Ejecutando en modo PRODUCCIÓN");
+    console.log("Este script modificará la base de datos en producción.");
+    console.log("Presiona Ctrl+C para cancelar en los próximos 5 segundos...");
+
+    setTimeout(() => {
+        restockAllProducts(false);
+    }, 5000);
+} else {
+    restockAllProducts(true); // Modo preview por defecto
 }
 
 export default restockAllProducts;

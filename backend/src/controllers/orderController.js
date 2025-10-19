@@ -1022,33 +1022,31 @@ export async function createPhysicalSale(req, res) {
             });
         }
 
-        // Crear usuario temporal si no existe
+        // Crear o encontrar usuario para la venta física
         let customer;
         if (customerInfo.email) {
             customer = await User.findOne({ email: customerInfo.email });
             if (!customer) {
                 // Crear usuario temporal para venta física
                 customer = new User({
-                    firstName: customerInfo.firstName,
-                    lastName: customerInfo.lastName,
+                    nombre: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
                     email: customerInfo.email,
-                    phone: customerInfo.phone,
-                    role: 'customer',
-                    isTemporary: true, // Marcar como usuario temporal
-                    createdBy: req.user.id
+                    contraseña: 'temp_physical_sale_' + Date.now(), // Contraseña temporal
+                    rol: 'usuario', // Usar el campo correcto del modelo
+                    activo: true
                 });
                 await customer.save();
             }
         } else {
             // Usuario anónimo para ventas físicas sin email
+            // Generar email temporal único
+            const tempEmail = `temp_${Date.now()}@physical.sale`;
             customer = new User({
-                firstName: customerInfo.firstName,
-                lastName: customerInfo.lastName,
-                phone: customerInfo.phone,
-                role: 'customer',
-                isTemporary: true,
-                isAnonymous: true,
-                createdBy: req.user.id
+                nombre: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
+                email: tempEmail,
+                contraseña: 'temp_physical_sale_' + Date.now(),
+                rol: 'usuario',
+                activo: true
             });
             await customer.save();
         }
@@ -1087,7 +1085,7 @@ export async function createPhysicalSale(req, res) {
             physicalSale: {
                 storeLocation: cashierInfo.storeLocation || 'Tienda Principal',
                 cashierId: req.user.id,
-                cashierName: cashierInfo.cashierName || req.user.firstName + ' ' + req.user.lastName,
+                cashierName: cashierInfo.cashierName || req.user.nombre || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
                 registerNumber: cashierInfo.registerNumber || 'Caja 1',
                 receiptNumber: cashierInfo.receiptNumber || `REC-${Date.now()}`
             },
@@ -1109,8 +1107,8 @@ export async function createPhysicalSale(req, res) {
         // Procesar la venta física y ajustar stock
         const result = await order.processPhysicalSale(cashierInfo);
 
-        // Enviar notificación si el cliente tiene email
-        if (customer.email && !customer.isAnonymous) {
+        // Enviar notificación si el cliente tiene email válido
+        if (customer.email && !customer.email.includes('temp_')) {
             try {
                 await notificationService.sendOrderConfirmation(customer.email, {
                     orderNumber: order.orderNumber,
@@ -1131,13 +1129,13 @@ export async function createPhysicalSale(req, res) {
                 stockAdjustments: result.stockAdjustments,
                 customer: {
                     id: customer._id,
-                    name: `${customer.firstName} ${customer.lastName}`,
+                    name: customer.nombre,
                     email: customer.email,
-                    phone: customer.phone
+                    phone: customerInfo.phone
                 },
                 cashier: {
                     id: req.user.id,
-                    name: `${req.user.firstName} ${req.user.lastName}`
+                    name: req.user.nombre || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim()
                 }
             }
         });
