@@ -10,6 +10,7 @@ import {
     FormError,
     FormSuccess
 } from '../components/forms';
+import LoyaltyTransactionsHistory from '../components/LoyaltyTransactionsHistory';
 
 export default function Profile() {
     const { user, logout } = useAuth();
@@ -321,6 +322,13 @@ export default function Profile() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Historial de Transacciones de Puntos */}
+                    {!loyaltyLoading && loyaltyData && loyaltyData.currentBalance > 0 && (
+                        <div className="mt-8">
+                            <LoyaltyTransactionsHistory />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

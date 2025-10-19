@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import useNotifications from '../hooks/useNotifications';
 import LoadingSpinner from '../components/LoadingSpinner';
+import LoyaltyRedeemCard from '../components/LoyaltyRedeemCard';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -51,6 +52,23 @@ const Checkout = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [citySuggestions, setCitySuggestions] = useState([]);
     const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+    
+    // Estado para descuento de loyalty
+    const [loyaltyDiscount, setLoyaltyDiscount] = useState({
+        pointsRedeemed: 0,
+        discountAmount: 0,
+        applied: false
+    });
+
+    // Handler para aplicar descuento de loyalty
+    const handleLoyaltyDiscountApplied = (discountData) => {
+        setLoyaltyDiscount({
+            pointsRedeemed: discountData.pointsRedeemed,
+            discountAmount: discountData.discountAmount,
+            applied: true
+        });
+        showSuccess(`¡${discountData.pointsRedeemed} puntos canjeados! Descuento de $${discountData.discountAmount.toFixed(2)} USD aplicado.`);
+    };
 
     // Ciudades por departamento
     const citiesByDepartment = {
@@ -496,7 +514,8 @@ const Checkout = () => {
     const subtotal = cartTotal;
     const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
     const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD
-    const total = Math.round((subtotal + shipping + tax) * 100) / 100;
+    const loyaltyDiscountAmount = loyaltyDiscount.applied ? loyaltyDiscount.discountAmount : 0;
+    const total = Math.round((subtotal + shipping + tax - loyaltyDiscountAmount) * 100) / 100;
 
     if (cartItems.length === 0) {
         return (
@@ -1134,6 +1153,16 @@ const Checkout = () => {
 
                         {/* Resumen del pedido */}
                         <div className="lg:col-span-1">
+                            {/* Tarjeta de Loyalty Points */}
+                            {user && (
+                                <div className="mb-4">
+                                    <LoyaltyRedeemCard 
+                                        onDiscountApplied={handleLoyaltyDiscountApplied}
+                                        currentDiscount={loyaltyDiscountAmount}
+                                    />
+                                </div>
+                            )}
+
                             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Resumen del Pedido</h2>
 
@@ -1177,6 +1206,17 @@ const Checkout = () => {
                                         <span className="text-gray-600">IVA (19%)</span>
                                         <span className="text-gray-900">{formatPrice(tax)}</span>
                                     </div>
+                                    {loyaltyDiscount.applied && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-green-600 flex items-center">
+                                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                Descuento Lealtad ({loyaltyDiscount.pointsRedeemed} pts)
+                                            </span>
+                                            <span className="text-green-600 font-medium">-{formatPrice(loyaltyDiscount.discountAmount)}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-lg font-semibold border-t pt-2">
                                         <span className="text-gray-900">Total</span>
                                         <span className="text-gray-900">{formatPrice(total)}</span>
