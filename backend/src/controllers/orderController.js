@@ -78,9 +78,9 @@ export async function createOrder(req, res) {
         }));
 
         const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
-        const tax = subtotal * 0.19; // IVA 19% sobre USD
+        const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD, redondeado a centavos
         const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
-        const total = subtotal + tax + shipping;
+        const total = Math.round((subtotal + tax + shipping) * 100) / 100; // Redondeado a centavos
 
         // Extraer datos de pago si es tarjeta de crédito
         let paymentDetails = {};
@@ -1069,8 +1069,9 @@ export async function createPhysicalSale(req, res) {
             subtotal += itemSubtotal;
         }
 
-        const tax = subtotal * 0.19; // IVA 19% sobre USD
-        const total = subtotal + tax;
+        const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD, redondeado a centavos
+        // Para ventas físicas: total = subtotal + tax + shipping (donde shipping = 0)
+        const total = Math.round((subtotal + tax + 0) * 100) / 100; // Redondeado a centavos
 
         // Crear la orden
         const order = new Order({

@@ -449,14 +449,14 @@ orderSchema.pre('save', async function (next) {
 orderSchema.pre('save', function (next) {
     // Calcular subtotal de cada item
     this.items.forEach(item => {
-        item.subtotal = item.price * item.quantity;
+        item.subtotal = Math.round((item.price * item.quantity) * 100) / 100;
     });
 
-    // Calcular subtotal total
-    this.subtotal = this.items.reduce((sum, item) => sum + item.subtotal, 0);
+    // Calcular subtotal total (redondeado a centavos)
+    this.subtotal = Math.round((this.items.reduce((sum, item) => sum + item.subtotal, 0)) * 100) / 100;
 
-    // Calcular total final
-    this.total = this.subtotal + this.tax + this.shipping;
+    // Calcular total final (redondeado a centavos)
+    this.total = Math.round((this.subtotal + this.tax + this.shipping) * 100) / 100;
 
     // Registrar estado inicial en el historial (solo para nuevas órdenes)
     if (this.isNew && this.statusHistory.length === 0) {

@@ -455,16 +455,16 @@ inventorySchema.methods.sellFromChannel = function (quantity, channel = 'physica
     }
 
     // IMPORTANTE: En un inventario unificado, cuando se vende desde cualquier canal,
-    // ambos canales deben reflejar el mismo stock real del almacén
-    const newStock = this.currentStock - quantity;
+    // reducimos el stock real del almacén y sincronizamos ambos canales
     
-    // Actualizar stock total del inventario
-    this.currentStock = newStock;
+    // Reducir el stock real del almacén
+    this.currentStock = this.currentStock - quantity;
     this.availableStock = Math.max(0, this.currentStock - this.reservedStock);
     
-    // Sincronizar AMBOS canales al mismo stock (reflejan el mismo inventario físico)
-    this.channels.physical.stock = newStock;
-    this.channels.digital.stock = newStock;
+    // Sincronizar AMBOS canales al stock real del almacén
+    // Ambos canales deben reflejar exactamente el mismo stock real
+    this.channels.physical.stock = this.currentStock;
+    this.channels.digital.stock = this.currentStock;
     
     // Actualizar timestamps y estado de sincronización
     const now = new Date();
