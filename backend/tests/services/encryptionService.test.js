@@ -14,7 +14,7 @@ describe('Encryption Service', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
+
         // Mock de variables de entorno
         process.env = {
             ...originalEnv,
@@ -65,7 +65,7 @@ describe('Encryption Service', () => {
         it('debería cifrar datos correctamente', () => {
             // Arrange
             const plaintext = 'datos sensibles del usuario';
-            
+
             // Act
             const result = encrypt(plaintext);
 
@@ -182,7 +182,7 @@ describe('Encryption Service', () => {
         it('debería manejar errores de descifrado', () => {
             // Arrange
             const encryptedData = 'invalid-base64';
-            
+
             // Mock para que falle la creación del buffer base64
             jest.spyOn(Buffer, 'from').mockImplementation(() => {
                 throw new Error('Invalid base64');
@@ -324,7 +324,7 @@ describe('Encryption Service', () => {
         it('debería poder cifrar y descifrar el mismo dato', () => {
             // Arrange
             const originalData = 'información confidencial del usuario';
-            
+
             // Mock más realista para el test de integración
             let encryptedValue;
             crypto.createCipherGCM.mockImplementation(() => ({

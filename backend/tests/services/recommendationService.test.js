@@ -67,7 +67,7 @@ describe('Recommendation Service', () => {
             });
 
             Order.aggregate.mockResolvedValue(mockSimilarUsers);
-            
+
             Product.find.mockReturnValue({
                 populate: jest.fn().mockReturnValue({
                     exec: jest.fn().mockResolvedValue(mockProducts)
@@ -89,7 +89,7 @@ describe('Recommendation Service', () => {
         it('debería manejar usuarios sin historial de compras', async () => {
             // Arrange
             const userId = 'newUser123';
-            
+
             Order.find.mockReturnValue({
                 populate: jest.fn().mockReturnValue({
                     exec: jest.fn().mockResolvedValue([])
@@ -205,7 +205,7 @@ describe('Recommendation Service', () => {
         it('debería manejar productos sin órdenes asociadas', async () => {
             // Arrange
             const productId = 'productNoOrders';
-            
+
             Order.find.mockReturnValue({
                 populate: jest.fn().mockReturnValue({
                     exec: jest.fn().mockResolvedValue([])
@@ -255,7 +255,7 @@ describe('Recommendation Service', () => {
             expect(Product.aggregate).toHaveBeenCalled();
             expect(Array.isArray(recommendations)).toBe(true);
             expect(recommendations.length).toBeLessThanOrEqual(limit);
-            
+
             // Verificar que están ordenados por popularidad descendente
             if (recommendations.length > 1) {
                 expect(recommendations[0].salesCount).toBeGreaterThanOrEqual(recommendations[1].salesCount);
@@ -377,7 +377,7 @@ describe('Recommendation Service', () => {
             const similarity = union.size === 0 ? 0 : intersection.size / union.size;
 
             // Assert
-            expect(similarity).toBe(1/3); // Intersección: 1, Unión: 3
+            expect(similarity).toBe(1 / 3); // Intersección: 1, Unión: 3
         });
 
         it('debería calcular similitud coseno correctamente', () => {
@@ -393,20 +393,20 @@ describe('Recommendation Service', () => {
 
             // Simulamos el cálculo de similitud coseno
             const allKeys = new Set([...vectorA.keys(), ...vectorB.keys()]);
-            
+
             let dotProduct = 0;
             let magnitudeA = 0;
             let magnitudeB = 0;
-            
+
             for (const key of allKeys) {
                 const a = vectorA.get(key) || 0;
                 const b = vectorB.get(key) || 0;
-                
+
                 dotProduct += a * b;
                 magnitudeA += a * a;
                 magnitudeB += b * b;
             }
-            
+
             const magnitude = Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB);
             const similarity = magnitude === 0 ? 0 : dotProduct / magnitude;
 

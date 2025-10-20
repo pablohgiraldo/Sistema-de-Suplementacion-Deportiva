@@ -26,7 +26,7 @@ export default {
         '^.+\\.js$': 'babel-jest'
     },
     // Configuración para módulos
-    moduleNameMapping: {
+    moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1'
     }
 };

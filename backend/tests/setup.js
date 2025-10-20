@@ -45,9 +45,17 @@ afterAll(async () => {
 // Limpiar base de datos entre tests
 beforeEach(async () => {
     try {
+        // Esperar a que mongoose esté conectado
+        if (mongoose.connection.readyState !== 1) {
+            await new Promise(resolve => {
+                mongoose.connection.once('connected', resolve);
+            });
+        }
+
         const collections = mongoose.connection.collections;
         for (const key in collections) {
             const collection = collections[key];
+            // Eliminar todos los documentos
             await collection.deleteMany({});
         }
     } catch (error) {

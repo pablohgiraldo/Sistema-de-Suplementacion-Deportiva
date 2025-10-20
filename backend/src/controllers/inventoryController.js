@@ -1105,6 +1105,9 @@ export async function getPendingSyncProducts(req, res) {
     }
 }
 
+// Alias para compatibilidad con tests
+export const restockProduct = restockInventory;
+
 // Sincronizar todos los canales (endpoint principal /api/inventory/sync)
 export async function syncAllChannels(req, res) {
     try {
@@ -1208,7 +1211,7 @@ export async function syncAllChannels(req, res) {
                                 const realStock = inventoryDoc.currentStock;
                                 inventoryDoc.channels.physical.stock = realStock;
                                 inventoryDoc.channels.digital.stock = realStock;
-                                
+
                                 // Marcar como sincronizado
                                 const now = new Date();
                                 inventoryDoc.channels.physical.lastSync = now;
@@ -1217,7 +1220,7 @@ export async function syncAllChannels(req, res) {
                                 inventoryDoc.channels.digital.lastUpdated = now;
                                 inventoryDoc.channels.physical.syncStatus = 'synced';
                                 inventoryDoc.channels.digital.syncStatus = 'synced';
-                                
+
                                 await inventoryDoc.save();
                             }
                         }

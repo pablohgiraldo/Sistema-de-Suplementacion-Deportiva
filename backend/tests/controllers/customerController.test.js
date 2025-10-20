@@ -32,7 +32,7 @@ describe('Customer Controller', () => {
             params: {},
             body: {}
         };
-        
+
         mockRes = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis()
@@ -92,7 +92,7 @@ describe('Customer Controller', () => {
         it('debería filtrar clientes por segmento', async () => {
             // Arrange
             mockReq.query = { segment: 'high_value', page: 1, limit: 10 };
-            
+
             const mockFilteredCustomers = [{
                 _id: 'customer1',
                 user: { _id: 'user1', nombre: 'Cliente VIP', email: 'vip@test.com' },
@@ -127,7 +127,7 @@ describe('Customer Controller', () => {
         it('debería buscar clientes por término de búsqueda', async () => {
             // Arrange
             mockReq.query = { search: 'test@email.com', page: 1, limit: 10 };
-            
+
             const mockUsers = [{ _id: 'user1' }];
             User.find.mockReturnValue({
                 select: jest.fn().mockResolvedValue(mockUsers)
@@ -186,7 +186,7 @@ describe('Customer Controller', () => {
         it('debería obtener un cliente por ID con datos completos', async () => {
             // Arrange
             mockReq.params.id = 'customer123';
-            
+
             const mockCustomer = {
                 _id: 'customer123',
                 user: { _id: 'user123', nombre: 'Cliente Test', email: 'test@test.com' },
@@ -258,7 +258,7 @@ describe('Customer Controller', () => {
             };
 
             mockReq.body = customerData;
-            
+
             const mockNewCustomer = {
                 _id: 'newCustomer123',
                 ...customerData,
@@ -339,7 +339,7 @@ describe('Customer Controller', () => {
             // Arrange
             mockReq.params.id = 'nonexistent';
             mockReq.body = { contactInfo: { phone: '123' } };
-            
+
             Customer.findByIdAndUpdate.mockResolvedValue(null);
 
             // Act

@@ -45,14 +45,14 @@ async function runTestSuite(suite) {
     console.log(`\n📋 ${suite.name}`);
     console.log(`   ${suite.description}`);
     console.log('   ' + '─'.repeat(50));
-    
+
     try {
-        const output = execSync(suite.command, { 
+        const output = execSync(suite.command, {
             encoding: 'utf8',
             stdio: 'inherit',
             timeout: 60000 // 60 segundos timeout
         });
-        
+
         console.log(`✅ ${suite.name} - PRUEBAS EXITOSAS\n`);
         return { success: true, suite: suite.name };
     } catch (error) {
@@ -64,32 +64,32 @@ async function runTestSuite(suite) {
 
 async function runAllTests() {
     console.log('🎯 Iniciando pruebas unitarias para HU43\n');
-    
+
     const results = [];
-    
+
     for (const suite of testSuites) {
         const result = await runTestSuite(suite);
         results.push(result);
     }
-    
+
     // Resumen final
     console.log('\n' + '='.repeat(60));
     console.log('📊 RESUMEN DE PRUEBAS UNITARIAS');
     console.log('='.repeat(60));
-    
+
     const successful = results.filter(r => r.success).length;
     const failed = results.length - successful;
-    
+
     results.forEach(result => {
         const status = result.success ? '✅' : '❌';
         console.log(`${status} ${result.suite}`);
     });
-    
+
     console.log('\n📈 ESTADÍSTICAS:');
     console.log(`   Total de suites: ${results.length}`);
     console.log(`   Exitosas: ${successful}`);
     console.log(`   Fallidas: ${failed}`);
-    
+
     if (failed === 0) {
         console.log('\n🎉 ¡TODAS LAS PRUEBAS UNITARIAS PASARON!');
         console.log('   El sistema está listo para HU43.');

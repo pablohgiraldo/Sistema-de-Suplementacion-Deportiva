@@ -18,7 +18,7 @@ const refreshTokenSchema = new mongoose.Schema({
         unique: true,
         index: true
     },
-    
+
     // Referencia al usuario propietario del token
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,41 +26,41 @@ const refreshTokenSchema = new mongoose.Schema({
         required: [true, 'La referencia al usuario es requerida'],
         index: true
     },
-    
+
     // Familia de tokens (para rotación)
     tokenFamily: {
         type: String,
         required: true,
         default: () => crypto.randomUUID()
     },
-    
+
     // Token padre (si es resultado de una rotación)
     parentToken: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RefreshToken',
         default: null
     },
-    
+
     // Tokens hijos (para detectar reutilización)
     childTokens: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RefreshToken'
     }],
-    
+
     // Estado del token
     isRevoked: {
         type: Boolean,
         default: false,
         index: true
     },
-    
+
     // Razón de revocación
     revokedReason: {
         type: String,
         enum: ['manual_logout', 'password_change', 'suspicious_activity', 'security_breach', 'admin_action'],
         default: null
     },
-    
+
     // Información del dispositivo/cliente
     deviceInfo: {
         userAgent: {
@@ -77,35 +77,35 @@ const refreshTokenSchema = new mongoose.Schema({
             default: 'unknown'
         }
     },
-    
+
     // Fechas de creación y expiración
     createdAt: {
         type: Date,
         default: Date.now,
         expires: 0 // Configurado por TTL
     },
-    
-    // Fecha de expiración (calculada)
+
+    // Fecha de expiración (calculada automáticamente en pre-save)
     expiresAt: {
         type: Date,
-        required: true,
+        required: false, // Se calcula en pre-save middleware
         index: true
     },
-    
+
     // Último uso del token
     lastUsedAt: {
         type: Date,
         default: Date.now,
         index: true
     },
-    
+
     // Número de usos (para detectar abuso)
     usageCount: {
         type: Number,
         default: 0,
         min: 0
     },
-    
+
     // Límite máximo de usos antes de requerir re-autenticación
     maxUsage: {
         type: Number,
@@ -128,7 +128,7 @@ refreshTokenSchema.index({ lastUsedAt: -1 });
 /**
  * Middleware pre-save: Calcular fecha de expiración
  */
-refreshTokenSchema.pre('save', function(next) {
+refreshTokenSchema.pre('save', function (next) {
     if (this.isNew && !this.expiresAt) {
         // Por defecto, los refresh tokens expiran en 30 días
         const expiresInDays = parseInt(process.env.REFRESH_TOKEN_EXPIRES_DAYS) || 30;
@@ -144,17 +144,17 @@ refreshTokenSchema.pre('save', function(next) {
  * @param {Object} deviceInfo - Información del dispositivo
  * @returns {Object} Token creado
  */
-refreshTokenSchema.statics.createRefreshToken = async function(userId, deviceInfo = {}) {
+refreshTokenSchema.statics.createRefreshToken = async function (userId, deviceInfo = {}) {
     try {
         // Generar token aleatorio
         const tokenValue = crypto.randomBytes(64).toString('hex');
         const tokenHash = crypto.createHash('sha256').update(tokenValue).digest('hex');
-        
+
         // Revocar todos los tokens activos del usuario para el mismo dispositivo (opcional)
         if (deviceInfo.userAgent && deviceInfo.ipAddress) {
             await this.revokeUserTokensForDevice(userId, deviceInfo.userAgent, deviceInfo.ipAddress, 'new_login');
         }
-        
+
         // Crear nuevo token
         const refreshToken = new this({
             tokenHash,
@@ -165,9 +165,9 @@ refreshTokenSchema.statics.createRefreshToken = async function(userId, deviceInf
                 deviceType: deviceInfo.deviceType || 'unknown'
             }
         });
-        
+
         await refreshToken.save();
-        
+
         return {
             success: true,
             token: tokenValue,
@@ -188,17 +188,17 @@ refreshTokenSchema.statics.createRefreshToken = async function(userId, deviceInf
  * @param {Object} deviceInfo - Información del dispositivo
  * @returns {Object} Resultado de la verificación
  */
-refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceInfo = {}) {
+refreshTokenSchema.statics.verifyAndRotate = async function (tokenValue, deviceInfo = {}) {
     try {
         const tokenHash = crypto.createHash('sha256').update(tokenValue).digest('hex');
-        
+
         // Buscar token activo
         const token = await this.findOne({
             tokenHash,
             isRevoked: false,
             expiresAt: { $gt: new Date() }
         }).populate('user');
-        
+
         if (!token) {
             return {
                 success: false,
@@ -206,7 +206,7 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
                 shouldRevokeFamily: false
             };
         }
-        
+
         // Verificar que el usuario esté activo
         if (!token.user || !token.user.activo) {
             await this.revokeTokenFamily(token.tokenFamily, 'user_inactive');
@@ -216,11 +216,11 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
                 shouldRevokeFamily: true
             };
         }
-        
+
         // Verificar límite de usos
         token.usageCount += 1;
         token.lastUsedAt = new Date();
-        
+
         if (token.usageCount > token.maxUsage) {
             await this.revokeTokenFamily(token.tokenFamily, 'max_usage_exceeded');
             return {
@@ -229,12 +229,12 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
                 shouldRevokeFamily: true
             };
         }
-        
+
         await token.save();
-        
+
         // Crear nuevo token (rotación)
         const newTokenResult = await this.createRefreshToken(token.user._id, deviceInfo);
-        
+
         if (!newTokenResult.success) {
             return {
                 success: false,
@@ -242,17 +242,17 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
                 shouldRevokeFamily: false
             };
         }
-        
+
         const newToken = newTokenResult.refreshTokenData;
-        
+
         // Marcar relación padre-hijo
         newToken.parentToken = token._id;
         newToken.tokenFamily = token.tokenFamily; // Mantener la misma familia
         await newToken.save();
-        
+
         token.childTokens.push(newToken._id);
         await token.save();
-        
+
         // Revocar el token anterior después de un breve período (para evitar problemas de concurrencia)
         setTimeout(async () => {
             try {
@@ -264,14 +264,14 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
                 console.error('Error revocando token anterior:', error);
             }
         }, 5000); // 5 segundos de gracia
-        
+
         return {
             success: true,
             user: token.user,
             newRefreshToken: newTokenResult.token,
             expiresIn: newToken.expiresAt
         };
-        
+
     } catch (error) {
         console.error('Error verificando refresh token:', error);
         return {
@@ -287,17 +287,17 @@ refreshTokenSchema.statics.verifyAndRotate = async function(tokenValue, deviceIn
  * @param {string} tokenValue - Valor del token
  * @param {string} reason - Razón de revocación
  */
-refreshTokenSchema.statics.revokeToken = async function(tokenValue, reason = 'manual_logout') {
+refreshTokenSchema.statics.revokeToken = async function (tokenValue, reason = 'manual_logout') {
     try {
         const tokenHash = crypto.createHash('sha256').update(tokenValue).digest('hex');
-        
+
         const token = await this.findOne({ tokenHash, isRevoked: false });
         if (token) {
             token.isRevoked = true;
             token.revokedReason = reason;
             await token.save();
         }
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error revocando token:', error);
@@ -310,16 +310,16 @@ refreshTokenSchema.statics.revokeToken = async function(tokenValue, reason = 'ma
  * @param {string} tokenFamily - Familia de tokens
  * @param {string} reason - Razón de revocación
  */
-refreshTokenSchema.statics.revokeTokenFamily = async function(tokenFamily, reason = 'security_breach') {
+refreshTokenSchema.statics.revokeTokenFamily = async function (tokenFamily, reason = 'security_breach') {
     try {
         await this.updateMany(
             { tokenFamily, isRevoked: false },
-            { 
-                isRevoked: true, 
-                revokedReason: reason 
+            {
+                isRevoked: true,
+                revokedReason: reason
             }
         );
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error revocando familia de tokens:', error);
@@ -332,16 +332,16 @@ refreshTokenSchema.statics.revokeTokenFamily = async function(tokenFamily, reaso
  * @param {string} userId - ID del usuario
  * @param {string} reason - Razón de revocación
  */
-refreshTokenSchema.statics.revokeAllUserTokens = async function(userId, reason = 'password_change') {
+refreshTokenSchema.statics.revokeAllUserTokens = async function (userId, reason = 'password_change') {
     try {
         await this.updateMany(
             { user: userId, isRevoked: false },
-            { 
-                isRevoked: true, 
-                revokedReason: reason 
+            {
+                isRevoked: true,
+                revokedReason: reason
             }
         );
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error revocando tokens de usuario:', error);
@@ -352,21 +352,21 @@ refreshTokenSchema.statics.revokeAllUserTokens = async function(userId, reason =
 /**
  * Método estático: Revocar tokens de usuario por dispositivo
  */
-refreshTokenSchema.statics.revokeUserTokensForDevice = async function(userId, userAgent, ipAddress, reason = 'new_login') {
+refreshTokenSchema.statics.revokeUserTokensForDevice = async function (userId, userAgent, ipAddress, reason = 'new_login') {
     try {
         await this.updateMany(
-            { 
-                user: userId, 
+            {
+                user: userId,
                 'deviceInfo.userAgent': userAgent,
                 'deviceInfo.ipAddress': ipAddress,
-                isRevoked: false 
+                isRevoked: false
             },
-            { 
-                isRevoked: true, 
-                revokedReason: reason 
+            {
+                isRevoked: true,
+                revokedReason: reason
             }
         );
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error revocando tokens por dispositivo:', error);
@@ -377,7 +377,7 @@ refreshTokenSchema.statics.revokeUserTokensForDevice = async function(userId, us
 /**
  * Método estático: Limpiar tokens expirados y revocados
  */
-refreshTokenSchema.statics.cleanupExpiredTokens = async function() {
+refreshTokenSchema.statics.cleanupExpiredTokens = async function () {
     try {
         const result = await this.deleteMany({
             $or: [
@@ -385,7 +385,7 @@ refreshTokenSchema.statics.cleanupExpiredTokens = async function() {
                 { isRevoked: true, createdAt: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } } // 30 días
             ]
         });
-        
+
         console.log(`🧹 Limpieza de tokens: ${result.deletedCount} tokens eliminados`);
         return { success: true, deletedCount: result.deletedCount };
     } catch (error) {
@@ -397,14 +397,14 @@ refreshTokenSchema.statics.cleanupExpiredTokens = async function() {
 /**
  * Método estático: Obtener tokens activos de un usuario
  */
-refreshTokenSchema.statics.getUserActiveTokens = async function(userId) {
+refreshTokenSchema.statics.getUserActiveTokens = async function (userId) {
     try {
         const tokens = await this.find({
             user: userId,
             isRevoked: false,
             expiresAt: { $gt: new Date() }
         }).select('-tokenHash').populate('user', 'nombre email');
-        
+
         return {
             success: true,
             tokens: tokens.map(token => ({

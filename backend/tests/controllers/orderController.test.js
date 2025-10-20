@@ -39,7 +39,7 @@ describe('Order Controller', () => {
             params: {},
             query: {}
         };
-        
+
         mockRes = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis()
@@ -412,7 +412,7 @@ describe('Order Controller', () => {
         it('debería obtener una orden específica por ID', async () => {
             // Arrange
             mockReq.params.id = 'order123';
-            
+
             const mockOrder = {
                 _id: 'order123',
                 orderNumber: 'ORD-001',
@@ -444,7 +444,7 @@ describe('Order Controller', () => {
         it('debería retornar 404 si la orden no existe', async () => {
             // Arrange
             mockReq.params.id = 'nonexistent';
-            
+
             Order.findOne.mockReturnValue({
                 populate: jest.fn().mockResolvedValue(null)
             });

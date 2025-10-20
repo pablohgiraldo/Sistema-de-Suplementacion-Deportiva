@@ -21,7 +21,7 @@ const orderItemSchema = new mongoose.Schema({
     },
     subtotal: {
         type: Number,
-        required: true,
+        required: false, // Se calcula automáticamente en pre-save
         min: [0, 'El subtotal no puede ser negativo']
     }
 }, { _id: false });
@@ -39,7 +39,15 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: [true, 'El usuario es requerido']
     },
-    items: [orderItemSchema],
+    items: {
+        type: [orderItemSchema],
+        validate: {
+            validator: function (items) {
+                return items && items.length > 0;
+            },
+            message: 'La orden debe contener al menos un producto'
+        }
+    },
     subtotal: {
         type: Number,
         required: [true, 'El subtotal es requerido'],

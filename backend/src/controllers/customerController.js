@@ -1152,6 +1152,124 @@ function generateSegmentRecommendations(distribution) {
     return recommendations;
 }
 
+// @desc    Segmentar customers usando agregación
+// @route   POST /api/customers/segment
+// @access  Private/Admin
+export const segmentCustomers = async (req, res) => {
+    try {
+        const { forceResegment = false } = req.body;
+
+        // Si forceResegment es true, resegmentar todos los clientes
+        if (forceResegment) {
+            const result = await resegmentAllCustomers(req, res);
+            return result;
+        }
+
+        // Obtener estadísticas de segmentación actual
+        const segmentStats = await Customer.aggregate([
+            {
+                $group: {
+                    _id: '$segment',
+                    count: { $sum: 1 },
+                    avgLifetimeValue: { $avg: '$lifetimeValue' },
+                    avgPurchaseFrequency: { $avg: '$purchaseFrequency' }
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: segmentStats,
+            message: 'Segmentación de clientes obtenida exitosamente'
+        });
+    } catch (error) {
+        console.error('Error al segmentar customers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al segmentar clientes'
+        });
+    }
+};
+
+// @desc    Obtener analytics de customers
+// @route   GET /api/customers/analytics
+// @access  Private/Admin
+export const getCustomerAnalytics = async (req, res) => {
+    try {
+        const { period = '30d' } = req.query;
+
+        // Calcular fecha de inicio según el período
+        const periodDays = parseInt(period) || 30;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - periodDays);
+
+        // Obtener métricas generales
+        const totalCustomers = await Customer.countDocuments();
+        const activeCustomers = await Customer.countDocuments({ status: 'active' });
+        const highValueCustomers = await Customer.countDocuments({ isHighValue: true });
+
+        // Obtener distribución por segmento
+        const segmentDistribution = await Customer.aggregate([
+            {
+                $group: {
+                    _id: '$segment',
+                    count: { $sum: 1 },
+                    totalRevenue: { $sum: '$lifetimeValue' }
+                }
+            }
+        ]);
+
+        // Obtener distribución por nivel de lealtad
+        const loyaltyDistribution = await Customer.aggregate([
+            {
+                $group: {
+                    _id: '$loyaltyLevel',
+                    count: { $sum: 1 },
+                    totalPoints: { $sum: '$loyaltyPoints' }
+                }
+            }
+        ]);
+
+        // Obtener clientes en riesgo
+        const churnRiskCustomers = await Customer.countDocuments({ churnRisk: 'high' });
+
+        // Calcular customer lifetime value promedio
+        const avgLifetimeValue = await Customer.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    avgLTV: { $avg: '$lifetimeValue' }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                overview: {
+                    totalCustomers,
+                    activeCustomers,
+                    highValueCustomers,
+                    churnRiskCustomers,
+                    avgLifetimeValue: avgLifetimeValue[0]?.avgLTV || 0
+                },
+                segmentDistribution,
+                loyaltyDistribution,
+                period: `${periodDays} días`
+            }
+        });
+    } catch (error) {
+        console.error('Error al obtener analytics de customers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al obtener analytics de clientes'
+        });
+    }
+};
+
 export default {
     getCustomers,
     getCustomerById,
@@ -1171,6 +1289,8 @@ export default {
     syncCustomersWithOrders,
     getCustomersBySegment,
     resegmentAllCustomers,
-    getSegmentationAnalysis
+    getSegmentationAnalysis,
+    segmentCustomers,
+    getCustomerAnalytics
 };
 

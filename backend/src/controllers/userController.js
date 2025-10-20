@@ -20,7 +20,7 @@ export const registrarUsuario = async (req, res) => {
         if (usuarioExistente) {
             return res.status(400).json({
                 success: false,
-                message: 'Ya existe un usuario con este email'
+                message: 'El email ya está registrado'
             });
         }
 
@@ -42,11 +42,13 @@ export const registrarUsuario = async (req, res) => {
         };
         const authResult = await generateAuthTokens(nuevoUsuario, deviceInfo);
 
-        // Respuesta exitosa
+        // Respuesta exitosa (formato compatible con tests)
         res.status(201).json({
             success: true,
             message: 'Usuario registrado exitosamente',
-            data: authResult.data
+            user: authResult.data.user,
+            token: authResult.data.tokens.accessToken,
+            refreshToken: authResult.data.tokens.refreshToken
         });
 
     } catch (error) {
@@ -96,7 +98,7 @@ export const iniciarSesion = async (req, res) => {
         if (!usuario) {
             return res.status(401).json({
                 success: false,
-                message: 'Credenciales inválidas'
+                message: 'Email o contraseña incorrectos'
             });
         }
 
@@ -114,7 +116,7 @@ export const iniciarSesion = async (req, res) => {
         if (!contraseñaValida) {
             return res.status(401).json({
                 success: false,
-                message: 'Credenciales inválidas'
+                message: 'Email o contraseña incorrectos'
             });
         }
 
@@ -125,11 +127,13 @@ export const iniciarSesion = async (req, res) => {
         };
         const authResult = await generateAuthTokens(usuario, deviceInfo);
 
-        // Respuesta exitosa
+        // Respuesta exitosa (formato compatible con tests)
         res.json({
             success: true,
             message: 'Inicio de sesión exitoso',
-            data: authResult.data
+            user: authResult.data.user,
+            token: authResult.data.tokens.accessToken,
+            refreshToken: authResult.data.tokens.refreshToken
         });
 
     } catch (error) {
@@ -254,7 +258,7 @@ export const refrescarToken = async (req, res) => {
             userAgent: req.get('User-Agent'),
             ipAddress: req.ip || req.connection.remoteAddress
         };
-        
+
         const result = await refreshAccessToken(refreshToken, deviceInfo);
 
         if (!result.success) {
@@ -565,9 +569,9 @@ export const cambiarRolUsuario = async (req, res) => {
 export const obtenerSesionesActivas = async (req, res) => {
     try {
         const userId = req.user._id;
-        
+
         const result = await RefreshToken.getUserActiveTokens(userId);
-        
+
         if (!result.success) {
             return res.status(500).json({
                 success: false,
@@ -647,7 +651,7 @@ export const revocarTodasLasSesiones = async (req, res) => {
         if (keepCurrent) {
             const currentUserAgent = req.get('User-Agent');
             const currentIp = req.ip || req.connection.remoteAddress;
-            
+
             tokensToRevoke.$and = [
                 tokensToRevoke,
                 {
@@ -661,9 +665,9 @@ export const revocarTodasLasSesiones = async (req, res) => {
 
         const result = await RefreshToken.updateMany(
             tokensToRevoke,
-            { 
-                isRevoked: true, 
-                revokedReason: 'user_revoked_all_other_sessions' 
+            {
+                isRevoked: true,
+                revokedReason: 'user_revoked_all_other_sessions'
             }
         );
 

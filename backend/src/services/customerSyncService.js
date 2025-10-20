@@ -276,11 +276,75 @@ export async function createMissingCustomers() {
     }
 }
 
+/**
+ * Actualiza las métricas de un customer específico
+ * @param {ObjectId} customerId - ID del customer
+ */
+export async function updateCustomerMetrics(customerId) {
+    try {
+        const customer = await Customer.findById(customerId);
+        
+        if (!customer) {
+            throw new Error('Customer no encontrado');
+        }
+
+        // Actualizar métricas desde las órdenes
+        await customer.updateMetricsFromOrders();
+        await customer.save();
+
+        console.log(`✅ Métricas actualizadas para customer ${customer.customerCode}`);
+        return customer;
+
+    } catch (error) {
+        console.error('❌ Error al actualizar métricas del customer:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calcula el segmento apropiado para un customer basado en sus métricas
+ * @param {Object} customerData - Datos del customer
+ * @returns {string} Segmento calculado
+ */
+export function calculateCustomerSegment(customerData) {
+    const {
+        lifetimeValue = 0,
+        purchaseFrequency = 0,
+        totalOrders = 0,
+        daysSinceLastPurchase = 0
+    } = customerData;
+
+    // Lógica de segmentación
+    if (totalOrders === 0) {
+        return 'new';
+    }
+
+    // Cliente VIP: alto valor y frecuente
+    if (lifetimeValue > 500 && purchaseFrequency > 0.5) {
+        return 'high_value';
+    }
+
+    // Cliente en riesgo: no compra hace más de 90 días
+    if (daysSinceLastPurchase > 90) {
+        return 'at_risk';
+    }
+
+    // Cliente regular: compras moderadas
+    if (totalOrders >= 3 && lifetimeValue > 100) {
+        return 'regular';
+    }
+
+    // Cliente nuevo que ya compró pero aún no frecuente
+    return 'new';
+}
+
 export default {
     syncCustomerAfterOrder,
     createCustomerFromUser,
     updateCustomerPreferences,
     syncAllCustomers,
-    createMissingCustomers
+    createMissingCustomers,
+    updateCustomerMetrics,
+    calculateCustomerSegment
 };
 

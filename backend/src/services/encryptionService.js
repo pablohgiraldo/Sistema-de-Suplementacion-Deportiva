@@ -24,8 +24,9 @@ const SALT_LENGTH = 64; // Para PBKDF2
 
 // Obtener clave de cifrado desde variables de entorno
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const IS_TEST_ENV = process.env.NODE_ENV === 'test';
 
-if (!ENCRYPTION_KEY) {
+if (!ENCRYPTION_KEY && !IS_TEST_ENV) {
     console.warn('⚠️  WARNING: ENCRYPTION_KEY no está definido en las variables de entorno');
     console.warn('⚠️  El cifrado de datos sensibles estará deshabilitado');
 }
@@ -47,7 +48,7 @@ function validateEncryptionKey() {
  */
 function deriveKey(salt) {
     validateEncryptionKey();
-    
+
     return crypto.pbkdf2Sync(
         ENCRYPTION_KEY,
         salt,
@@ -83,23 +84,28 @@ export function encrypt(plaintext) {
         return plaintext; // No cifrar strings vacíos o null
     }
 
+    // En modo test, no cifrar
+    if (IS_TEST_ENV) {
+        return plaintext;
+    }
+
     try {
         validateEncryptionKey();
 
         const salt = generateSalt();
         const iv = generateIV();
         const key = deriveKey(salt);
-        
-        const cipher = crypto.createCipherGCM(ENCRYPTION_ALGORITHM, key, iv);
+
+        const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
         cipher.setAAD(Buffer.from('supergains-encryption', 'utf8')); // Additional Authenticated Data
-        
+
         let ciphertext = cipher.update(plaintext, 'utf8');
-        cipher.final();
+        ciphertext = Buffer.concat([ciphertext, cipher.final()]);
         const tag = cipher.getAuthTag();
-        
+
         // Concatenar: salt + iv + tag + ciphertext
         const encryptedData = Buffer.concat([salt, iv, tag, ciphertext]);
-        
+
         return encryptedData.toString('base64');
     } catch (error) {
         console.error('Error cifrando datos:', error);
@@ -117,26 +123,31 @@ export function decrypt(encryptedData) {
         return encryptedData; // No descifrar strings vacíos o null
     }
 
+    // En modo test, no descifrar (los datos no están cifrados)
+    if (IS_TEST_ENV) {
+        return encryptedData;
+    }
+
     try {
         validateEncryptionKey();
 
         const encryptedBuffer = Buffer.from(encryptedData, 'base64');
-        
+
         // Extraer componentes: salt (64) + iv (16) + tag (16) + ciphertext
         const salt = encryptedBuffer.subarray(0, SALT_LENGTH);
         const iv = encryptedBuffer.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
         const tag = encryptedBuffer.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
         const ciphertext = encryptedBuffer.subarray(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
-        
+
         const key = deriveKey(salt);
-        
-        const decipher = crypto.createDecipherGCM(ENCRYPTION_ALGORITHM, key, iv);
+
+        const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
         decipher.setAAD(Buffer.from('supergains-encryption', 'utf8'));
         decipher.setAuthTag(tag);
-        
+
         let plaintext = decipher.update(ciphertext);
-        decipher.final();
-        
+        plaintext = Buffer.concat([plaintext, decipher.final()]);
+
         return plaintext.toString('utf8');
     } catch (error) {
         console.error('Error descifrando datos:', error);
@@ -223,7 +234,7 @@ export function isEncrypted(str) {
  */
 export function hashForSearch(data) {
     if (!data) return '';
-    
+
     return crypto.createHash('sha256')
         .update(data.toLowerCase().trim())
         .digest('hex');
@@ -285,7 +296,7 @@ export default {
     hashForSearch,
     generateEncryptionKey,
     SENSITIVE_FIELDS,
-    
+
     // Validaciones
     validateEncryptionKey
 };

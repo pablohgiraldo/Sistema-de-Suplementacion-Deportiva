@@ -27,7 +27,7 @@ describe('Recommendation Controller', () => {
             user: {},
             body: {}
         };
-        
+
         mockRes = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis()
@@ -103,7 +103,7 @@ describe('Recommendation Controller', () => {
         it('debería manejar errores del servicio correctamente', async () => {
             // Arrange
             mockReq.params.userId = 'user123';
-            
+
             const error = new Error('Error en servicio de recomendaciones');
             recommendationService.getUserBasedRecommendations.mockRejectedValue(error);
 
@@ -272,7 +272,7 @@ describe('Recommendation Controller', () => {
 
         it('debería manejar parámetros opcionales de popularidad', async () => {
             // Arrange
-            mockReq.query = { 
+            mockReq.query = {
                 limit: '15',
                 category: 'proteina',
                 timeRange: '30days'

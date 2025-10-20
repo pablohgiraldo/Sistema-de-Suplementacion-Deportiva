@@ -10,7 +10,7 @@ const authMiddleware = async (req, res, next) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Token de acceso requerido. Formato: Bearer <token>'
+                message: 'Token no proporcionado'
             });
         }
 
