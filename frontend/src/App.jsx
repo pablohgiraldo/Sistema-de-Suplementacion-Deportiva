@@ -14,6 +14,7 @@ import ProductCard from './components/productCard';
 import ProductGrid from './components/ProductGrid';
 import PageLoader from './components/PageLoader';
 import LazyErrorBoundary from './components/LazyErrorBoundary';
+import TawkToChat from './components/TawkToChat';
 import { useProducts } from './hooks/useProducts';
 import { preloadCriticalComponents, preloadAdminComponents, preloadProductComponents } from './utils/preloadComponents';
 
@@ -32,6 +33,7 @@ const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const PaymentConfirmation = lazy(() => import('./pages/PaymentConfirmation'));
 const Orders = lazy(() => import('./pages/Orders'));
 const OrderTracking = lazy(() => import('./pages/OrderTracking'));
+const Support = lazy(() => import('./pages/Support'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
@@ -293,6 +295,7 @@ function AuthenticatedApp({
                 </ProtectedRoute>
               }
             />
+            <Route path="/support" element={<Support />} />
           </Routes>
         </Suspense>
       </LazyErrorBoundary>
@@ -411,6 +414,8 @@ export default function App() {
       <CartProvider>
         <Router>
           <AppContent />
+          {/* Widget de chat de soporte Tawk.to */}
+          <TawkToChat />
         </Router>
       </CartProvider>
     </AuthProvider>

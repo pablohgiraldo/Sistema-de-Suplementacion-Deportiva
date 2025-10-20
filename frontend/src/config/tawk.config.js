@@ -1,0 +1,40 @@
+/**
+ * Configuración de Tawk.to
+ * 
+ * Para obtener tus credenciales:
+ * 1. Crea una cuenta en https://www.tawk.to/
+ * 2. Ve a Administration > Property Settings
+ * 3. Copia tu Property ID y Widget ID
+ * 4. Reemplaza los valores de ejemplo aquí
+ */
+
+export const TAWK_CONFIG = {
+    // Property ID de tu cuenta Tawk.to
+    propertyId: import.meta.env.VITE_TAWK_PROPERTY_ID || '673e38ba4304e3196adb04f4',
+
+    // Widget ID de tu widget específico
+    widgetId: import.meta.env.VITE_TAWK_WIDGET_ID || '1id1dbhci',
+
+    // URL base de Tawk.to
+    baseUrl: 'https://embed.tawk.to',
+
+    // Configuración adicional (opcional)
+    options: {
+        // Personalización del widget
+        visibility: {
+            desktop: {
+                position: 'br', // bottom-right
+                xOffset: 20,
+                yOffset: 20
+            },
+            mobile: {
+                position: 'br',
+                xOffset: 10,
+                yOffset: 10
+            }
+        }
+    }
+};
+
+export default TAWK_CONFIG;
+

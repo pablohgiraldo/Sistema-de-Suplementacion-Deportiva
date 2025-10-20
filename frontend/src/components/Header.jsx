@@ -246,7 +246,7 @@ export default function Header({
             <div className="flex items-center justify-between py-4 w-full">
               {/* Categorías principales según PRD */}
               <div className="flex items-center gap-4 lg:gap-8 overflow-x-auto min-w-0">
-                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros"].map((category) => (
+                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros", "Soporte"].map((category) => (
                   <div
                     key={category}
                     className={`flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors ${selectedCategory === category ? 'text-blue-600 font-semibold' : ''
@@ -262,7 +262,8 @@ export default function Header({
                         "Accesorios": "Todos los Productos",
                         "Outlet": "Outlet",
                         "Objetivos": "Todos los Productos",
-                        "Nosotros": "nosotros" // Redirigir a la sección Nosotros
+                        "Nosotros": "nosotros", // Redirigir a la sección Nosotros
+                        "Soporte": "soporte" // Redirigir a página de soporte
                       };
                       const filter = filterMap[category] || "Todos los Productos";
 
@@ -274,6 +275,9 @@ export default function Header({
                             nosotrosSection.scrollIntoView({ behavior: 'smooth' });
                           }
                         }, 100);
+                      } else if (category === "Soporte") {
+                        // Navegar a la página de soporte
+                        window.location.href = '/support';
                       } else {
                         onCategoryClick(filter);
                       }
@@ -417,7 +421,7 @@ export default function Header({
             <div className="space-y-1 mb-6">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Categorías</h3>
               <nav role="navigation" aria-label="Categorías de productos">
-                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros"].map((category) => (
+                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros", "Soporte"].map((category) => (
                   <button
                     key={category}
                     className={`w-full text-left py-3 px-3 rounded-lg cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${selectedCategory === category
@@ -434,7 +438,8 @@ export default function Header({
                         "Accesorios": "Todos los Productos",
                         "Outlet": "Outlet",
                         "Objetivos": "Todos los Productos",
-                        "Nosotros": "nosotros" // Redirigir a la sección Nosotros
+                        "Nosotros": "nosotros", // Redirigir a la sección Nosotros
+                        "Soporte": "soporte" // Redirigir a página de soporte
                       };
                       const filter = filterMap[category] || "Todos los Productos";
 
@@ -447,6 +452,10 @@ export default function Header({
                             nosotrosSection.scrollIntoView({ behavior: 'smooth' });
                           }
                         }, 100);
+                      } else if (category === "Soporte") {
+                        // Navegar a la página de soporte
+                        setIsMobileMenuOpen(false); // Cerrar menú móvil
+                        window.location.href = '/support';
                       } else {
                         onCategoryClick(filter);
                         setIsMobileMenuOpen(false); // Cerrar menú móvil
