@@ -38,6 +38,19 @@ describe('Customer Controller', () => {
             json: jest.fn().mockReturnThis()
         };
 
+        // Configurar mocks básicos para Customer
+        Customer.find = jest.fn();
+        Customer.findById = jest.fn();
+        Customer.findByIdAndUpdate = jest.fn();
+        Customer.findByIdAndDelete = jest.fn();
+        Customer.countDocuments = jest.fn();
+        Customer.aggregate = jest.fn();
+        Customer.findOne = jest.fn();
+        Customer.mockImplementation = jest.fn();
+
+        // Configurar mocks básicos para User
+        User.find = jest.fn();
+
         // Limpiar mocks
         jest.clearAllMocks();
     });
@@ -316,7 +329,9 @@ describe('Customer Controller', () => {
                 contactInfo: mockReq.body.contactInfo
             };
 
-            Customer.findByIdAndUpdate.mockResolvedValue(mockUpdatedCustomer);
+            Customer.findByIdAndUpdate.mockReturnValue({
+                populate: jest.fn().mockResolvedValue(mockUpdatedCustomer)
+            });
 
             // Act
             await updateCustomer(mockReq, mockRes);
@@ -340,7 +355,9 @@ describe('Customer Controller', () => {
             mockReq.params.id = 'nonexistent';
             mockReq.body = { contactInfo: { phone: '123' } };
 
-            Customer.findByIdAndUpdate.mockResolvedValue(null);
+            Customer.findByIdAndUpdate.mockReturnValue({
+                populate: jest.fn().mockResolvedValue(null)
+            });
 
             // Act
             await updateCustomer(mockReq, mockRes);

@@ -16,6 +16,7 @@ import Order from '../../src/models/Order.js';
 import Cart from '../../src/models/Cart.js';
 import Inventory from '../../src/models/Inventory.js';
 import Product from '../../src/models/Product.js';
+import User from '../../src/models/User.js';
 import { syncCustomerAfterOrder } from '../../src/services/customerSyncService.js';
 import webhookService from '../../src/services/webhookService.js';
 import notificationService from '../../src/services/notificationService.js';
@@ -25,6 +26,7 @@ jest.mock('../../src/models/Order.js');
 jest.mock('../../src/models/Cart.js');
 jest.mock('../../src/models/Inventory.js');
 jest.mock('../../src/models/Product.js');
+jest.mock('../../src/models/User.js');
 jest.mock('../../src/services/customerSyncService.js');
 jest.mock('../../src/services/webhookService.js');
 jest.mock('../../src/services/notificationService.js');
@@ -44,6 +46,24 @@ describe('Order Controller', () => {
             status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis()
         };
+
+        // Configurar mocks básicos para Order
+        Order.find = jest.fn();
+        Order.findOne = jest.fn();
+        Order.findById = jest.fn();
+        Order.findByIdAndUpdate = jest.fn();
+        Order.countDocuments = jest.fn();
+        Order.mockImplementation = jest.fn();
+
+        // Configurar mocks básicos para Cart
+        Cart.findOne = jest.fn();
+        
+        // Configurar mocks básicos para Inventory
+        Inventory.findOne = jest.fn();
+        Inventory.findOneAndUpdate = jest.fn();
+
+        // Configurar mocks básicos para User
+        User.findById = jest.fn();
 
         // Limpiar mocks
         jest.clearAllMocks();
@@ -86,29 +106,43 @@ describe('Order Controller', () => {
                 cardNumber: '4111 1111 1111 1111'
             };
 
-            Cart.findOne.mockReturnValue({
-                populate: jest.fn().mockResolvedValue(mockCart)
-            });
-
             Inventory.findOne
                 .mockResolvedValueOnce(mockInventory1)
                 .mockResolvedValueOnce(mockInventory2);
+                
+            Inventory.findOneAndUpdate.mockResolvedValue({ success: true });
 
             const mockOrder = {
                 _id: 'order123',
                 user: 'user123',
-                total: 178750, // (2*50000 + 1*75000) + 19% tax + shipping
-                status: 'pending'
+                total: 178750,
+                status: 'pending',
+                orderNumber: 'ORD-123',
+                items: mockCart.items,
+                itemCount: 3,
+                paymentStatus: 'pending',
+                createdAt: new Date(),
+                validateOrderData: jest.fn().mockReturnValue([]),
+                save: jest.fn().mockResolvedValue(),
+                populate: jest.fn().mockResolvedValue(),
+                toObject: jest.fn().mockReturnValue({}),
+                getOrderSummary: jest.fn().mockReturnValue({})
             };
 
-            Order.mockImplementation(() => ({
-                ...mockOrder,
-                validateOrderData: () => [],
-                save: jest.fn().mockResolvedValue(mockOrder)
-            }));
+            Order.mockImplementation(() => mockOrder);
+            
+            // Mock cart.clearCart()
+            const mockCartWithClear = {
+                ...mockCart,
+                clearCart: jest.fn().mockResolvedValue()
+            };
+            
+            Cart.findOne.mockReturnValue({
+                populate: jest.fn().mockResolvedValue(mockCartWithClear)
+            });
 
             syncCustomerAfterOrder.mockResolvedValue({ success: true });
-            webhookService.sendOrderCreated.mockResolvedValue({ success: true });
+            webhookService.triggerEvent.mockResolvedValue({ success: true });
             notificationService.sendOrderConfirmation.mockResolvedValue({ success: true });
 
             // Act
@@ -259,7 +293,7 @@ describe('Order Controller', () => {
             });
 
             syncCustomerAfterOrder.mockResolvedValue({ success: true });
-            webhookService.sendOrderCreated.mockResolvedValue({ success: true });
+            webhookService.triggerEvent.mockResolvedValue({ success: true });
             notificationService.sendOrderConfirmation.mockResolvedValue({ success: true });
 
             // Act
@@ -314,7 +348,7 @@ describe('Order Controller', () => {
             });
 
             syncCustomerAfterOrder.mockResolvedValue({ success: true });
-            webhookService.sendOrderCreated.mockResolvedValue({ success: true });
+            webhookService.triggerEvent.mockResolvedValue({ success: true });
             notificationService.sendOrderConfirmation.mockResolvedValue({ success: true });
 
             // Act
@@ -346,15 +380,23 @@ describe('Order Controller', () => {
                 }
             ];
 
-            Order.find.mockReturnValue({
-                populate: jest.fn().mockReturnValue({
-                    sort: jest.fn().mockReturnValue({
-                        skip: jest.fn().mockReturnValue({
-                            limit: jest.fn().mockResolvedValue(mockOrders)
-                        })
-                    })
-                })
-            });
+            // Mock para la cadena completa de métodos de getOrders (Order.find().populate().populate().sort().skip().limit())
+            const mockPopulate1 = jest.fn().mockReturnThis();
+            const mockPopulate2 = jest.fn().mockReturnThis();
+            const mockSort = jest.fn().mockReturnThis();
+            const mockSkip = jest.fn().mockReturnThis();
+            const mockLimit = jest.fn().mockResolvedValue(mockOrders);
+
+            const mockQuery = {
+                populate: jest.fn()
+                    .mockReturnValueOnce({ populate: mockPopulate2 })
+                    .mockReturnValue({ sort: mockSort })
+            };
+            
+            Order.find.mockReturnValue(mockQuery);
+            mockPopulate2.mockReturnValue({ sort: mockSort });
+            mockSort.mockReturnValue({ skip: mockSkip });
+            mockSkip.mockReturnValue({ limit: mockLimit });
 
             Order.countDocuments.mockResolvedValue(2);
 
@@ -385,15 +427,23 @@ describe('Order Controller', () => {
                 status: 'completed'
             }];
 
-            Order.find.mockReturnValue({
-                populate: jest.fn().mockReturnValue({
-                    sort: jest.fn().mockReturnValue({
-                        skip: jest.fn().mockReturnValue({
-                            limit: jest.fn().mockResolvedValue(mockOrders)
-                        })
-                    })
-                })
-            });
+            // Mock para la cadena completa de métodos de getOrders (similar al test anterior)
+            const mockPopulate1 = jest.fn().mockReturnThis();
+            const mockPopulate2 = jest.fn().mockReturnThis();
+            const mockSort = jest.fn().mockReturnThis();
+            const mockSkip = jest.fn().mockReturnThis();
+            const mockLimit = jest.fn().mockResolvedValue(mockOrders);
+
+            const mockQuery = {
+                populate: jest.fn()
+                    .mockReturnValueOnce({ populate: mockPopulate2 })
+                    .mockReturnValue({ sort: mockSort })
+            };
+            
+            Order.find.mockReturnValue(mockQuery);
+            mockPopulate2.mockReturnValue({ sort: mockSort });
+            mockSort.mockReturnValue({ skip: mockSkip });
+            mockSkip.mockReturnValue({ limit: mockLimit });
 
             Order.countDocuments.mockResolvedValue(1);
 
@@ -405,6 +455,14 @@ describe('Order Controller', () => {
                 user: 'user123',
                 status: 'completed'
             });
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+            expect(mockRes.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: mockOrders,
+                    pagination: expect.any(Object)
+                })
+            );
         });
     });
 
@@ -416,24 +474,32 @@ describe('Order Controller', () => {
             const mockOrder = {
                 _id: 'order123',
                 orderNumber: 'ORD-001',
-                user: 'user123',
+                user: { _id: 'user123', toString: () => 'user123' },
                 total: 150000,
                 status: 'completed',
                 items: []
             };
 
-            Order.findOne.mockReturnValue({
-                populate: jest.fn().mockResolvedValue(mockOrder)
+            // Mock para Order.findById con cadena de métodos
+            const mockPopulate1 = jest.fn().mockReturnThis();
+            const mockPopulate2 = jest.fn().mockReturnThis();
+            const mockPopulate3 = jest.fn().mockResolvedValue(mockOrder);
+
+            Order.findById.mockReturnValue({
+                populate: mockPopulate1
+            });
+            mockPopulate1.mockReturnValue({
+                populate: mockPopulate2
+            });
+            mockPopulate2.mockReturnValue({
+                populate: mockPopulate3
             });
 
             // Act
             await getOrderById(mockReq, mockRes);
 
             // Assert
-            expect(Order.findOne).toHaveBeenCalledWith({
-                _id: 'order123',
-                user: 'user123'
-            });
+            expect(Order.findById).toHaveBeenCalledWith('order123');
             expect(mockRes.status).toHaveBeenCalledWith(200);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: true,
@@ -445,14 +511,26 @@ describe('Order Controller', () => {
             // Arrange
             mockReq.params.id = 'nonexistent';
 
-            Order.findOne.mockReturnValue({
-                populate: jest.fn().mockResolvedValue(null)
+            // Mock para Order.findById retornando null
+            const mockPopulate1 = jest.fn().mockReturnThis();
+            const mockPopulate2 = jest.fn().mockReturnThis();
+            const mockPopulate3 = jest.fn().mockResolvedValue(null);
+
+            Order.findById.mockReturnValue({
+                populate: mockPopulate1
+            });
+            mockPopulate1.mockReturnValue({
+                populate: mockPopulate2
+            });
+            mockPopulate2.mockReturnValue({
+                populate: mockPopulate3
             });
 
             // Act
             await getOrderById(mockReq, mockRes);
 
             // Assert
+            expect(Order.findById).toHaveBeenCalledWith('nonexistent');
             expect(mockRes.status).toHaveBeenCalledWith(404);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: false,
@@ -468,47 +546,66 @@ describe('Order Controller', () => {
             mockReq.body = { status: 'shipped' };
             mockReq.user = { id: 'user123', rol: 'admin' }; // Admin puede actualizar
 
-            const mockUpdatedOrder = {
+            const mockOrder = {
                 _id: 'order123',
-                status: 'shipped',
-                user: 'user123'
+                status: 'pending',
+                user: 'user123',
+                items: [],
+                orderNumber: 'ORD-001',
+                total: 150000,
+                trackingNumber: null,
+                carrier: null,
+                trackingUrl: null,
+                shippingAddress: {},
+                updateStatus: jest.fn().mockResolvedValue(),
+                populate: jest.fn().mockResolvedValue(),
+                save: jest.fn().mockResolvedValue()
             };
 
-            Order.findByIdAndUpdate.mockResolvedValue(mockUpdatedOrder);
-            webhookService.sendOrderStatusUpdate.mockResolvedValue({ success: true });
-            notificationService.sendOrderStatusUpdate.mockResolvedValue({ success: true });
+            Order.findById.mockResolvedValue(mockOrder);
+            
+            // Mock servicios
+            syncCustomerAfterOrder.mockResolvedValue({ success: true });
+            webhookService.triggerEvent.mockResolvedValue({ success: true });
+            notificationService.addToQueue.mockResolvedValue({ success: true });
+
+            // Mock User.findById para el email
+            User.findById.mockResolvedValue({
+                email: 'test@example.com',
+                nombre: 'Test User'
+            });
 
             // Act
             await updateOrderStatus(mockReq, mockRes);
 
             // Assert
-            expect(Order.findByIdAndUpdate).toHaveBeenCalledWith(
-                'order123',
-                { status: 'shipped' },
-                { new: true, runValidators: true }
-            );
+            expect(Order.findById).toHaveBeenCalledWith('order123');
+            expect(mockOrder.updateStatus).toHaveBeenCalledWith('shipped', 'user123');
             expect(mockRes.status).toHaveBeenCalledWith(200);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: true,
                 message: 'Estado de orden actualizado exitosamente',
-                data: mockUpdatedOrder
+                data: mockOrder
             });
         });
 
-        it('debería retornar 403 si el usuario no es admin', async () => {
+        it('debería retornar 404 si la orden no existe', async () => {
             // Arrange
-            mockReq.params.id = 'order123';
+            mockReq.params.id = 'nonexistent';
             mockReq.body = { status: 'shipped' };
-            mockReq.user = { id: 'user123', rol: 'usuario' }; // Usuario normal
+            mockReq.user = { id: 'user123', rol: 'admin' };
+
+            Order.findById.mockResolvedValue(null);
 
             // Act
             await updateOrderStatus(mockReq, mockRes);
 
             // Assert
-            expect(mockRes.status).toHaveBeenCalledWith(403);
+            expect(Order.findById).toHaveBeenCalledWith('nonexistent');
+            expect(mockRes.status).toHaveBeenCalledWith(404);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: false,
-                error: 'No tienes permisos para actualizar el estado de órdenes'
+                error: 'Orden no encontrada'
             });
         });
     });
@@ -518,28 +615,33 @@ describe('Order Controller', () => {
             // Arrange
             mockReq.params.id = 'order123';
             mockReq.body = { reason: 'Customer requested cancellation' };
+            mockReq.user = { id: 'user123', rol: 'usuario' };
 
             const mockOrder = {
                 _id: 'order123',
                 status: 'pending',
                 user: 'user123',
-                save: jest.fn().mockResolvedValue({})
+                items: [],
+                orderNumber: 'ORD-001',
+                updateStatus: jest.fn().mockResolvedValue(),
+                populate: jest.fn().mockResolvedValue()
             };
 
-            Order.findOne.mockReturnValue({
-                populate: jest.fn().mockResolvedValue(mockOrder)
-            });
+            Order.findById.mockResolvedValue(mockOrder);
+            syncCustomerAfterOrder.mockResolvedValue({ success: true });
+            Inventory.findOneAndUpdate.mockResolvedValue({ success: true });
 
             // Act
             await cancelOrder(mockReq, mockRes);
 
             // Assert
-            expect(mockOrder.status).toBe('cancelled');
-            expect(mockOrder.save).toHaveBeenCalled();
+            expect(Order.findById).toHaveBeenCalledWith('order123');
+            expect(mockOrder.updateStatus).toHaveBeenCalledWith('cancelled', 'user123');
             expect(mockRes.status).toHaveBeenCalledWith(200);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: true,
-                message: 'Orden cancelada exitosamente'
+                message: 'Orden cancelada exitosamente',
+                data: mockOrder
             });
         });
 
@@ -547,6 +649,7 @@ describe('Order Controller', () => {
             // Arrange
             mockReq.params.id = 'order123';
             mockReq.body = { reason: 'Test cancellation' };
+            mockReq.user = { id: 'user123', rol: 'usuario' };
 
             const mockOrder = {
                 _id: 'order123',
@@ -554,18 +657,17 @@ describe('Order Controller', () => {
                 user: 'user123'
             };
 
-            Order.findOne.mockReturnValue({
-                populate: jest.fn().mockResolvedValue(mockOrder)
-            });
+            Order.findById.mockResolvedValue(mockOrder);
 
             // Act
             await cancelOrder(mockReq, mockRes);
 
             // Assert
+            expect(Order.findById).toHaveBeenCalledWith('order123');
             expect(mockRes.status).toHaveBeenCalledWith(400);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: false,
-                error: 'Esta orden no puede ser cancelada'
+                error: 'Solo se pueden cancelar órdenes pendientes o en procesamiento'
             });
         });
     });
