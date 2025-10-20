@@ -197,3 +197,58 @@ export const sendAlertsSummary = async (req, res) => {
         });
     }
 };
+
+// @desc    Notificar a admin cuando se inicia un chat de soporte
+// @route   POST /api/notifications/chat-started
+// @access  Public (se puede llamar sin autenticación desde el widget)
+export const notifyChatStarted = async (req, res) => {
+    try {
+        const { visitorName, visitorEmail, userId, userName, timestamp } = req.body;
+
+        // Validar datos mínimos
+        if (!visitorName) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nombre del visitante es requerido'
+            });
+        }
+
+        // Preparar información del visitante
+        const visitorInfo = {
+            name: visitorName,
+            email: visitorEmail || 'No proporcionado',
+            userId: userId || 'Visitante anónimo',
+            userName: userName || visitorName,
+            timestamp: timestamp || new Date().toISOString()
+        };
+
+        // Agregar a la cola de notificaciones
+        notificationService.addToQueue({
+            type: 'chat_started',
+            data: {
+                visitor: visitorInfo,
+                message: `Nueva conversación de chat iniciada por ${visitorInfo.name}`,
+                timestamp: visitorInfo.timestamp,
+                priority: 'high' // Alta prioridad para chats
+            }
+        });
+
+        console.log(`📧 Notificación de chat agregada a cola: ${visitorInfo.name} (${visitorInfo.email})`);
+
+        res.json({
+            success: true,
+            message: 'Notificación de chat enviada al administrador',
+            data: {
+                visitor: visitorInfo.name,
+                queueLength: notificationService.notificationQueue.length
+            }
+        });
+    } catch (error) {
+        console.error('Error notificando inicio de chat:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error enviando notificación de chat',
+            error: error.message
+        });
+    }
+};

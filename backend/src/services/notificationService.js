@@ -61,6 +61,8 @@ class NotificationService {
                     return await this.sendStockAlert(notification.data);
                 case 'alerts_summary':
                     return await this.sendAlertsSummary(notification.data);
+                case 'chat_started':
+                    return await this.sendChatNotification(notification.data);
                 case 'test_email':
                     return await this.sendTest(notification.data);
                 case 'order_status_change':
@@ -163,6 +165,78 @@ class NotificationService {
             return result;
         } catch (error) {
             console.error('❌ Error enviando resumen de alertas:', error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    // Enviar notificación de inicio de chat
+    async sendChatNotification(chatData) {
+        try {
+            const { visitor, message, timestamp } = chatData;
+            
+            const emailResult = await sendEmail({
+                to: this.adminEmail,
+                subject: `🆕 Nueva conversación de chat - ${visitor.name}`,
+                html: `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                            .info-box { background: white; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
+                            .label { font-weight: bold; color: #667eea; }
+                            .value { color: #333; margin-left: 10px; }
+                            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                            .btn { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1 style="margin: 0;">💬 Nueva Conversación de Chat</h1>
+                                <p style="margin: 10px 0 0 0;">SuperGains - Soporte al Cliente</p>
+                            </div>
+                            <div class="content">
+                                <p><strong>${message}</strong></p>
+                                
+                                <div class="info-box">
+                                    <h3 style="margin-top: 0; color: #667eea;">Información del Visitante</h3>
+                                    <p><span class="label">Nombre:</span><span class="value">${visitor.name}</span></p>
+                                    <p><span class="label">Email:</span><span class="value">${visitor.email}</span></p>
+                                    <p><span class="label">Usuario ID:</span><span class="value">${visitor.userId}</span></p>
+                                    <p><span class="label">Hora:</span><span class="value">${new Date(timestamp).toLocaleString('es-CO')}</span></p>
+                                </div>
+
+                                <p style="text-align: center;">
+                                    <a href="https://dashboard.tawk.to/" class="btn" target="_blank">
+                                        Abrir Dashboard de Tawk.to →
+                                    </a>
+                                </p>
+
+                                <p style="color: #666; font-size: 14px; margin-top: 20px;">
+                                    <strong>Nota:</strong> Accede a tu dashboard de Tawk.to para responder esta conversación en tiempo real.
+                                </p>
+                            </div>
+                            <div class="footer">
+                                <p>SuperGains - Sistema de Notificaciones</p>
+                                <p>Esta es una notificación automática del sistema de chat</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `
+            });
+
+            if (emailResult.success) {
+                console.log(`✅ Notificación de chat enviada a ${this.adminEmail}`);
+            }
+
+            return emailResult;
+        } catch (error) {
+            console.error('❌ Error enviando notificación de chat:', error);
             return { success: false, message: error.message };
         }
     }

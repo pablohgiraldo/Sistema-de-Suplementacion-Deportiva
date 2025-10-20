@@ -5,14 +5,18 @@ import {
     processAllAlerts,
     getNotificationStatus,
     sendSpecificAlert,
-    sendAlertsSummary
+    sendAlertsSummary,
+    notifyChatStarted
 } from '../controllers/notificationController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación y rol de administrador
+// Ruta pública para notificaciones de chat (sin autenticación)
+router.post('/chat-started', notifyChatStarted);
+
+// Todas las rutas siguientes requieren autenticación y rol de administrador
 router.use(authMiddleware, requireAdmin);
 
 // Verificar configuración de email

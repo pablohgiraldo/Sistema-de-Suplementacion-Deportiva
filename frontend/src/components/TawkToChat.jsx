@@ -6,9 +6,13 @@
  */
 
 import { useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { TAWK_CONFIG } from '../config/tawk.config';
+import api from '../services/api';
 
 export default function TawkToChat() {
+    const { user, isAuthenticated } = useAuth();
+
     useEffect(() => {
         // Configuración de Tawk.to desde archivo de configuración
         const { propertyId, widgetId } = TAWK_CONFIG;
@@ -29,17 +33,73 @@ export default function TawkToChat() {
         window.Tawk_API = window.Tawk_API || {};
         window.Tawk_LoadStart = new Date();
 
-        // Eventos de Tawk.to (opcional)
+        // Función para notificar al admin sobre inicio de chat
+        const notifyAdminChatStarted = async (visitorInfo) => {
+            try {
+                await api.post('/notifications/chat-started', {
+                    visitorName: visitorInfo.name || 'Visitante Anónimo',
+                    visitorEmail: visitorInfo.email || 'No proporcionado',
+                    userId: user?._id || null,
+                    userName: user?.nombre || null,
+                    timestamp: new Date().toISOString()
+                });
+                console.log('✅ Notificación de chat enviada a admin');
+            } catch (error) {
+                console.error('❌ Error al notificar admin sobre chat:', error);
+            }
+        };
+
+        // Eventos de Tawk.to
         window.Tawk_API.onLoad = function () {
             console.log('✅ Tawk.to chat cargado exitosamente');
+            
+            // Si hay usuario autenticado, pasar su información al chat
+            if (isAuthenticated && user) {
+                window.Tawk_API.setAttributes({
+                    'name': user.nombre || 'Usuario',
+                    'email': user.email || '',
+                    'userId': user._id || '',
+                    'rol': user.rol || 'usuario'
+                }, function(error) {
+                    if (error) {
+                        console.error('Error al establecer atributos de usuario:', error);
+                    } else {
+                        console.log('✅ Información de usuario establecida en chat');
+                    }
+                });
+            }
         };
 
         window.Tawk_API.onChatMaximized = function () {
-            console.log('💬 Chat abierto');
+            console.log('💬 Chat abierto por usuario');
         };
 
         window.Tawk_API.onChatMinimized = function () {
             console.log('💬 Chat minimizado');
+        };
+
+        // Evento cuando se inicia una conversación (primer mensaje del visitante)
+        window.Tawk_API.onChatStarted = function () {
+            console.log('🆕 Nueva conversación de chat iniciada');
+            
+            // Obtener información del visitante
+            const visitorInfo = {
+                name: user?.nombre || window.Tawk_API.getWindowType() || 'Visitante',
+                email: user?.email || ''
+            };
+
+            // Notificar al admin
+            notifyAdminChatStarted(visitorInfo);
+        };
+
+        // Evento cuando el visitante envía un mensaje
+        window.Tawk_API.onChatMessageVisitor = function (message) {
+            console.log('📨 Mensaje del visitante:', message.message);
+        };
+
+        // Evento cuando un agente responde
+        window.Tawk_API.onChatMessageAgent = function (message) {
+            console.log('📩 Mensaje del agente:', message.message);
         };
 
         // Añadir el script al documento
