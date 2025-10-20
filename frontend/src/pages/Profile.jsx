@@ -11,7 +11,6 @@ import {
     FormSuccess
 } from '../components/forms';
 import LoyaltyTransactionsHistory from '../components/LoyaltyTransactionsHistory';
-import Header from '../components/Header';
 
 export default function Profile() {
     const { user, logout } = useAuth();
@@ -96,9 +95,6 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header siempre visible en desktop */}
-            <Header />
-
             {/* Hero Section */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
