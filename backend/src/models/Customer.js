@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { addEncryptionMiddleware, addDecryptMethod } from '../middleware/encryptionMiddleware.js';
 
 /**
  * Modelo Customer para CRM
@@ -819,6 +820,24 @@ customerSchema.statics.getChurnRiskCustomers = async function () {
         .sort({ 'metrics.daysSinceLastOrder': -1 })
         .populate('user', 'nombre email');
 };
+
+// Configurar cifrado para campos sensibles de Customer
+const sensitiveCustomerFields = [
+    'contactInfo.phone',
+    'contactInfo.alternativeEmail',
+    'contactInfo.address.street',
+    'contactInfo.address.city',
+    'contactInfo.address.state',
+    'contactInfo.address.zipCode',
+    'birthDate',
+    'notes'
+];
+
+// Aplicar middleware de cifrado
+addEncryptionMiddleware(customerSchema, { encryptFields: sensitiveCustomerFields });
+
+// Agregar métodos de descifrado
+addDecryptMethod(customerSchema, sensitiveCustomerFields);
 
 const Customer = mongoose.model('Customer', customerSchema);
 

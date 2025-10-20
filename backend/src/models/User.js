@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { addEncryptionMiddleware, addDecryptMethod } from '../middleware/encryptionMiddleware.js';
 
 const userSchema = new mongoose.Schema({
   nombre: {
@@ -72,6 +73,16 @@ userSchema.methods.toJSON = function () {
 
 // Índice para mejorar rendimiento en búsquedas por email
 userSchema.index({ email: 1 });
+
+// Configurar cifrado para campos sensibles
+// Nota: El email se mantiene sin cifrar para búsquedas, pero el nombre sí se cifra
+const sensitiveFields = ['nombre'];
+
+// Aplicar middleware de cifrado
+addEncryptionMiddleware(userSchema, { encryptFields: sensitiveFields });
+
+// Agregar métodos de descifrado
+addDecryptMethod(userSchema, sensitiveFields);
 
 const User = mongoose.model('User', userSchema);
 

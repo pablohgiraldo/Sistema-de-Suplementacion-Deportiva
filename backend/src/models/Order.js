@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { addEncryptionMiddleware, addDecryptMethod } from '../middleware/encryptionMiddleware.js';
 
 // Schema para items de la orden
 const orderItemSchema = new mongoose.Schema({
@@ -985,6 +986,32 @@ orderSchema.index({ salesChannel: 1, createdAt: -1 });
 orderSchema.index({ salesChannel: 1, status: 1 });
 orderSchema.index({ 'physicalSale.cashierId': 1, createdAt: -1 });
 orderSchema.index({ 'physicalSale.storeLocation': 1, createdAt: -1 });
+
+// Configurar cifrado para campos sensibles de Order
+const sensitiveOrderFields = [
+    'shippingAddress.firstName',
+    'shippingAddress.lastName',
+    'shippingAddress.street',
+    'shippingAddress.city',
+    'shippingAddress.state',
+    'shippingAddress.zipCode',
+    'shippingAddress.phone',
+    'billingAddress.firstName',
+    'billingAddress.lastName',
+    'billingAddress.street',
+    'billingAddress.city',
+    'billingAddress.state',
+    'billingAddress.zipCode',
+    'billingAddress.phone',
+    'paymentDetails.cardLastFour',
+    'paymentDetails.transactionId'
+];
+
+// Aplicar middleware de cifrado
+addEncryptionMiddleware(orderSchema, { encryptFields: sensitiveOrderFields });
+
+// Agregar métodos de descifrado
+addDecryptMethod(orderSchema, sensitiveOrderFields);
 
 const Order = mongoose.model('Order', orderSchema);
 
