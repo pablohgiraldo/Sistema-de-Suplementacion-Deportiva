@@ -1,14 +1,32 @@
-import { generateToken, verifyToken, generateTokenPair } from '../config/jwt.js';
+import { generateToken, verifyToken } from '../config/jwt.js';
 import User from '../models/User.js';
+import RefreshToken from '../models/RefreshToken.js';
 
 /**
  * Genera tokens para un usuario después del login
  * @param {Object} user - Usuario autenticado
+ * @param {Object} deviceInfo - Información del dispositivo
  * @returns {Object} Objeto con tokens y datos del usuario
  */
-export async function generateAuthTokens(user) {
+export async function generateAuthTokens(user, deviceInfo = {}) {
     try {
-        const tokens = generateTokenPair(user);
+        // Generar access token
+        const accessToken = generateToken({
+            userId: user._id,
+            email: user.email,
+            role: user.rol || 'usuario'
+        }, 'access');
+
+        // Crear refresh token en la base de datos
+        const refreshTokenResult = await RefreshToken.createRefreshToken(user._id, {
+            userAgent: deviceInfo.userAgent || 'Unknown',
+            ipAddress: deviceInfo.ipAddress || 'Unknown',
+            deviceType: deviceInfo.deviceType || 'unknown'
+        });
+
+        if (!refreshTokenResult.success) {
+            throw new Error('Error creando refresh token');
+        }
 
         // Actualizar último login del usuario
         await User.findByIdAndUpdate(user._id, {
@@ -27,9 +45,9 @@ export async function generateAuthTokens(user) {
                     lastLogin: new Date()
                 },
                 tokens: {
-                    accessToken: tokens.accessToken,
-                    refreshToken: tokens.refreshToken,
-                    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+                    accessToken,
+                    refreshToken: refreshTokenResult.token,
+                    expiresIn: process.env.JWT_EXPIRES_IN || '1h' // Access tokens más cortos
                 }
             }
         };
@@ -41,39 +59,50 @@ export async function generateAuthTokens(user) {
 
 /**
  * Refresca un token de acceso usando un refresh token
- * @param {string} refreshToken - Refresh token válido
- * @returns {Object} Nuevo access token
+ * @param {string} refreshTokenValue - Refresh token válido
+ * @param {Object} deviceInfo - Información del dispositivo
+ * @returns {Object} Nuevo access token y refresh token rotado
  */
-export async function refreshAccessToken(refreshToken) {
+export async function refreshAccessToken(refreshTokenValue, deviceInfo = {}) {
     try {
-        // Verificar el refresh token
-        const decoded = verifyToken(refreshToken);
+        // Verificar y rotar el refresh token
+        const verifyResult = await RefreshToken.verifyAndRotate(refreshTokenValue, {
+            userAgent: deviceInfo.userAgent || 'Unknown',
+            ipAddress: deviceInfo.ipAddress || 'Unknown',
+            deviceType: deviceInfo.deviceType || 'unknown'
+        });
 
-        // Buscar el usuario
-        const user = await User.findById(decoded.userId);
-        if (!user || !user.activo) {
-            throw new Error('Usuario no encontrado o inactivo');
+        if (!verifyResult.success) {
+            return {
+                success: false,
+                message: verifyResult.message,
+                shouldRevokeFamily: verifyResult.shouldRevokeFamily || false
+            };
         }
+
+        const user = verifyResult.user;
 
         // Generar nuevo access token
         const newAccessToken = generateToken({
             userId: user._id,
             email: user.email,
-            rol: user.rol || 'usuario'
+            role: user.rol || 'usuario'
         }, 'access');
 
         return {
             success: true,
             data: {
                 accessToken: newAccessToken,
-                expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+                refreshToken: verifyResult.newRefreshToken,
+                expiresIn: process.env.JWT_EXPIRES_IN || '1h'
             }
         };
     } catch (error) {
         console.error('Error refrescando token:', error);
         return {
             success: false,
-            message: 'Token de refresh inválido o expirado'
+            message: 'Error interno del servidor',
+            shouldRevokeFamily: false
         };
     }
 }
@@ -113,17 +142,61 @@ export async function validateToken(token) {
 }
 
 /**
- * Revoca un token (para logout)
- * @param {string} token - Token a revocar
+ * Revoca un refresh token (para logout)
+ * @param {string} refreshTokenValue - Refresh token a revocar
+ * @param {string} reason - Razón de revocación
  * @returns {Object} Resultado de la operación
  */
-export function revokeToken(token) {
-    // En una implementación más robusta, aquí se podría mantener
-    // una lista negra de tokens revocados en la base de datos
-    // Por ahora, simplemente retornamos éxito ya que los tokens
-    // expirarán naturalmente
-    return {
-        success: true,
-        message: 'Token revocado exitosamente'
-    };
+export async function revokeToken(refreshTokenValue, reason = 'manual_logout') {
+    try {
+        const result = await RefreshToken.revokeToken(refreshTokenValue, reason);
+        
+        if (result.success) {
+            return {
+                success: true,
+                message: 'Token revocado exitosamente'
+            };
+        } else {
+            return {
+                success: false,
+                message: result.error || 'Error revocando token'
+            };
+        }
+    } catch (error) {
+        console.error('Error revocando token:', error);
+        return {
+            success: false,
+            message: 'Error interno del servidor'
+        };
+    }
+}
+
+/**
+ * Revoca todos los tokens de un usuario
+ * @param {string} userId - ID del usuario
+ * @param {string} reason - Razón de revocación
+ * @returns {Object} Resultado de la operación
+ */
+export async function revokeAllUserTokens(userId, reason = 'password_change') {
+    try {
+        const result = await RefreshToken.revokeAllUserTokens(userId, reason);
+        
+        if (result.success) {
+            return {
+                success: true,
+                message: 'Todos los tokens del usuario revocados exitosamente'
+            };
+        } else {
+            return {
+                success: false,
+                message: result.error || 'Error revocando tokens'
+            };
+        }
+    } catch (error) {
+        console.error('Error revocando tokens de usuario:', error);
+        return {
+            success: false,
+            message: 'Error interno del servidor'
+        };
+    }
 }

@@ -5,6 +5,7 @@
 - [Configuración de Seguridad](#configuración-de-seguridad)
 - [Headers de Seguridad](#headers-de-seguridad)
 - [Autenticación y Autorización](#autenticación-y-autorización)
+  - [Sistema de Refresh Tokens](#sistema-de-refresh-tokens-avanzado)
 - [Validación de Entrada](#validación-de-entrada)
 - [Rate Limiting](#rate-limiting)
 - [Middleware de Seguridad](#middleware-de-seguridad)
@@ -12,6 +13,7 @@
 - [Monitoreo y Logging](#monitoreo-y-logging)
 - [Recomendaciones](#recomendaciones)
 - [Contacto de Seguridad](#contacto-de-seguridad)
+- [Changelog de Seguridad](#changelog-de-seguridad)
 
 ---
 
@@ -60,7 +62,10 @@ if (isDevelopment) {
 # Configuración de seguridad
 NODE_ENV=production
 JWT_SECRET=tu_jwt_secret_super_seguro
-JWT_REFRESH_SECRET=tu_refresh_secret_super_seguro
+JWT_EXPIRES_IN=1h                    # Access tokens: 1 hora
+JWT_REFRESH_EXPIRES_IN=7d            # Solo referencia, no se usa
+REFRESH_TOKEN_EXPIRES_DAYS=30        # Refresh tokens en DB: 30 días
+ENCRYPTION_KEY=base64_encryption_key # Para cifrado de datos sensibles
 CORS_ORIGIN=https://supergains-frontend.vercel.app
 MONGODB_URI=mongodb+srv://...
 ```
@@ -112,12 +117,21 @@ node backend/scripts/check-security-headers.js
 
 ## Autenticación y Autorización
 
-### JWT (JSON Web Tokens)
+### JWT (JSON Web Tokens) Reforzados
 
-- **Access Token**: Expira en 15 minutos
-- **Refresh Token**: Expira en 7 días
+#### Configuración de Tokens
+- **Access Token**: Expira en 1 hora (configurable)
+- **Refresh Token**: Expira en 30 días, almacenado en base de datos
 - **Algoritmo**: HS256
-- **Secrets**: Diferentes para access y refresh tokens
+- **Secrets**: Una sola clave JWT_SECRET para simplicidad y seguridad
+
+#### Sistema de Refresh Tokens Avanzado
+- **Rotación Automática**: Cada uso del refresh token genera uno nuevo
+- **Almacenamiento Seguro**: Tokens hasheados con SHA-256 en base de datos
+- **Revocación Efectiva**: Sistema de blacklist y revocación por familia
+- **Tracking de Dispositivos**: User-Agent, IP, tipo de dispositivo
+- **Límites de Uso**: Máximo 100 usos por refresh token
+- **Limpieza Automática**: TTL de MongoDB para tokens expirados
 
 ### Roles y Permisos
 
@@ -133,6 +147,17 @@ const requireAdmin = (req, res, next) => {
     next();
 };
 ```
+
+### Endpoints de Autenticación y Gestión de Sesiones
+
+| Endpoint | Método | Propósito | Seguridad |
+|----------|--------|-----------|-----------|
+| `/api/users/login` | POST | Iniciar sesión | Rate limiting, validación |
+| `/api/users/refresh` | POST | Refrescar access token | Rotación automática |
+| `/api/users/logout` | POST | Cerrar sesión | Revocación de tokens |
+| `/api/users/sessions` | GET | Ver sesiones activas | Autenticación requerida |
+| `/api/users/sessions/:id` | DELETE | Revocar sesión específica | Prop ownership |
+| `/api/users/sessions` | DELETE | Revocar todas las sesiones | Bulk revocation |
 
 ### Endpoints Protegidos
 
@@ -420,6 +445,36 @@ const logRateLimit = (level, message, data) => {
 - Patrones de ataque detectados
 - Violaciones de CSP
 - Rate limiting excedido
+- **Nuevo**: Uso excesivo de refresh tokens (>50 en 1 hora)
+- **Nuevo**: Múltiples fallos de verificación de refresh tokens consecutivos
+- **Nuevo**: Tokens que exceden el límite de usos
+- **Nuevo**: Detección de rotación simultánea de tokens (posible ataque)
+
+### Características de Seguridad de Refresh Tokens
+
+#### Rotación Automática
+```javascript
+// Cada uso del refresh token genera uno nuevo
+const verifyResult = await RefreshToken.verifyAndRotate(refreshTokenValue, deviceInfo);
+if (verifyResult.success) {
+    // Token anterior revocado, nuevo token generado
+    return {
+        accessToken: newAccessToken,
+        refreshToken: verifyResult.newRefreshToken
+    };
+}
+```
+
+#### Detección de Abuso
+- **Límite de usos**: 100 usos máximo por refresh token
+- **Revocación por familia**: Si se detecta reutilización, se revoca toda la familia
+- **Detección de dispositivos**: Tracking por User-Agent e IP
+- **Logging de seguridad**: Todos los eventos se registran
+
+#### Revocación Efectiva
+- Tokens marcados como `isRevoked: true` en base de datos
+- Limpieza automática mediante TTL de MongoDB
+- Script de mantenimiento: `cleanup-expired-tokens.js`
 
 ---
 
@@ -500,6 +555,24 @@ Agradecemos a todos los investigadores de seguridad que contribuyen a hacer Supe
 ---
 
 ## Changelog de Seguridad
+
+### v1.1.0 (2025-01-XX) - HU42.3: Autenticación Reforzada
+- ✅ **Sistema de Refresh Tokens Reforzados**
+  - Rotación automática en cada uso del refresh token
+  - Almacenamiento seguro con hash SHA-256 en base de datos
+  - Revocación efectiva por familia de tokens y por dispositivo
+  - Tracking completo de dispositivos (User-Agent, IP, tipo)
+  - Límites de uso (100 usos máximo por token)
+  - Limpieza automática mediante TTL de MongoDB
+- ✅ **APIs de Gestión de Sesiones**
+  - `GET /api/users/sessions` - Listar sesiones activas
+  - `DELETE /api/users/sessions/:id` - Revocar sesión específica
+  - `DELETE /api/users/sessions` - Revocar todas las sesiones
+- ✅ **Mejoras de Seguridad**
+  - Configuración más segura (access tokens: 1h, refresh tokens: 30d)
+  - Detección de abuso y patrones anómalos
+  - Script de mantenimiento para limpieza de tokens
+  - Documentación completa OAuth 2.0 y RFC 6749
 
 ### v1.0.0 (2025-10-03)
 - ✅ Implementación inicial de headers de seguridad

@@ -1,5 +1,6 @@
 import User from '../models/User.js';
-import { generateAuthTokens, refreshAccessToken, revokeToken } from '../utils/jwtUtils.js';
+import RefreshToken from '../models/RefreshToken.js';
+import { generateAuthTokens, refreshAccessToken, revokeToken, revokeAllUserTokens } from '../utils/jwtUtils.js';
 
 // POST /api/users/register - Registrar nuevo usuario
 export const registrarUsuario = async (req, res) => {
@@ -35,7 +36,11 @@ export const registrarUsuario = async (req, res) => {
         await nuevoUsuario.save();
 
         // Generar tokens JWT usando la nueva configuración
-        const authResult = await generateAuthTokens(nuevoUsuario);
+        const deviceInfo = {
+            userAgent: req.get('User-Agent'),
+            ipAddress: req.ip || req.connection.remoteAddress
+        };
+        const authResult = await generateAuthTokens(nuevoUsuario, deviceInfo);
 
         // Respuesta exitosa
         res.status(201).json({
@@ -114,7 +119,11 @@ export const iniciarSesion = async (req, res) => {
         }
 
         // Generar tokens JWT usando la nueva configuración
-        const authResult = await generateAuthTokens(usuario);
+        const deviceInfo = {
+            userAgent: req.get('User-Agent'),
+            ipAddress: req.ip || req.connection.remoteAddress
+        };
+        const authResult = await generateAuthTokens(usuario, deviceInfo);
 
         // Respuesta exitosa
         res.json({
@@ -240,13 +249,21 @@ export const refrescarToken = async (req, res) => {
             });
         }
 
-        // Refrescar el token usando la utilidad
-        const result = await refreshAccessToken(refreshToken);
+        // Refrescar el token usando la utilidad con información del dispositivo
+        const deviceInfo = {
+            userAgent: req.get('User-Agent'),
+            ipAddress: req.ip || req.connection.remoteAddress
+        };
+        
+        const result = await refreshAccessToken(refreshToken, deviceInfo);
 
         if (!result.success) {
-            return res.status(401).json({
+            // Si hay problemas de seguridad, responder con código apropiado
+            const statusCode = result.shouldRevokeFamily ? 403 : 401;
+            return res.status(statusCode).json({
                 success: false,
-                message: result.message
+                message: result.message,
+                shouldRevokeFamily: result.shouldRevokeFamily || false
             });
         }
 
@@ -273,7 +290,7 @@ export const cerrarSesion = async (req, res) => {
 
         // Si se proporciona un refresh token, revocarlo
         if (refreshToken) {
-            const result = revokeToken(refreshToken);
+            const result = await revokeToken(refreshToken, 'manual_logout');
             if (!result.success) {
                 return res.status(400).json({
                     success: false,
@@ -537,6 +554,129 @@ export const cambiarRolUsuario = async (req, res) => {
 
     } catch (error) {
         console.error('Error al cambiar rol de usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};
+
+// GET /api/users/sessions - Obtener sesiones activas del usuario
+export const obtenerSesionesActivas = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        
+        const result = await RefreshToken.getUserActiveTokens(userId);
+        
+        if (!result.success) {
+            return res.status(500).json({
+                success: false,
+                message: result.error || 'Error obteniendo sesiones'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Sesiones activas obtenidas exitosamente',
+            data: {
+                sessions: result.tokens,
+                count: result.tokens.length
+            }
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo sesiones activas:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};
+
+// DELETE /api/users/sessions/:sessionId - Revocar sesión específica
+export const revocarSesion = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const userId = req.user._id;
+
+        // Buscar el token por ID y verificar que pertenece al usuario
+        const token = await RefreshToken.findOne({
+            _id: sessionId,
+            user: userId,
+            isRevoked: false
+        });
+
+        if (!token) {
+            return res.status(404).json({
+                success: false,
+                message: 'Sesión no encontrada o ya revocada'
+            });
+        }
+
+        // Revocar el token
+        token.isRevoked = true;
+        token.revokedReason = 'user_revocation';
+        await token.save();
+
+        res.json({
+            success: true,
+            message: 'Sesión revocada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error revocando sesión:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+};
+
+// DELETE /api/users/sessions - Revocar todas las sesiones excepto la actual
+export const revocarTodasLasSesiones = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { keepCurrent } = req.body;
+
+        let tokensToRevoke = {
+            user: userId,
+            isRevoked: false
+        };
+
+        // Si keepCurrent es true, mantener la sesión actual (identificada por User-Agent e IP)
+        if (keepCurrent) {
+            const currentUserAgent = req.get('User-Agent');
+            const currentIp = req.ip || req.connection.remoteAddress;
+            
+            tokensToRevoke.$and = [
+                tokensToRevoke,
+                {
+                    $or: [
+                        { 'deviceInfo.userAgent': { $ne: currentUserAgent } },
+                        { 'deviceInfo.ipAddress': { $ne: currentIp } }
+                    ]
+                }
+            ];
+        }
+
+        const result = await RefreshToken.updateMany(
+            tokensToRevoke,
+            { 
+                isRevoked: true, 
+                revokedReason: 'user_revoked_all_other_sessions' 
+            }
+        );
+
+        res.json({
+            success: true,
+            message: `${result.modifiedCount} sesiones revocadas exitosamente`,
+            data: {
+                revokedCount: result.modifiedCount
+            }
+        });
+
+    } catch (error) {
+        console.error('Error revocando todas las sesiones:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'

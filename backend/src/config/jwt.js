@@ -4,8 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+// Configuración más segura: access tokens cortos, refresh tokens más largos
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h'; // Access tokens: 1 hora
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d'; // Refresh tokens: 7 días
 
 // Validación suave: advertir pero no bloquear el inicio del servidor
 if (!JWT_SECRET) {

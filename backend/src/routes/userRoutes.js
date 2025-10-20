@@ -9,7 +9,10 @@ import {
     verificarEstadoToken,
     listarUsuarios,
     bloquearDesbloquearUsuario,
-    cambiarRolUsuario
+    cambiarRolUsuario,
+    obtenerSesionesActivas,
+    revocarSesion,
+    revocarTodasLasSesiones
 } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { requireAdmin, requireUserManagementAccess } from '../middleware/roleMiddleware.js';
@@ -53,6 +56,11 @@ router.post('/logout', validateContentType(['application/json']), validateLogout
 router.get('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateGetProfile, obtenerPerfil);
 router.put('/profile', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateContentType(['application/json']), validateEmailSecurity, handleValidationErrors, validateUpdateProfile, actualizarPerfil);
 router.get('/token-status', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateTokenStatus, verificarEstadoToken);
+
+// Rutas de gestión de sesiones (refresh tokens)
+router.get('/sessions', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, obtenerSesionesActivas);
+router.delete('/sessions/:sessionId', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, revocarSesion);
+router.delete('/sessions', authMiddleware, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateContentType(['application/json']), revocarTodasLasSesiones);
 
 // Rutas de administración (solo para administradores)
 router.get('/', authMiddleware, requireAdmin, adminRateLimit, tokenExpirationMiddleware, tokenRefreshSuggestionMiddleware, validateListUsers, listarUsuarios);
