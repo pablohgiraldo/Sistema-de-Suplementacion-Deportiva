@@ -42,13 +42,17 @@ export const registrarUsuario = async (req, res) => {
         };
         const authResult = await generateAuthTokens(nuevoUsuario, deviceInfo);
 
-        // Respuesta exitosa (formato compatible con tests)
+        // Respuesta exitosa (formato compatible con frontend)
         res.status(201).json({
             success: true,
             message: 'Usuario registrado exitosamente',
-            user: authResult.data.user,
-            token: authResult.data.tokens.accessToken,
-            refreshToken: authResult.data.tokens.refreshToken
+            data: {
+                user: authResult.data.user,
+                tokens: {
+                    accessToken: authResult.data.tokens.accessToken,
+                    refreshToken: authResult.data.tokens.refreshToken
+                }
+            }
         });
 
     } catch (error) {
@@ -127,13 +131,17 @@ export const iniciarSesion = async (req, res) => {
         };
         const authResult = await generateAuthTokens(usuario, deviceInfo);
 
-        // Respuesta exitosa (formato compatible con tests)
+        // Respuesta exitosa (formato compatible con frontend)
         res.json({
             success: true,
             message: 'Inicio de sesión exitoso',
-            user: authResult.data.user,
-            token: authResult.data.tokens.accessToken,
-            refreshToken: authResult.data.tokens.refreshToken
+            data: {
+                user: authResult.data.user,
+                tokens: {
+                    accessToken: authResult.data.tokens.accessToken,
+                    refreshToken: authResult.data.tokens.refreshToken
+                }
+            }
         });
 
     } catch (error) {
