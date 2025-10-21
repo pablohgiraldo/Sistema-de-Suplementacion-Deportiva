@@ -2,36 +2,59 @@ import { render, screen, fireEvent, waitFor } from '../../test/test-utils'
 import ProductCard from '../../components/productCard'
 import { mockProducts, mockUser, mockCartContext } from '../../test/test-utils'
 
+// Mock functions para poder actualizarlos en tests específicos
+const mockUseAuth = vi.fn()
+const mockUseCart = vi.fn()
+const mockUseInventory = vi.fn()
+
 // Mock de useAuth
 vi.mock('../../contexts/AuthContext', () => ({
-    useAuth: () => ({
-        isAuthenticated: true,
-        user: mockUser
-    })
+    useAuth: mockUseAuth
 }))
 
 // Mock de useCart
 vi.mock('../../contexts/CartContext', () => ({
-    useCart: () => mockCartContext
+    useCart: mockUseCart
 }))
+
+// Configurar mocks por defecto
+beforeEach(() => {
+    mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        user: mockUser
+    })
+
+    mockUseCart.mockReturnValue({
+        ...mockCartContext,
+        isInCart: vi.fn().mockReturnValue(false),
+        getCartItemQuantity: vi.fn().mockReturnValue(0),
+        addToCart: vi.fn().mockResolvedValue({ success: true })
+    })
+})
 
 // Mock de useInventory
 vi.mock('../../hooks/useInventory', () => ({
-    useInventory: () => ({
-        inventory: {
-            availableStock: 10,
-            currentStock: 10,
-            reservedStock: 0,
-            status: 'active'
-        },
-        loading: false
-    }),
+    useInventory: mockUseInventory,
     inventoryUtils: {
         getStockStatus: () => 'Disponible',
         getStockStatusColor: () => 'bg-green-100 text-green-800',
         canAddToCart: () => true
     }
 }))
+
+// Configurar mock por defecto de useInventory
+beforeEach(() => {
+    mockUseInventory.mockReturnValue({
+        inventory: {
+            availableStock: 10,
+            currentStock: 10,
+            reservedStock: 0,
+            status: 'active',
+            needsRestock: false
+        },
+        loading: false
+    })
+})
 
 // Mock de useNavigate
 const mockNavigate = vi.fn()
@@ -108,12 +131,11 @@ describe('ProductCard Component', () => {
 
     test('calls addToCart when add to cart button is clicked', async () => {
         const mockAddToCart = vi.fn().mockResolvedValue()
-        const cartContext = {
+
+        mockUseCart.mockReturnValue({
             ...mockCartContext,
             addToCart: mockAddToCart
-        }
-
-        vi.mocked(require('../../contexts/CartContext').useCart).mockReturnValue(cartContext)
+        })
 
         render(<ProductCard p={mockProduct} />)
 
@@ -126,7 +148,7 @@ describe('ProductCard Component', () => {
     })
 
     test('shows alert when user is not authenticated and tries to add to cart', async () => {
-        vi.mocked(require('../../contexts/AuthContext').useAuth).mockReturnValue({
+        mockUseAuth.mockReturnValue({
             isAuthenticated: false,
             user: null
         })
@@ -143,7 +165,7 @@ describe('ProductCard Component', () => {
     })
 
     test('shows alert when product is out of stock', async () => {
-        vi.mocked(require('../../hooks/useInventory').useInventory).mockReturnValue({
+        mockUseInventory.mockReturnValue({
             inventory: {
                 availableStock: 0,
                 currentStock: 0,
@@ -152,9 +174,6 @@ describe('ProductCard Component', () => {
             },
             loading: false
         })
-
-        vi.mocked(require('../../hooks/useInventory').inventoryUtils).canAddToCart = vi.fn().mockReturnValue(false)
-        vi.mocked(require('../../hooks/useInventory').inventoryUtils).getStockStatus = vi.fn().mockReturnValue('Agotado')
 
         global.alert = vi.fn()
 

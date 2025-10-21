@@ -10,10 +10,10 @@
 
 export const TAWK_CONFIG = {
     // Property ID de tu cuenta Tawk.to
-    propertyId: import.meta.env.VITE_TAWK_PROPERTY_ID || '673e38ba4304e3196adb04f4',
+    propertyId: import.meta.env.VITE_TAWK_PROPERTY_ID || '68f80ed4403f92194faa9d58',
 
     // Widget ID de tu widget específico
-    widgetId: import.meta.env.VITE_TAWK_WIDGET_ID || '1id1dbhci',
+    widgetId: import.meta.env.VITE_TAWK_WIDGET_ID || '1j84fjs44',
 
     // URL base de Tawk.to
     baseUrl: 'https://embed.tawk.to',
