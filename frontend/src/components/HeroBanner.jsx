@@ -87,8 +87,6 @@ export default function HeroBanner({ data }) {
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="async"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => { e.currentTarget.src = '/hero-right-1.svg'; }}
                 />
 
                 {/* Overlay con todo el contenido en móvil */}
@@ -138,8 +136,6 @@ export default function HeroBanner({ data }) {
                       className="w-full h-full object-cover opacity-40"
                       loading="eager"
                       decoding="async"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => { e.currentTarget.src = '/hero-left-1.svg'; }}
                     />
                   </div>
                   <div className="text-center text-white p-6 lg:p-8 relative z-10">
@@ -156,8 +152,6 @@ export default function HeroBanner({ data }) {
                     className="w-full h-full object-cover"
                     loading="eager"
                     decoding="async"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { e.currentTarget.src = '/hero-right-1.svg'; }}
                   />
 
                   {/* Overlay con badge, título y CTA */}
