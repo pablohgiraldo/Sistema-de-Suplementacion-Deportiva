@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api.js';
 import { formTypography } from '../config/typography.js';
 
 const AdminContact = () => {
@@ -30,7 +31,7 @@ const AdminContact = () => {
             navigate('/login');
             return;
         }
-        if (user?.role !== 'admin') {
+        if (user?.rol !== 'admin') {
             navigate('/');
             return;
         }
@@ -40,30 +41,24 @@ const AdminContact = () => {
     const loadMessages = async (page = 1) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            
+
             // Construir query parameters
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: pagination.limit.toString()
             });
-            
+
             if (filters.estado) params.append('estado', filters.estado);
             if (filters.tipoConsulta) params.append('tipoConsulta', filters.tipoConsulta);
 
-            const response = await fetch(`/api/contact?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.get(`/contact?${params}`);
 
-            if (!response.ok) {
+            if (response.data.success) {
+                setMessages(response.data.data);
+                setPagination(response.data.pagination);
+            } else {
                 throw new Error('Error al cargar mensajes');
             }
-
-            const result = await response.json();
-            setMessages(result.data);
-            setPagination(result.pagination);
         } catch (err) {
             console.error('Error al cargar mensajes:', err);
             setError('Error al cargar los mensajes');
@@ -74,7 +69,7 @@ const AdminContact = () => {
 
     // Cargar mensajes al montar el componente
     useEffect(() => {
-        if (isAuthenticated && user?.role === 'admin') {
+        if (isAuthenticated && user?.rol === 'admin') {
             loadMessages();
         }
     }, [isAuthenticated, user]);
@@ -82,23 +77,15 @@ const AdminContact = () => {
     // Actualizar estado de mensaje
     const updateMessageStatus = async (messageId, newStatus) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/contact/${messageId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ estado: newStatus })
-            });
+            const response = await api.put(`/contact/${messageId}/status`, { estado: newStatus });
 
-            if (!response.ok) {
+            if (response.data.success) {
+                // Recargar mensajes
+                loadMessages(pagination.page);
+                setShowModal(false);
+            } else {
                 throw new Error('Error al actualizar estado');
             }
-
-            // Recargar mensajes
-            loadMessages(pagination.page);
-            setShowModal(false);
         } catch (err) {
             console.error('Error al actualizar estado:', err);
             setError('Error al actualizar el estado del mensaje');
@@ -112,21 +99,15 @@ const AdminContact = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/contact/${messageId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.delete(`/contact/${messageId}`);
 
-            if (!response.ok) {
+            if (response.data.success) {
+                // Recargar mensajes
+                loadMessages(pagination.page);
+                setShowModal(false);
+            } else {
                 throw new Error('Error al eliminar mensaje');
             }
-
-            // Recargar mensajes
-            loadMessages(pagination.page);
-            setShowModal(false);
         } catch (err) {
             console.error('Error al eliminar mensaje:', err);
             setError('Error al eliminar el mensaje');
@@ -193,7 +174,7 @@ const AdminContact = () => {
         loadMessages(1);
     };
 
-    if (!isAuthenticated || user?.role !== 'admin') {
+    if (!isAuthenticated || user?.rol !== 'admin') {
         return null;
     }
 
@@ -332,10 +313,10 @@ const AdminContact = () => {
                         <div className="divide-y divide-gray-200">
                             {messages.map((message) => (
                                 <div key={message._id} className="p-6 hover:bg-gray-50 cursor-pointer"
-                                     onClick={() => {
-                                         setSelectedMessage(message);
-                                         setShowModal(true);
-                                     }}>
+                                    onClick={() => {
+                                        setSelectedMessage(message);
+                                        setShowModal(true);
+                                    }}>
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-2">

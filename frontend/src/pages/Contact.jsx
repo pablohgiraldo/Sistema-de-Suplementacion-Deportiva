@@ -8,6 +8,7 @@ import {
     validationRules
 } from '../components/forms';
 import useNotifications from '../hooks/useNotifications';
+import api from '../services/api.js';
 
 export default function Contact() {
     const { showSuccess, showError } = useNotifications();
@@ -37,35 +38,34 @@ export default function Contact() {
 
         try {
             // Enviar mensaje al backend
-            const response = await fetch('/api/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+            const response = await api.post('/contact', formData);
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Error al enviar el mensaje');
+            if (response.data.success) {
+                showSuccess('¡Mensaje enviado exitosamente! Te contactaremos pronto.');
+                
+                // Limpiar formulario
+                setFormData({
+                    nombre: '',
+                    email: '',
+                    telefono: '',
+                    asunto: '',
+                    mensaje: '',
+                    tipoConsulta: 'general'
+                });
+            } else {
+                throw new Error(response.data.error || 'Error al enviar el mensaje');
             }
-
-            showSuccess('¡Mensaje enviado exitosamente! Te contactaremos pronto.');
-            
-            // Limpiar formulario
-            setFormData({
-                nombre: '',
-                email: '',
-                telefono: '',
-                asunto: '',
-                mensaje: '',
-                tipoConsulta: 'general'
-            });
         } catch (err) {
             console.error('Error al enviar mensaje:', err);
-            setError(err.message || 'Error al enviar el mensaje. Inténtalo de nuevo.');
-            showError('Error al enviar el mensaje');
+            
+            // Manejar error específico de rate limiting
+            if (err.response?.status === 429) {
+                setError('Has enviado demasiados mensajes. Espera 15 minutos antes de enviar otro mensaje.');
+                showError('Límite de mensajes alcanzado');
+            } else {
+                setError(err.message || 'Error al enviar el mensaje. Inténtalo de nuevo.');
+                showError('Error al enviar el mensaje');
+            }
         } finally {
             setLoading(false);
         }
