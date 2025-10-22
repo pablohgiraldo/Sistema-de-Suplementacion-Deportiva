@@ -464,8 +464,8 @@ const Checkout = () => {
                     zipCode: formData.billingAddress.zipCode,
                     country: formData.billingAddress.country,
                     phone: formData.billingAddress.phone
-                },
-                notes: '' // Simplificar notes por ahora
+                }
+                // Remover notes completamente
             };
 
             console.log('🛒 Creando orden con datos:', orderData);
