@@ -31,7 +31,7 @@ export default function Profile() {
             setFormData({
                 nombre: user.nombre || '',
                 email: user.email || '',
-                rol: user.rol || ''
+                role: user.role || ''
             });
             fetchLoyaltyPoints();
         }
@@ -124,7 +124,7 @@ export default function Profile() {
                                 {user.activo ? 'Activo' : 'Inactivo'}
                             </span>
                             <span className="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg text-sm font-semibold capitalize">
-                                {user.rol}
+                                {user.role}
                             </span>
                         </div>
                     </div>
@@ -253,7 +253,7 @@ export default function Profile() {
                                             </svg>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-500">Rol</label>
-                                                <p className="mt-1 text-base text-gray-900 capitalize">{user.rol}</p>
+                                                <p className="mt-1 text-base text-gray-900 capitalize">{user.role}</p>
                                             </div>
                                         </div>
                                     </div>

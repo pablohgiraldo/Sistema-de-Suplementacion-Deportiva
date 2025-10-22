@@ -80,7 +80,7 @@ export default function TawkToChat() {
                     'name': user.nombre || 'Usuario',
                     'email': user.email || '',
                     'userId': user._id || '',
-                    'rol': user.rol || 'usuario'
+                    'role': user.role || 'usuario'
                 }, function(error) {
                     if (error) {
                         console.error('Error al establecer atributos de usuario:', error);

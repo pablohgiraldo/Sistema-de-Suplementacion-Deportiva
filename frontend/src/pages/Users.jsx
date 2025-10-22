@@ -267,13 +267,13 @@ const Users = () => {
                                                 <div className="text-sm text-gray-900">{user.email}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.rol === 'admin'
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin'
                                                     ? 'bg-purple-100 text-purple-800'
-                                                    : user.rol === 'moderador'
+                                                    : user.role === 'moderador'
                                                         ? 'bg-yellow-100 text-yellow-800'
                                                         : 'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                    {user.rol === 'admin' ? 'Administrador' : user.rol === 'moderador' ? 'Moderador' : 'Usuario'}
+                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'moderador' ? 'Moderador' : 'Usuario'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -291,10 +291,10 @@ const Users = () => {
                                                 <div className="flex items-center justify-end space-x-2">
                                                     {/* Botón cambiar rol */}
                                                     <button
-                                                        onClick={() => handleChangeRole(user._id, user.rol)}
+                                                        onClick={() => handleChangeRole(user._id, user.role)}
                                                         disabled={roleMutation.isPending}
                                                         className="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                        title={user.rol === 'admin' ? 'Cambiar a usuario' : 'Cambiar a admin'}
+                                                        title={user.role === 'admin' ? 'Cambiar a usuario' : 'Cambiar a admin'}
                                                     >
                                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
