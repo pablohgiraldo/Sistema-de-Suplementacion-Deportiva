@@ -418,6 +418,9 @@ const Checkout = () => {
             }
         }
 
+        // Para PSE y PayPal no se requieren validaciones adicionales
+        // PayU manejará la validación de estos métodos
+
         // Validar términos y condiciones
         if (!formData.acceptTerms) {
             newErrors.acceptTerms = 'Debes aceptar los términos y condiciones';
@@ -443,36 +446,32 @@ const Checkout = () => {
             const orderData = {
                 paymentMethod: formData.paymentMethod,
                 shippingAddress: {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    street: formData.address,
-                    city: formData.city,
-                    state: formData.state,
-                    zipCode: formData.zipCode,
-                    country: formData.country,
-                    phone: formData.phone
+                    firstName: formData.shippingAddress.firstName,
+                    lastName: formData.shippingAddress.lastName,
+                    street: formData.shippingAddress.address,
+                    city: formData.shippingAddress.city,
+                    state: formData.shippingAddress.state,
+                    zipCode: formData.shippingAddress.zipCode,
+                    country: formData.shippingAddress.country,
+                    phone: formData.shippingAddress.phone
                 },
                 billingAddress: formData.sameAsShipping ? null : {
-                    firstName: formData.billingFirstName,
-                    lastName: formData.billingLastName,
-                    street: formData.billingAddress,
-                    city: formData.billingCity,
-                    state: formData.billingState,
-                    zipCode: formData.billingZipCode,
-                    country: formData.billingCountry,
-                    phone: formData.billingPhone
+                    firstName: formData.billingAddress.firstName,
+                    lastName: formData.billingAddress.lastName,
+                    street: formData.billingAddress.address,
+                    city: formData.billingAddress.city,
+                    state: formData.billingAddress.state,
+                    zipCode: formData.billingAddress.zipCode,
+                    country: formData.billingAddress.country,
+                    phone: formData.billingAddress.phone
                 },
-                notes: formData.notes,
-                // Incluir datos de tarjeta si es necesario
-                ...(formData.paymentMethod === 'credit_card' && {
-                    cardNumber: formData.cardNumber,
-                    expiryDate: formData.expiryDate,
-                    cvv: formData.cvv
-                })
+                notes: '' // Simplificar notes por ahora
             };
 
-            // Llamar al API para crear la orden
-            const response = await fetch('/api/orders', {
+            console.log('🛒 Creando orden con datos:', orderData);
+
+            // PASO 1: Crear la orden en el backend
+            const orderResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -481,30 +480,66 @@ const Checkout = () => {
                 body: JSON.stringify(orderData)
             });
 
-            const result = await response.json();
+            const orderResult = await orderResponse.json();
 
-            if (response.ok) {
-                // Limpiar carrito
-                clearCart();
-
-                // Redirigir a página de confirmación con datos de la orden
-                navigate('/order-confirmation', {
-                    state: {
-                        orderData: result.data
-                    }
-                });
-            } else {
-                // Manejar errores del API
-                if (result.details && Array.isArray(result.details)) {
-                    const errorMessages = result.details.map(detail => detail.message).join(', ');
-                    showError(`Error: ${errorMessages}`);
+            if (!orderResponse.ok) {
+                console.error('❌ Error del backend:', orderResult);
+                if (orderResult.details && Array.isArray(orderResult.details)) {
+                    const errorMessages = orderResult.details.map(detail => detail.message || detail).join(', ');
+                    throw new Error(`Error: ${errorMessages}`);
                 } else {
-                    showError(result.error || 'Error al procesar el pedido. Inténtalo de nuevo.');
+                    throw new Error(orderResult.error || 'Error al crear la orden');
                 }
             }
+
+            console.log('✅ Orden creada:', orderResult.data);
+
+            // PASO 2: Generar formulario de pago con PayU
+            const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}/payments/generate-form`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
+                body: JSON.stringify({
+                    orderId: orderResult.data._id
+                })
+            });
+
+            const paymentResult = await paymentResponse.json();
+
+            if (!paymentResponse.ok) {
+                console.error('❌ Error generando formulario PayU:', paymentResult);
+                throw new Error(paymentResult.error || 'Error al generar formulario de pago');
+            }
+
+            console.log('💳 Formulario PayU generado:', paymentResult.data);
+
+            // PASO 3: Crear formulario HTML y enviar a PayU
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = paymentResult.data.formUrl;
+            form.target = '_self';
+
+            // Agregar todos los campos del formulario
+            Object.keys(paymentResult.data.formData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = paymentResult.data.formData[key];
+                form.appendChild(input);
+            });
+
+            // Agregar formulario al DOM y enviarlo
+            document.body.appendChild(form);
+            form.submit();
+
+            // Limpiar carrito después de enviar el formulario
+            clearCart();
+
         } catch (error) {
-            showError('Error de conexión. Verifica tu conexión a internet e inténtalo de nuevo.');
-            console.error('Error en checkout:', error);
+            console.error('❌ Error en checkout:', error);
+            showError(error.message || 'Error al procesar el pedido. Inténtalo de nuevo.');
         } finally {
             setIsSubmitting(false);
         }
@@ -1102,30 +1137,68 @@ const Checkout = () => {
                                         </div>
                                         {formData.paymentMethod === 'pse' && (
                                             <div className="mt-4 ml-7 border-t pt-4">
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                                    <div className="flex items-start">
+                                                        <div className="flex-shrink-0">
+                                                            <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="ml-3">
+                                                            <h3 className="text-sm font-medium text-blue-800">
+                                                                ¿Cómo funciona PSE?
+                                                            </h3>
+                                                            <div className="mt-2 text-sm text-blue-700">
+                                                                <p>1. Selecciona tu banco</p>
+                                                                <p>2. Ingresa tus datos bancarios</p>
+                                                                <p>3. Confirma la transacción</p>
+                                                                <p>4. ¡Listo! Tu pago se procesa al instante</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
                                                 <p className="text-sm text-gray-600 mb-3">
                                                     Paga directamente desde tu cuenta bancaria de forma segura y rápida.
                                                 </p>
-                                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                                    <div className="flex items-center">
-                                                        <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
-                                                        <span>Bancolombia</span>
+                                                
+                                                <div className="grid grid-cols-2 gap-3 text-xs mb-3">
+                                                    <div className="flex items-center p-2 bg-gray-50 rounded">
+                                                        <div className="w-6 h-4 bg-blue-600 rounded mr-2 flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">BC</span>
+                                                        </div>
+                                                        <span className="font-medium">Bancolombia</span>
                                                     </div>
-                                                    <div className="flex items-center">
-                                                        <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
-                                                        <span>BBVA</span>
+                                                    <div className="flex items-center p-2 bg-gray-50 rounded">
+                                                        <div className="w-6 h-4 bg-red-600 rounded mr-2 flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">BB</span>
+                                                        </div>
+                                                        <span className="font-medium">BBVA</span>
                                                     </div>
-                                                    <div className="flex items-center">
-                                                        <div className="w-4 h-4 bg-green-600 rounded mr-2"></div>
-                                                        <span>Davivienda</span>
+                                                    <div className="flex items-center p-2 bg-gray-50 rounded">
+                                                        <div className="w-6 h-4 bg-green-600 rounded mr-2 flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">DV</span>
+                                                        </div>
+                                                        <span className="font-medium">Davivienda</span>
                                                     </div>
-                                                    <div className="flex items-center">
-                                                        <div className="w-4 h-4 bg-purple-600 rounded mr-2"></div>
-                                                        <span>Colpatria</span>
+                                                    <div className="flex items-center p-2 bg-gray-50 rounded">
+                                                        <div className="w-6 h-4 bg-purple-600 rounded mr-2 flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">CP</span>
+                                                        </div>
+                                                        <span className="font-medium">Colpatria</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                    Y más de 20 bancos disponibles
-                                                </p>
+                                                
+                                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                                    <div className="flex items-center">
+                                                        <svg className="h-4 w-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                        </svg>
+                                                        <span className="text-xs text-green-700 font-medium">
+                                                            Más de 20 bancos disponibles • Transacción instantánea • Sin comisiones adicionales
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
