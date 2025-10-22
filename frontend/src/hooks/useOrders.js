@@ -28,7 +28,10 @@ export const useOrder = (orderId) => {
     return useQuery({
         queryKey: ['order', orderId],
         queryFn: async () => {
+            console.log('🔍 useOrder - orderId:', orderId);
+            console.log('🔍 useOrder - URL:', `/orders/${orderId}`);
             const response = await api.get(`/orders/${orderId}`);
+            console.log('✅ useOrder - Response:', response.data);
             return response.data;
         },
         enabled: !!orderId,

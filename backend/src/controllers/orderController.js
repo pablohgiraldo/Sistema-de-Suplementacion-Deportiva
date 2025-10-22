@@ -295,6 +295,12 @@ export async function getOrderById(req, res) {
         const userId = req.user._id;
         const userRole = req.user.rol; // Cambiar de .role a .rol para coincidir con la BD
 
+        // Debug: verificar información del usuario y orden
+        console.log('getOrderById - req.user:', req.user);
+        console.log('getOrderById - orderId:', id);
+        console.log('getOrderById - userId:', userId);
+        console.log('getOrderById - userRole:', userRole);
+
         const order = await Order.findById(id)
             .populate('user', 'nombre email')
             .populate('items.product', 'name brand imageUrl description')
@@ -308,12 +314,21 @@ export async function getOrderById(req, res) {
         }
 
         // Verificar permisos
-        if (userRole !== 'admin' && order.user._id.toString() !== userId) {
+        console.log('getOrderById - order.user._id:', order.user._id);
+        console.log('getOrderById - order.user._id.toString():', order.user._id.toString());
+        console.log('getOrderById - userId.toString():', userId.toString());
+        console.log('getOrderById - userRole !== admin:', userRole !== 'admin');
+        console.log('getOrderById - order.user._id.toString() !== userId:', order.user._id.toString() !== userId.toString());
+        
+        if (userRole !== 'admin' && order.user._id.toString() !== userId.toString()) {
+            console.log('❌ getOrderById - Acceso denegado');
             return res.status(403).json({
                 success: false,
                 error: 'No tienes permisos para ver esta orden'
             });
         }
+        
+        console.log('✅ getOrderById - Acceso permitido');
 
         res.json({
             success: true,

@@ -12,6 +12,7 @@ Documentación de sprints y planificación:
 - [SPRINT3_INDEX.md](./sprints/SPRINT3_INDEX.md) - Índice Sprint 3
 - [SPRINT3_FINAL_REPORT.md](./sprints/SPRINT3_FINAL_REPORT.md) - Reporte Final Sprint 3
 - [SPRINT3_QA_REPORT.md](./sprints/SPRINT3_QA_REPORT.md) - Reporte QA Sprint 3
+- [SPRINT4.md](./sprints/SPRINT4.md) - Sprint 4: Checkout y Pagos (En desarrollo)
 
 ### 📖 [guides/](./guides/)
 Guías técnicas y mejores prácticas:
@@ -24,6 +25,7 @@ Guías técnicas y mejores prácticas:
 - [PERFORMANCE_OPTIMIZATION_GUIDE.md](./guides/PERFORMANCE_OPTIMIZATION_GUIDE.md) - Optimización de rendimiento
 - [REACT_QUERY_GUIDE.md](./guides/REACT_QUERY_GUIDE.md) - Uso de React Query
 - [STRESS_TESTING_GUIDE.md](./guides/STRESS_TESTING_GUIDE.md) - Testing de estrés
+- [FRONTEND_GUIDE.md](./FRONTEND_GUIDE.md) - Guía completa del frontend
 
 ### 🧪 [testing/](./testing/)
 Documentación de pruebas y QA:
@@ -34,12 +36,15 @@ Documentación de pruebas y QA:
 ### ⚡ [features/](./features/)
 Documentación de features e integraciones:
 - [DASHBOARD_ALERTS_INTEGRATION.md](./features/DASHBOARD_ALERTS_INTEGRATION.md) - Integración dashboard-alertas
+- [CHECKOUT_IMPLEMENTATION_SUCCESS.md](./CHECKOUT_IMPLEMENTATION_SUCCESS.md) - Implementación exitosa del checkout
 
 ### 📄 Documentos Raíz
 - [PRD-SuperGains-Website.md](./PRD-SuperGains-Website.md) - Product Requirements Document
 - [API_DOCS.md](./API_DOCS.md) - Documentación de API
 - [SECURITY.md](./SECURITY.md) - Políticas de seguridad
 - [PERFORMANCE.md](./PERFORMANCE.md) - Métricas de rendimiento
+- [INTEGRATION.md](./INTEGRATION.md) - Documentación de integraciones externas
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Guía de estilo visual
 
 ## 🔙 Backend Docs
 La carpeta `backend/docs/` contiene documentación específica del backend:

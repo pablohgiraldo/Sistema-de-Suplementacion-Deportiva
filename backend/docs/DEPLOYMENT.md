@@ -10,7 +10,7 @@
 ## 🚀 URLs de Producción
 
 - **Backend API**: `https://supergains-backend.onrender.com`
-- **Frontend**: `https://supergains-frontend.vercel.app` (pendiente de deploy)
+- **Frontend**: `https://supergains-frontend.vercel.app`
 - **Desarrollo Local**: `http://localhost:5174` (frontend) + `http://localhost:4000` (backend)
 
 ## 🔧 Variables de Entorno Requeridas
@@ -23,6 +23,11 @@
 | `JWT_SECRET` | `supergains_jwt_secret_2024_very_secure_key_for_production_deployment_xyz789` | Clave secreta para JWT tokens |
 | `CORS_ORIGIN` | `https://supergains-frontend.vercel.app` | Origen permitido para CORS |
 | `NODE_ENV` | `production` | Entorno de ejecución |
+| `ENCRYPTION_KEY` | `mBszttzJ5K5/1QTogmxSMx8/MhGPjhlUxEbzikaJ3B8=` | Clave de cifrado para datos sensibles |
+| `PAYU_MERCHANT_ID` | `508029` | ID del comercio PayU (modo test) |
+| `PAYU_API_KEY` | `4Vj8eK4rloUd272L48hsrarnUA` | API Key de PayU (modo test) |
+| `PAYU_API_LOGIN` | `pRRXKOl8ikMmt9u` | API Login de PayU (modo test) |
+| `PAYU_ACCOUNT_ID` | `512321` | Account ID de PayU (modo test) |
 
 ### Frontend (Vercel Dashboard)
 

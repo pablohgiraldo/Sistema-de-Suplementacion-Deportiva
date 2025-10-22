@@ -41,7 +41,7 @@ Nuestro enfoque de testing sigue la metodología de pirámide de testing con tre
 - **Propósito**: Probar flujos completos de usuario
 - **Cobertura**: 100% de flujos críticos de usuario
 - **Herramientas**: Cypress
-- **Alcance**: Autenticación, gestión de productos, carrito, órdenes, administración
+- **Alcance**: Autenticación, gestión de productos, carrito, órdenes, administración, checkout, pagos PayU, CRM
 
 ## 🛠️ Testing Tools & Technologies
 
