@@ -82,16 +82,16 @@ export async function createOrder(req, res) {
         const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
         const total = Math.round((subtotal + tax + shipping) * 100) / 100; // Redondeado a centavos
 
-        // Extraer datos de pago si es tarjeta de crédito
+        // Extraer datos de pago si es tarjeta de crédito (TEMPORALMENTE DESACTIVADO)
         let paymentDetails = {};
-        if (paymentMethod === 'credit_card' && req.body.cardNumber) {
-            const cardNumber = req.body.cardNumber.replace(/\s/g, '');
-            paymentDetails = {
-                cardLastFour: cardNumber.slice(-4),
-                cardBrand: getCardBrand(cardNumber),
-                currency: 'USD'
-            };
-        }
+        // if (paymentMethod === 'credit_card' && req.body.cardNumber) {
+        //     const cardNumber = req.body.cardNumber.replace(/\s/g, '');
+        //     paymentDetails = {
+        //         cardLastFour: cardNumber.slice(-4),
+        //         cardBrand: getCardBrand(cardNumber),
+        //         currency: 'USD'
+        //     };
+        // }
 
         const order = new Order({
             user: userId,

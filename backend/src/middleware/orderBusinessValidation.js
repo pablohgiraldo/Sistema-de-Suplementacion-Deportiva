@@ -98,23 +98,23 @@ export const validateOrderBusinessRules = async (req, res, next) => {
             });
         }
 
-        // 5. Validar método de pago específico
-        if (paymentMethod === 'credit_card') {
-            const { cardNumber, expiryDate, cvv } = req.body;
+        // 5. Validar método de pago específico (TEMPORALMENTE DESACTIVADO)
+        // if (paymentMethod === 'credit_card') {
+        //     const { cardNumber, expiryDate, cvv } = req.body;
 
-            if (!cardNumber || !expiryDate || !cvv) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Datos de tarjeta de crédito incompletos',
-                    code: 'INCOMPLETE_CARD_DATA',
-                    details: {
-                        cardNumber: !cardNumber ? 'Número de tarjeta requerido' : null,
-                        expiryDate: !expiryDate ? 'Fecha de vencimiento requerida' : null,
-                        cvv: !cvv ? 'CVV requerido' : null
-                    }
-                });
-            }
-        }
+        //     if (!cardNumber || !expiryDate || !cvv) {
+        //         return res.status(400).json({
+        //             success: false,
+        //             error: 'Datos de tarjeta de crédito incompletos',
+        //             code: 'INCOMPLETE_CARD_DATA',
+        //             details: {
+        //                 cardNumber: !cardNumber ? 'Número de tarjeta requerido' : null,
+        //                 expiryDate: !expiryDate ? 'Fecha de vencimiento requerida' : null,
+        //                 cvv: !cvv ? 'CVV requerido' : null
+        //             }
+        //         });
+        //     }
+        // }
 
         // 6. Validar límites de orden (opcional - para prevenir abuso)
         const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
