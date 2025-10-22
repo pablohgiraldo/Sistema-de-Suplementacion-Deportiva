@@ -17,7 +17,7 @@ export const handleValidationErrors = (req, res, next) => {
     next();
 };
 
-// Validaciones para crear orden
+// Validaciones para crear orden (checkout - sin datos de tarjeta)
 export const validateCreateOrder = [
     // Validación del método de pago
     body('paymentMethod')
@@ -25,71 +25,6 @@ export const validateCreateOrder = [
         .withMessage('El método de pago es obligatorio')
         .isIn(['credit_card', 'paypal', 'pse'])
         .withMessage('Método de pago inválido. Debe ser: credit_card, paypal, o pse'),
-
-    // Validaciones para tarjeta de crédito (condicional)
-    body('cardNumber')
-        .if(body('paymentMethod').equals('credit_card'))
-        .notEmpty()
-        .withMessage('El número de tarjeta es obligatorio para pagos con tarjeta')
-        .matches(/^[0-9\s]{13,19}$/)
-        .withMessage('Formato de número de tarjeta inválido (13-19 dígitos)')
-        .custom((value) => {
-            // Validación básica de algoritmo de Luhn
-            const digits = value.replace(/\s/g, '');
-            let sum = 0;
-            let isEven = false;
-
-            for (let i = digits.length - 1; i >= 0; i--) {
-                let digit = parseInt(digits[i]);
-
-                if (isEven) {
-                    digit *= 2;
-                    if (digit > 9) {
-                        digit -= 9;
-                    }
-                }
-
-                sum += digit;
-                isEven = !isEven;
-            }
-
-            if (sum % 10 !== 0) {
-                throw new Error('Número de tarjeta inválido');
-            }
-
-            return true;
-        })
-        .withMessage('Número de tarjeta inválido'),
-
-    body('expiryDate')
-        .if(body('paymentMethod').equals('credit_card'))
-        .notEmpty()
-        .withMessage('La fecha de vencimiento es obligatoria para pagos con tarjeta')
-        .matches(/^(0[1-9]|1[0-2])\/\d{2}$/)
-        .withMessage('Formato de fecha inválido (MM/AA)')
-        .custom((value) => {
-            const [month, year] = value.split('/');
-            const currentDate = new Date();
-            const currentYear = currentDate.getFullYear() % 100;
-            const currentMonth = currentDate.getMonth() + 1;
-
-            const cardYear = parseInt(year);
-            const cardMonth = parseInt(month);
-
-            if (cardYear < currentYear || (cardYear === currentYear && cardMonth < currentMonth)) {
-                throw new Error('La tarjeta ha expirado');
-            }
-
-            return true;
-        })
-        .withMessage('La tarjeta ha expirado'),
-
-    body('cvv')
-        .if(body('paymentMethod').equals('credit_card'))
-        .notEmpty()
-        .withMessage('El CVV es obligatorio para pagos con tarjeta')
-        .matches(/^[0-9]{3,4}$/)
-        .withMessage('CVV inválido (3-4 dígitos)'),
 
     // Validaciones de dirección de envío
     body('shippingAddress.firstName')
