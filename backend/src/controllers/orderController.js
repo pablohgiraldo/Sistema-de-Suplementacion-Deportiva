@@ -23,7 +23,7 @@ function getCardBrand(cardNumber) {
 // Crear una nueva orden desde el carrito
 export async function createOrder(req, res) {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id;
         const {
             paymentMethod,
             shippingAddress,
@@ -210,7 +210,7 @@ export async function getOrders(req, res) {
             page = 1
         } = req.query;
 
-        const userId = req.user.id;
+        const userId = req.user._id;
         const userRole = req.user.role;
 
         // Construir query
@@ -275,7 +275,7 @@ export async function getOrders(req, res) {
 export async function getOrderById(req, res) {
     try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const userId = req.user._id;
         const userRole = req.user.role;
 
         const order = await Order.findById(id)
@@ -317,7 +317,7 @@ export async function updateOrderStatus(req, res) {
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
-        const userId = req.user.id;
+        const userId = req.user._id;
 
         const order = await Order.findById(id);
 
@@ -718,7 +718,7 @@ export async function getOrdersSummary(req, res) {
 export async function cancelOrder(req, res) {
     try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const userId = req.user._id;
         const userRole = req.user.role;
 
         const order = await Order.findById(id);
@@ -797,7 +797,7 @@ export async function cancelOrder(req, res) {
 export async function getOrderStatus(req, res) {
     try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const userId = req.user._id;
         const userRole = req.user.role;
 
         // Buscar la orden
@@ -1085,7 +1085,7 @@ export async function createPhysicalSale(req, res) {
             salesChannel: 'physical_store',
             physicalSale: {
                 storeLocation: cashierInfo.storeLocation || 'Tienda Principal',
-                cashierId: req.user.id,
+                cashierId: req.user._id,
                 cashierName: cashierInfo.cashierName || req.user.nombre || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
                 registerNumber: cashierInfo.registerNumber || 'Caja 1',
                 receiptNumber: cashierInfo.receiptNumber || `REC-${Date.now()}`
@@ -1144,7 +1144,7 @@ export async function createPhysicalSale(req, res) {
                     phone: customerInfo.phone
                 },
                 cashier: {
-                    id: req.user.id,
+                    id: req.user._id,
                     name: req.user.nombre || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim()
                 }
             }
