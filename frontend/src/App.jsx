@@ -314,25 +314,36 @@ function HomePage({ searchQuery, selectedFilter }) {
 
   // Filtrar productos por búsqueda y categoría
   const products = allProducts.filter(product => {
-    // Filtro de búsqueda
-    const matchesSearch = !searchQuery ||
-      product.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.descripcion?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.categoria?.toLowerCase().includes(searchQuery.toLowerCase());
+    // Filtro de búsqueda - usando los nombres correctos de las propiedades del backend
+    const searchLower = searchQuery?.toLowerCase() || '';
+    const matchesSearch = !searchQuery || searchQuery.trim() === '' ||
+      product.name?.toLowerCase().includes(searchLower) ||
+      product.description?.toLowerCase().includes(searchLower) ||
+      product.brand?.toLowerCase().includes(searchLower) ||
+      (product.categories && product.categories.some(cat => cat.toLowerCase().includes(searchLower)));
 
-    // Filtro de categoría
+    // Si hay búsqueda activa, solo aplicar filtro de búsqueda
+    if (searchQuery && searchQuery.trim() !== '') {
+      return matchesSearch;
+    }
+
+    // Si no hay búsqueda, aplicar filtro de categoría
+    const filterLower = selectedFilter?.toLowerCase() || '';
+    const productCategories = product.categories || [];
+    const categoryMatch = productCategories.some(cat => cat.toLowerCase().includes(filterLower));
+    
     const matchesFilter = selectedFilter === "Todos los Productos" ||
-      product.categoria?.includes(selectedFilter) ||
+      categoryMatch ||
       (selectedFilter === "Más Vendidos" && product.stock > 50) ||
-      (selectedFilter === "Proteínas" && product.categoria?.includes("Proteína")) ||
-      (selectedFilter === "Vitaminas y Más" && product.categoria?.includes("Vitamina")) ||
-      (selectedFilter === "Rendimiento" && product.categoria?.includes("Rendimiento")) ||
-      (selectedFilter === "Alimentos y Snacks" && product.categoria?.includes("Snack")) ||
-      (selectedFilter === "Barras de Proteína" && product.categoria?.includes("Barra")) ||
-      (selectedFilter === "Outlet" && product.precio < 50000) ||
-      (selectedFilter === "Vegano" && product.nombre?.toLowerCase().includes("vegan"));
+      (selectedFilter === "Proteínas" && (categoryMatch || product.name?.toLowerCase().includes("proteína") || product.name?.toLowerCase().includes("protein"))) ||
+      (selectedFilter === "Vitaminas y Más" && (categoryMatch || product.name?.toLowerCase().includes("vitamina"))) ||
+      (selectedFilter === "Rendimiento" && categoryMatch) ||
+      (selectedFilter === "Alimentos y Snacks" && (categoryMatch || product.name?.toLowerCase().includes("snack"))) ||
+      (selectedFilter === "Barras de Proteína" && (categoryMatch || product.name?.toLowerCase().includes("barra") || product.name?.toLowerCase().includes("bar"))) ||
+      (selectedFilter === "Outlet" && product.price < 50000) ||
+      (selectedFilter === "Vegano" && (product.name?.toLowerCase().includes("vegan") || categoryMatch));
 
-    return matchesSearch && matchesFilter;
+    return matchesFilter;
   });
 
   if (loading) {
