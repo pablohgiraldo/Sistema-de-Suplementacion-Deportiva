@@ -5,7 +5,7 @@ import Product from '../models/Product.js';
 // Middleware para validaciones de negocio específicas de órdenes
 export const validateOrderBusinessRules = async (req, res, next) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id;
         const { paymentMethod } = req.body;
 
         // 1. Validar que el usuario tenga un carrito con productos
@@ -219,26 +219,26 @@ export const validateColombianAddress = (req, res, next) => {
 // Middleware para validar límites de usuario (prevenir abuso)
 export const validateUserLimits = async (req, res, next) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id;
 
-        // Verificar órdenes pendientes del usuario (máximo 3 órdenes pendientes)
-        const Order = (await import('../models/Order.js')).default;
-        const pendingOrders = await Order.countDocuments({
-            user: userId,
-            status: { $in: ['pending', 'processing'] }
-        });
+        // Verificar órdenes pendientes del usuario (máximo 3 órdenes pendientes) - TEMPORALMENTE DESACTIVADO
+        // const Order = (await import('../models/Order.js')).default;
+        // const pendingOrders = await Order.countDocuments({
+        //     user: userId,
+        //     status: { $in: ['pending', 'processing'] }
+        // });
 
-        if (pendingOrders >= 3) {
-            return res.status(400).json({
-                success: false,
-                error: 'Tienes demasiadas órdenes pendientes. Completa algunas órdenes antes de crear una nueva.',
-                code: 'TOO_MANY_PENDING_ORDERS',
-                details: {
-                    pendingOrders,
-                    maxAllowed: 3
-                }
-            });
-        }
+        // if (pendingOrders >= 3) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         error: 'Tienes demasiadas órdenes pendientes. Completa algunas órdenes antes de crear una nueva.',
+        //         code: 'TOO_MANY_PENDING_ORDERS',
+        //         details: {
+        //             pendingOrders,
+        //             maxAllowed: 3
+        //         }
+        //     });
+        // }
 
         // Verificar órdenes canceladas recientes (máximo 2 cancelaciones en las últimas 24 horas)
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
