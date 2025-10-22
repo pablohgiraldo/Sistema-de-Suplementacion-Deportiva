@@ -1,5 +1,6 @@
 import React from 'react';
 import ProductCard from './productCard';
+import { ResponsiveGrid } from './ResponsiveValidator';
 
 const ProductGrid = ({ products, className = '', showTitle = true, title = "Productos", subtitle = "" }) => {
     if (!products || products.length === 0) {
@@ -30,12 +31,18 @@ const ProductGrid = ({ products, className = '', showTitle = true, title = "Prod
                 </div>
             )}
 
-            {/* Grid responsive optimizado para diferentes dispositivos */}
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
-                {products.map(product => (
-                    <ProductCard key={product._id} p={product} />
+            {/* Grid ultra-responsivo con validación automática */}
+            <ResponsiveGrid className="animate-in fade-in duration-500">
+                {products.map((product, index) => (
+                    <div 
+                        key={product._id} 
+                        className="animate-in fade-in slide-in-from-bottom-4 hover:scale-105 transition-transform duration-300"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                        <ProductCard p={product} />
+                    </div>
                 ))}
-            </div>
+            </ResponsiveGrid>
         </section>
     );
 };

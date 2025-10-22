@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import HeroBanner from './components/HeroBanner';
 import ProductCarousel from './components/ProductCarousel';
 import ProductModal from './components/ProductModal';
+import Testimonials from './components/Testimonials';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import ProductCard from './components/productCard';
@@ -15,6 +16,7 @@ import ProductGrid from './components/ProductGrid';
 import PageLoader from './components/PageLoader';
 import LazyErrorBoundary from './components/LazyErrorBoundary';
 import TawkToChat from './components/TawkToChat';
+import { NotificationProvider } from './components/ui/NotificationContainer';
 import { useProducts } from './hooks/useProducts';
 import { preloadCriticalComponents, preloadAdminComponents, preloadProductComponents } from './utils/preloadComponents';
 
@@ -37,6 +39,11 @@ const Support = lazy(() => import('./pages/Support'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const LegalNotice = lazy(() => import('./pages/LegalNotice'));
+const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
+const Careers = lazy(() => import('./pages/Careers'));
 
 function AppContent() {
   const location = useLocation();
@@ -143,7 +150,7 @@ function AuthenticatedApp({
   };
 
   return (
-    <>
+    <NotificationProvider>
       {shouldShowHeader && (
         <>
           {isAdminPage ? (
@@ -176,7 +183,14 @@ function AuthenticatedApp({
       <LazyErrorBoundary>
         <Suspense fallback={<PageLoader message="Cargando página..." />}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route 
+              path="/" 
+              element={<HomePage 
+                searchQuery={searchQuery}
+                selectedCategory={selectedCategory}
+                selectedFilter={selectedFilter}
+              />} 
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
@@ -296,17 +310,28 @@ function AuthenticatedApp({
               }
             />
             <Route path="/support" element={<Support />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/legal-notice" element={<LegalNotice />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/careers" element={<Careers />} />
           </Routes>
         </Suspense>
       </LazyErrorBoundary>
       <Footer />
-    </>
+    </NotificationProvider>
   );
 }
 
-function HomePage() {
-  // Usar React Query para obtener productos
-  const { data: productsData, isLoading: loading, error } = useProducts();
+function HomePage({ searchQuery, selectedCategory, selectedFilter }) {
+  // Usar React Query para obtener productos con filtros
+  const filters = {
+    ...(searchQuery && { search: searchQuery }),
+    ...(selectedCategory && selectedCategory !== "Todos los Productos" && { category: selectedCategory }),
+    ...(selectedFilter && selectedFilter !== "Todos los Productos" && { filter: selectedFilter })
+  };
+
+  const { data: productsData, isLoading: loading, error } = useProducts(filters);
 
   // Extraer productos de la respuesta
   const products = productsData?.data || [];
@@ -338,20 +363,47 @@ function HomePage() {
 
   return (
     <main className="w-full">
-      <HeroBanner />
+      {/* Solo mostrar Hero Banner si NO hay búsqueda activa */}
+      {!searchQuery && <HeroBanner />}
+      
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Catálogo SuperGains</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
+          {searchQuery ? `Resultados para "${searchQuery}"` : "Catálogo SuperGains"}
+        </h1>
+        {(selectedCategory !== "Todos los Productos" || selectedFilter !== "Todos los Productos") && (
+          <div className="mb-4">
+            <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2 text-sm">
+              <span className="text-gray-600">Filtro activo:</span>
+              <span className="font-semibold text-black">
+                {selectedCategory !== "Todos los Productos" ? selectedCategory : selectedFilter}
+              </span>
+              <button 
+                onClick={() => {
+                  // Limpiar filtros navegando a la página principal
+                  window.location.href = '/';
+                }}
+                className="text-gray-400 hover:text-gray-600 ml-2 transition-colors"
+                title="Limpiar filtros"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+        
         {products.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            No hay productos disponibles
+            {searchQuery ? `No se encontraron productos para "${searchQuery}"` : "No hay productos disponibles"}
           </div>
         ) : (
           <>
-            <ProductCarousel
-              products={products.slice(0, 6)}
-              title="Productos Destacados"
-              subtitle="Los mejores suplementos para tu rendimiento"
-            />
+            {!searchQuery && (
+              <ProductCarousel
+                products={products.slice(0, 6)}
+                title="Productos Destacados"
+                subtitle="Los mejores suplementos para tu rendimiento"
+              />
+            )}
             <ProductGrid
               products={products}
               className="mt-6 sm:mt-8"
@@ -361,49 +413,60 @@ function HomePage() {
         )}
       </div>
 
-      {/* Sección Nosotros */}
-      <section id="nosotros" className="bg-gray-100 py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Sobre SuperGains</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Somos la tienda líder en suplementos deportivos y nutrición. Nuestra misión es ayudarte a alcanzar tus objetivos de fitness con productos de la más alta calidad.
-            </p>
-          </div>
+      {/* Solo mostrar secciones adicionales si NO hay búsqueda activa */}
+      {!searchQuery && (
+        <>
+          {/* Sección de Testimonios */}
+          <Testimonials />
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          {/* Sección Nosotros - Diseño minimalista según PRD */}
+          <section id="nosotros" className="bg-gray-100 rounded-2xl my-8 py-16">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-block bg-black text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
+                  SOBRE NOSOTROS
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-black mb-4">Sobre SuperGains</h2>
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                  Somos la tienda líder en suplementos deportivos y nutrición. Nuestra misión es ayudarte a alcanzar tus objetivos de fitness con productos de la más alta calidad.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Calidad Premium</h3>
-              <p className="text-gray-600">Productos de las mejores marcas del mercado</p>
-            </div>
 
-            <div className="text-center">
-              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Envío Rápido</h3>
-              <p className="text-gray-600">Entrega en 24-48 horas en toda Colombia</p>
-            </div>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="bg-black w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-black">Calidad Premium</h3>
+                  <p className="text-gray-600">Productos de las mejores marcas del mercado con certificaciones internacionales</p>
+                </div>
 
-            <div className="text-center">
-              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                <div className="text-center">
+                  <div className="bg-black w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-black">Envío Rápido</h3>
+                  <p className="text-gray-600">Entrega en 24-48 horas en toda Colombia con seguimiento en tiempo real</p>
+                </div>
+
+                <div className="text-center">
+                  <div className="bg-black w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-black">Resultados Garantizados</h3>
+                  <p className="text-gray-600">Productos que realmente funcionan con garantía de satisfacción</p>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Resultados Garantizados</h3>
-              <p className="text-gray-600">Productos que realmente funcionan</p>
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </main>
   );
 }

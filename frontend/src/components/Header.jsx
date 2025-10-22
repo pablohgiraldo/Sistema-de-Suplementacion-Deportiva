@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Input from "./ui/Input";
 
 // Componente Header según PRD - SuperGains
 export default function Header({
@@ -18,9 +19,80 @@ export default function Header({
   searchQuery
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  // Función para obtener flecha de menú desplegable
+  const getCategoryIcon = (category) => {
+    const iconClass = "w-3 h-3 text-gray-400 transition-transform duration-200";
+    
+    // Solo mostrar flecha si la categoría tiene menú desplegable
+    if (menuData[category]) {
+      return (
+        <svg 
+          className={`${iconClass} ${activeDropdown === category ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      );
+    }
+    
+    return null;
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Datos de menús desplegables según PRD
+  const menuData = {
+    "Promociones": [
+      "Ofertas Especiales",
+      "Descuentos por Volumen", 
+      "Productos Destacados",
+      "Liquidaciones"
+    ],
+    "Proteínas en Polvo": [
+      "Whey Protein",
+      "Caseína",
+      "Proteína Vegana",
+      "Proteína de Arroz",
+      "Proteína de Guisante"
+    ],
+    "Vitaminas y Más": [
+      "Multivitamínicos",
+      "Vitamina D3",
+      "Vitamina C",
+      "Complejo B",
+      "Minerales"
+    ],
+    "Rendimiento": [
+      "Pre-Workout",
+      "Creatina",
+      "BCAAs",
+      "Glutamina",
+      "Beta-Alanina"
+    ],
+    "Barras y Snacks": [
+      "Barras de Proteína",
+      "Snacks Saludables",
+      "Frutos Secos",
+      "Proteína en Barra"
+    ],
+    "Accesorios": [
+      "Shakers",
+      "Cucharas Medidoras",
+      "Bolsas de Entrenamiento",
+      "Termos"
+    ],
+    "Objetivos": [
+      "Ganar Masa Muscular",
+      "Perder Peso",
+      "Mejorar Rendimiento",
+      "Salud General"
+    ]
   };
 
   // Cerrar menú móvil con tecla Escape
@@ -44,6 +116,23 @@ export default function Header({
       document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
+
+  // Cerrar menú desplegable al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown && !event.target.closest('.relative')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    if (activeDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeDropdown]);
 
   return (
     <>
@@ -82,27 +171,36 @@ export default function Header({
             </div>
 
             {/* Logo SPG + SUPERGAINS */}
-            <Link to="/" className="flex flex-col cursor-pointer">
+            <Link 
+              to="/" 
+              className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                // Limpiar búsqueda y filtros al hacer clic en el logo
+                onSearch('');
+                onCategoryClick('Todos los Productos');
+                // Scroll al inicio de la página
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              title="Ir al inicio"
+            >
               <div className="text-3xl font-bold text-black">SPG</div>
               <div className="text-xs font-bold text-black tracking-wider">SUPERGAINS</div>
             </Link>
 
-            {/* Barra de búsqueda - Solo visible en desktop */}
+            {/* Barra de búsqueda mejorada - Solo visible en desktop */}
             <div className="hidden md:flex flex-1 max-w-lg mx-4 lg:mx-8 min-w-0">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Buscar proteínas, alimentos..."
-                  value={searchQuery}
-                  onChange={(e) => onSearch(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <Input
+                type="text"
+                placeholder="Buscar proteínas, alimentos..."
+                value={searchQuery}
+                onChange={(e) => onSearch(e.target.value)}
+                rightIcon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-gray-400">
                     <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
                   </svg>
-                </span>
-              </div>
+                }
+                className="w-full"
+              />
             </div>
 
             {/* Iconos de usuario - Solo visible en desktop */}
@@ -221,9 +319,9 @@ export default function Header({
 
               {/* Botón hamburger para móvil */}
               <button
-                className={`p-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'hover:bg-gray-100 text-gray-700'
+                className={`p-3 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isMobileMenuOpen
+                  ? 'bg-blue-50 text-blue-600 scale-105'
+                  : 'hover:bg-gray-100 text-gray-700 hover:scale-105'
                   }`}
                 onClick={toggleMobileMenu}
                 aria-label={isMobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
@@ -231,9 +329,9 @@ export default function Header({
                 aria-controls="mobile-menu"
               >
                 <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                  <span className={`block h-0.5 bg-current transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                  <span className={`block h-0.5 bg-current transition-all duration-500 ease-in-out ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+                  <span className={`block h-0.5 bg-current transition-all duration-500 ease-in-out ${isMobileMenuOpen ? 'opacity-0 scale-0' : ''}`}></span>
+                  <span className={`block h-0.5 bg-current transition-all duration-500 ease-in-out ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
                 </div>
               </button>
             </div>
@@ -244,96 +342,107 @@ export default function Header({
         <nav className="hidden md:block bg-white border-b border-gray-200 w-full">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-4 w-full">
-              {/* Categorías principales según PRD */}
-              <div className="flex items-center gap-4 lg:gap-8 overflow-x-auto min-w-0">
-                {["Promociones", "Proteínas en Polvo", "Vitaminas y Más", "Rendimiento", "Barras y Snacks", "Accesorios", "Outlet", "Objetivos", "Nosotros", "Soporte"].map((category) => (
+              {/* Categorías principales con menús desplegables */}
+              <div className="flex items-center gap-4 lg:gap-6 flex-wrap justify-center w-full">
+                {Object.keys(menuData).concat(["Nosotros", "Soporte"]).map((category) => (
                   <div
                     key={category}
-                    className={`flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors ${selectedCategory === category ? 'text-blue-600 font-semibold' : ''
-                      }`}
-                    onClick={() => {
-                      // Mapear categorías del menú a filtros
-                      const filterMap = {
-                        "Promociones": "Más Vendidos",
-                        "Proteínas en Polvo": "Proteínas",
-                        "Vitaminas y Más": "Vitaminas y Más",
-                        "Rendimiento": "Rendimiento",
-                        "Barras y Snacks": "Alimentos y Snacks",
-                        "Accesorios": "Todos los Productos",
-                        "Outlet": "Outlet",
-                        "Objetivos": "Todos los Productos",
-                        "Nosotros": "nosotros", // Redirigir a la sección Nosotros
-                        "Soporte": "soporte" // Redirigir a página de soporte
-                      };
-                      const filter = filterMap[category] || "Todos los Productos";
-
-                      if (category === "Nosotros") {
-                        // Scroll a la sección Nosotros
-                        setTimeout(() => {
-                          const nosotrosSection = document.getElementById('nosotros');
-                          if (nosotrosSection) {
-                            nosotrosSection.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }, 100);
-                      } else if (category === "Soporte") {
-                        // Navegar a la página de soporte
-                        window.location.href = '/support';
-                      } else {
-                        onCategoryClick(filter);
-                      }
-                    }}
+                    className="relative"
+                    onMouseEnter={() => setActiveDropdown(category)}
+                    onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <span className="text-sm font-medium">{category}</span>
-                    <span className="text-xs">▼</span>
+                    <div
+                      className={`flex items-center gap-2 cursor-pointer hover:text-black transition-all duration-200 py-3 px-2 ${
+                        selectedCategory === category 
+                          ? 'text-black font-semibold border-b-2 border-black' 
+                          : 'text-gray-600 hover:text-black'
+                      }`}
+                      onClick={() => {
+                        if (category === "Nosotros") {
+                          setTimeout(() => {
+                            const nosotrosSection = document.getElementById('nosotros');
+                            if (nosotrosSection) {
+                              nosotrosSection.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }, 100);
+                        } else if (category === "Soporte") {
+                          window.location.href = '/support';
+                        } else {
+                          const filterMap = {
+                            "Promociones": "Más Vendidos",
+                            "Proteínas en Polvo": "Proteínas",
+                            "Vitaminas y Más": "Vitaminas y Más",
+                            "Rendimiento": "Rendimiento",
+                            "Barras y Snacks": "Alimentos y Snacks",
+                            "Accesorios": "Todos los Productos",
+                            "Objetivos": "Todos los Productos"
+                          };
+                          const filter = filterMap[category] || "Todos los Productos";
+                          console.log('Categoría seleccionada:', category, 'Filtro aplicado:', filter);
+                          onCategoryClick(filter);
+                        }
+                      }}
+                    >
+                      <span className="text-sm font-medium whitespace-nowrap">{category}</span>
+                      {/* Icono específico para cada categoría */}
+                      {getCategoryIcon(category)}
+                    </div>
+
+                    {/* Menú desplegable con animaciones */}
+                    {activeDropdown === category && menuData[category] && (
+                      <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-xl shadow-2xl py-4 min-w-64 z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+                        <div className="px-4 pb-2 border-b border-gray-100">
+                          <h3 className="text-sm font-semibold text-gray-900">{category}</h3>
+                        </div>
+                        <div className="mt-2">
+                          {menuData[category].map((item, index) => (
+                            <div
+                              key={index}
+                              className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 hover:text-black transition-all duration-200 flex items-center justify-between group animate-in slide-in-from-left-2 fade-in"
+                              style={{ animationDelay: `${index * 50}ms` }}
+                              onClick={() => {
+                                console.log('Elemento del menú seleccionado:', item);
+                                onCategoryClick(item);
+                                setActiveDropdown(null);
+                              }}
+                            >
+                              <span className="transition-transform duration-200 group-hover:translate-x-1">{item}</span>
+                              <div className="w-1 h-1 bg-gray-300 rounded-full group-hover:bg-black transition-all duration-200 group-hover:scale-150"></div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Filtros rápidos según PRD */}
-            <div className="flex items-center gap-4 lg:gap-6 py-3 border-t border-gray-100 overflow-x-auto min-w-0">
-              {["Todos los Productos", "Más Vendidos", "Proteínas", "Vitaminas y Más", "Rendimiento", "Alimentos y Snacks", "Barras de Proteína", "Outlet", "Muestras", "Vegano"].map((filter) => (
-                <span
-                  key={filter}
-                  className={`text-xs cursor-pointer transition-colors ${selectedFilter === filter
-                    ? 'text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded'
-                    : 'text-gray-600 hover:text-black'
-                    }`}
-                  onClick={() => onFilterClick(filter)}
-                >
-                  {filter}
-                </span>
-              ))}
-            </div>
           </div>
         </nav>
 
-        {/* Menú móvil - Mejorado */}
+        {/* Menú móvil con animaciones mejoradas */}
         <div
           id="mobile-menu"
-          className={`md:hidden bg-white border-b border-gray-200 transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          className={`md:hidden bg-white border-b border-gray-200 transition-all duration-500 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
             }`}
           role="navigation"
           aria-label="Menú de navegación móvil"
         >
           <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            {/* Barra de búsqueda móvil - Mejorada */}
-            <div className="relative mb-4">
-              <label htmlFor="mobile-search" className="sr-only">Buscar productos</label>
-              <input
-                id="mobile-search"
+            {/* Barra de búsqueda móvil mejorada */}
+            <div className="mb-4">
+              <Input
                 type="text"
                 placeholder="Buscar proteínas, alimentos..."
                 value={searchQuery}
                 onChange={(e) => onSearch(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-                aria-label="Buscar productos"
+                rightIcon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-gray-400">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                  </svg>
+                }
+                className="w-full"
               />
-              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                </svg>
-              </span>
             </div>
 
             {/* Iconos de usuario móvil */}

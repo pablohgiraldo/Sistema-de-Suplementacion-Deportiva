@@ -20,14 +20,41 @@ export function useProducts(filters = {}) {
         queryFn: async () => {
             const params = new URLSearchParams();
 
+            // Determinar si hay búsqueda de texto
+            const hasSearch = filters.search && filters.search.trim();
+            
             // Agregar filtros a los parámetros
             Object.entries(filters).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
-                    params.append(key, value);
+                    // Mapear filtros del frontend a parámetros del backend
+                    if (key === 'search') {
+                        params.append('q', value);
+                    } else if (key === 'category') {
+                        params.append('category', value);
+                    } else if (key === 'filter') {
+                        // Mapear filtros específicos
+                        console.log('Aplicando filtro:', value);
+                        if (value === 'Proteínas') {
+                            params.append('category', 'proteina');
+                        } else if (value === 'Vitaminas y Más') {
+                            params.append('category', 'vitaminas');
+                        } else if (value === 'Rendimiento') {
+                            params.append('category', 'creatina');
+                        } else if (value === 'Alimentos y Snacks') {
+                            params.append('category', 'aminoacidos');
+                        } else if (value === 'Más Vendidos') {
+                            // Para productos más vendidos, usar un filtro especial
+                            params.append('sortBy', 'createdAt');
+                        }
+                    } else {
+                        params.append(key, value);
+                    }
                 }
             });
 
-            const response = await api.get(`/products?${params.toString()}`);
+            // Usar endpoint de búsqueda si hay búsqueda de texto, sino usar endpoint normal
+            const endpoint = hasSearch ? '/products/search' : '/products';
+            const response = await api.get(`${endpoint}?${params.toString()}`);
             return response.data;
         },
         // Los productos se consideran frescos por 2 minutos

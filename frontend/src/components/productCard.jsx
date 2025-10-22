@@ -3,20 +3,26 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext.jsx';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
+import { useDesignSystem } from '../hooks/useDesignSystem';
 import WishlistButton from './WishlistButton';
 
-// Imágenes de productos reales - Solo contenedores de suplementos, no personas
+// Imágenes de productos reales - Suplementos deportivos profesionales
 const sampleProductImages = [
-  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center",
-  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center"
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center", // Proteína Whey
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center", // Creatina Monohidrato
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center", // BCAAs
+  "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500&h=500&fit=crop&crop=center", // Pre-workout
+  "https://images.unsplash.com/photo-1506629905607-2b0b0b0b0b0b?w=500&h=500&fit=crop&crop=center", // Multivitamínicos
+  "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=500&h=500&fit=crop&crop=center", // Omega 3
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center", // Glutamina
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center", // Caseína
+  "https://images.unsplash.com/photo-1621057621391-7ed446a24b41?w=500&h=500&fit=crop&crop=center", // Proteína Vegana
+  "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500&h=500&fit=crop&crop=center", // Mass Gainer
+  "https://images.unsplash.com/photo-1594736797933-d0c29d4b2c3e?w=500&h=500&fit=crop&crop=center", // L-Carnitina
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center", // Colágeno
+  "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500&h=500&fit=crop&crop=center", // ZMA
+  "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500&h=500&fit=crop&crop=center", // Beta-Alanina
+  "https://images.unsplash.com/photo-1506629905607-2b0b0b0b0b0b?w=500&h=500&fit=crop&crop=center" // Proteína Isolada
 ];
 
 // Función para obtener una imagen basada en el ID del producto
@@ -31,6 +37,7 @@ const ProductCard = React.memo(({ p }) => {
   const cartContext = useCart();
   const navigate = useNavigate();
   const { inventory, loading: inventoryLoading } = useInventory(p._id);
+  const { getCardStyles, colors, typography } = useDesignSystem();
 
   // Función memoizada para formatear el precio
   const formatPrice = useCallback((price) => {
@@ -194,40 +201,32 @@ const ProductCard = React.memo(({ p }) => {
   }, [p.imageUrl, p._id]);
 
   return (
-    <div className="group relative border-2 border-transparent rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-500 bg-white transform hover:-translate-y-2 hover:scale-[1.02]" onClick={handleProductClick}>
-      {/* Imagen del producto */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square">
+    <div className={`${getCardStyles('default')} border border-gray-100 group relative`} onClick={handleProductClick}>
+      {/* Botón de favoritos - Esquina superior derecha */}
+      <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <WishlistButton productId={p._id} />
+      </div>
+
+      {/* Imagen del producto - Fondo gris según PRD */}
+      <div className="relative aspect-square bg-gray-100 overflow-hidden">
         <img
           src={getProductImageUrl()}
           alt={p.name}
-          className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
-            // Si falla la imagen, usar imagen de respaldo simple
             e.target.src = getProductImage(p._id);
           }}
           loading="lazy"
         />
-
-        {/* Badge del producto (Bestseller/New Flavor) */}
-        {getProductBadge() && (
-          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${getProductBadge().type === 'bestseller'
-            ? 'bg-black text-white group-hover:bg-gray-800'
-            : 'bg-blue-500 text-white group-hover:bg-blue-600'
-            }`}>
-            {getProductBadge().text}
+        
+        {/* Indicador de stock bajo */}
+        {stockInfo.isLowStock && (
+          <div className="absolute bottom-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+            ¡Últimas unidades!
           </div>
         )}
 
-        {/* Botón de wishlist */}
-        <div className="absolute top-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
-          <WishlistButton
-            productId={p._id}
-            productName={p.name}
-            size="sm"
-          />
-        </div>
-
-        {/* Icono de acción (bolsa de compras) */}
+        {/* Icono de acción (bolsa de compras) - Circular negro */}
         <div className="absolute bottom-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <button
             onClick={(e) => {
@@ -244,76 +243,49 @@ const ProductCard = React.memo(({ p }) => {
         </div>
       </div>
 
-      {/* Contenido del producto */}
-      <div className="p-4 space-y-3">
-        {/* Tags de sabores */}
-        {(() => {
-          const flavorInfo = getFlavorInfo();
-          return (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium transition-all duration-300 group-hover:bg-blue-100 group-hover:text-blue-800 group-hover:scale-105">
-                {flavorInfo.primaryFlavor} + {flavorInfo.totalFlavors}
-              </span>
-            </div>
-          );
-        })()}
-
+      {/* Contenido de la tarjeta */}
+      <div className="p-5">
+        {/* Logo de marca - Según PRD */}
+        <div className="text-xs text-gray-500 mb-2 font-bold tracking-wide">
+          SUPERGAINS ELITE SPORTS NUTRITION
+        </div>
+        
         {/* Nombre del producto */}
-        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight transition-colors duration-300 group-hover:text-blue-600">
+        <h3 className="font-bold text-black mb-2 line-clamp-2 text-base leading-tight">
           {p.name || 'Sin nombre'}
         </h3>
-
+        
         {/* Descripción */}
         {p.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
             {p.description}
           </p>
         )}
-
-        {/* Rating con estrellas */}
-        {(() => {
-          const rating = getRating();
-          return (
-            <div className="flex items-center gap-2 transition-all duration-300 group-hover:scale-105">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className={`w-4 h-4 transition-all duration-300 ${i < Math.floor(rating.rating) ? 'text-yellow-400 group-hover:text-yellow-500' : 'text-gray-300 group-hover:text-gray-400'}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-sm text-gray-600 group-hover:text-gray-700">({rating.reviewCount.toLocaleString()})</span>
-            </div>
-          );
-        })()}
-
-        {/* Precio */}
-        <div className="space-y-1 transition-all duration-300 group-hover:scale-105">
-          {p.originalPrice && p.originalPrice > p.price && (
-            <p className="text-sm text-gray-400 line-through group-hover:text-gray-500">{formatPrice(p.originalPrice)}</p>
-          )}
-          <div className="flex items-baseline gap-2">
-            <p className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors duration-300">
-              {formatPrice(p.price)}
-            </p>
-            <p className="text-sm text-gray-600 group-hover:text-gray-700">
-              ({formatPrice(getPricePerKg())}/kg)
-            </p>
+        
+        {/* Valoración - Según PRD */}
+        <div className="flex items-center mb-4">
+          <div className="flex text-yellow-400">
+            {[...Array(5)].map((_, i) => (
+              <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
           </div>
+          <span className="text-sm text-gray-500 ml-2 font-medium">(4.8)</span>
+        </div>
+        
+        {/* Precio */}
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-black text-black">
+            {formatPrice(p.price)}
+          </div>
+          {stockInfo.isLowStock && (
+            <div className="text-sm text-red-500 font-bold">
+              Solo {stockInfo.availableStock} disponibles
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Indicador de cantidad en carrito */}
-      {cartContext.isInCart(p._id) && (
-        <div className="absolute top-2 left-2 z-20 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-green-600 group-hover:shadow-xl">
-          {cartContext.getCartItemQuantity(p._id)} en carrito
-        </div>
-      )}
     </div>
   );
 });

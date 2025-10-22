@@ -5,6 +5,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar sistema de diseño personalizado */
+@import './styles/design-system.css';
+
 /* Animaciones personalizadas para notificaciones */
 @keyframes slide-in {
   from {
