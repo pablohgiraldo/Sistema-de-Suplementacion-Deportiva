@@ -220,7 +220,7 @@ export async function getOrders(req, res) {
         } = req.query;
 
         const userId = req.user._id;
-        const userRole = req.user.role;
+        const userRole = req.user.rol; // Cambiar de .role a .rol para coincidir con la BD
 
         // Debug: verificar información del usuario
         console.log('getOrders - req.user:', req.user);
