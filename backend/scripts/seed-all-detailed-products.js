@@ -2,6 +2,8 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import Product from "../src/models/Product.js";
 import Inventory from "../src/models/Inventory.js";
+import Cart from "../src/models/Cart.js";
+import Wishlist from "../src/models/Wishlist.js";
 
 // CATÁLOGO COMPLETO CON INFORMACIÓN ÚNICA Y DETALLADA - HU48
 // Cada producto tiene información nutricional, ingredientes, aminoácidos, instrucciones de uso específicas
@@ -2231,6 +2233,10 @@ async function seedAllDetailedProducts() {
         console.log("🗑️  Limpiando productos existentes...");
         await Product.deleteMany({});
         await Inventory.deleteMany({});
+        
+        console.log("🗑️  Limpiando carritos y wishlists...");
+        await Cart.deleteMany({});
+        await Wishlist.deleteMany({});
 
         console.log("📦 Insertando productos detallados...");
         const insertedProducts = await Product.insertMany(products);
@@ -2240,8 +2246,20 @@ async function seedAllDetailedProducts() {
         for (const product of insertedProducts) {
             await Inventory.create({
                 product: product._id,
-                availableStock: product.stock,
                 reservedStock: 0,
+                minStock: 5,
+                status: 'active',
+                channels: {
+                    physical: {
+                        stock: product.stock,
+                        location: 'Almacén Principal',
+                        syncStatus: 'synced'
+                    },
+                    digital: {
+                        stock: 0,
+                        syncStatus: 'synced'
+                    }
+                },
                 lastUpdated: new Date()
             });
         }
