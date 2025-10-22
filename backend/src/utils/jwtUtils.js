@@ -40,7 +40,7 @@ export async function generateAuthTokens(user, deviceInfo = {}) {
                     id: user._id,
                     email: user.email,
                     nombre: user.nombre,
-                    rol: user.rol || 'usuario',
+                    role: user.rol || 'usuario',
                     activo: user.activo,
                     lastLogin: new Date()
                 },

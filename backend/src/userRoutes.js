@@ -39,7 +39,7 @@ router.post('/register', async (req, res) => {
       nombre,
       email,
       contraseña,
-      rol: rol || 'usuario'
+      role: role || 'usuario'
     });
 
     // Guardar usuario (la contraseña se encripta automáticamente)

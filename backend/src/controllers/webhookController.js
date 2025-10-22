@@ -75,7 +75,7 @@ export const getWebhooks = async (req, res) => {
         }
         
         // Si no es admin, solo mostrar webhooks propios
-        if (req.user.rol !== 'admin') {
+        if (req.user.role !== 'admin') {
             query.createdBy = req.user.id;
         }
         

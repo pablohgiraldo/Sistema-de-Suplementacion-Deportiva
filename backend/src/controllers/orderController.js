@@ -211,7 +211,7 @@ export async function getOrders(req, res) {
         } = req.query;
 
         const userId = req.user.id;
-        const userRole = req.user.rol;
+        const userRole = req.user.role;
 
         // Construir query
         let query = {};
@@ -276,7 +276,7 @@ export async function getOrderById(req, res) {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const userRole = req.user.rol;
+        const userRole = req.user.role;
 
         const order = await Order.findById(id)
             .populate('user', 'nombre email')
@@ -719,7 +719,7 @@ export async function cancelOrder(req, res) {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const userRole = req.user.rol;
+        const userRole = req.user.role;
 
         const order = await Order.findById(id);
 
@@ -798,7 +798,7 @@ export async function getOrderStatus(req, res) {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const userRole = req.user.rol;
+        const userRole = req.user.role;
 
         // Buscar la orden
         const order = await Order.findById(id)
@@ -1032,7 +1032,7 @@ export async function createPhysicalSale(req, res) {
                     nombre: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
                     email: customerInfo.email,
                     contraseña: 'temp_physical_sale_' + Date.now(), // Contraseña temporal
-                    rol: 'usuario', // Usar el campo correcto del modelo
+                    role: 'usuario', // Usar el campo correcto del modelo
                     activo: true
                 });
                 await customer.save();
@@ -1045,7 +1045,7 @@ export async function createPhysicalSale(req, res) {
                 nombre: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
                 email: tempEmail,
                 contraseña: 'temp_physical_sale_' + Date.now(),
-                rol: 'usuario',
+                role: 'usuario',
                 activo: true
             });
             await customer.save();

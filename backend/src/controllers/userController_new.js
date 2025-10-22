@@ -28,7 +28,7 @@ export const registrarUsuario = async (req, res) => {
             nombre,
             email,
             contraseña,
-            rol: rol || 'usuario' // Rol por defecto
+            role: role || 'usuario' // Rol por defecto
         });
 
         // Guardar usuario (la contraseña se encripta automáticamente por el middleware pre-save)

@@ -549,7 +549,7 @@ export const cambiarRolUsuario = async (req, res) => {
         }
 
         // Actualizar rol
-        usuario.rol = rol;
+        usuario.role = role;
         await usuario.save();
 
         res.json({

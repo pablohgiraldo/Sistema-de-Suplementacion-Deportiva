@@ -41,6 +41,7 @@ const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRec
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Contact = lazy(() => import('./pages/Contact'));
+const AdminContact = lazy(() => import('./pages/AdminContact'));
 
 function AppContent() {
   const location = useLocation();
@@ -248,6 +249,14 @@ function AuthenticatedApp({
               element={
                 <AdminRoute>
                   <AdminCustomerRecommendations />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/contact"
+              element={
+                <AdminRoute>
+                  <AdminContact />
                 </AdminRoute>
               }
             />

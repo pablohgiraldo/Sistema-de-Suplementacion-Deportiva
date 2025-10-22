@@ -290,7 +290,7 @@ export const getOrderPaymentStatus = async (req, res) => {
         }
         
         // Verificar permisos
-        if (order.user._id.toString() !== userId && req.user.rol !== 'admin') {
+        if (order.user._id.toString() !== userId && req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
                 error: 'No tienes permisos para ver esta orden'
