@@ -274,7 +274,7 @@ export default function Header({
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-4 w-full">
               {/* Categorías principales con dropdowns según PRD */}
-              <div className="flex items-center gap-4 lg:gap-6 overflow-x-auto min-w-0">
+              <div className="flex items-center gap-4 lg:gap-6 flex-wrap">
                 {/* Categorías con submenús usando CategoryDropdown */}
                 <CategoryDropdown 
                   category="Proteínas en Polvo" 

@@ -77,6 +77,16 @@ export default function CategoryDropdown({ category, onFilterClick, onCategoryCl
         );
     }
 
+    const [buttonRect, setButtonRect] = useState(null);
+
+    // Obtener la posición del botón cuando se abre el dropdown
+    useEffect(() => {
+        if (isOpen && dropdownRef.current) {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            setButtonRect(rect);
+        }
+    }, [isOpen]);
+
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Botón de categoría */}
@@ -103,10 +113,14 @@ export default function CategoryDropdown({ category, onFilterClick, onCategoryCl
                 </svg>
             </button>
 
-            {/* Dropdown Menu */}
-            {isOpen && menuData && menuData.length > 0 && (
+            {/* Dropdown Menu - Usando fixed para que se superponga correctamente */}
+            {isOpen && menuData && menuData.length > 0 && buttonRect && (
                 <div
-                    className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-[100] animate-slideDown min-w-[220px]"
+                    className="fixed bg-white rounded-lg shadow-xl border border-gray-200 z-[100] animate-slideDown min-w-[220px]"
+                    style={{
+                        top: `${buttonRect.bottom + window.scrollY}px`,
+                        left: `${buttonRect.left}px`
+                    }}
                 >
                     <div className="py-2">
                         {menuData.map((item, idx) => (
