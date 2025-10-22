@@ -172,7 +172,7 @@ export default function Header({
               )}
 
               {/* Iconos según rol del usuario */}
-              {user?.rol === 'admin' ? (
+              {user?.role === 'admin' ? (
                 // Iconos para administrador
                 <>
                   {/* Dashboard de administración */}
@@ -450,7 +450,7 @@ export default function Header({
                 )}
 
                 {/* Iconos móviles según rol del usuario */}
-                {user?.rol === 'admin' ? (
+                {user?.role === 'admin' ? (
                   // Iconos para administrador móvil
                   <>
                     {/* Dashboard de administración móvil */}

@@ -78,7 +78,7 @@ export default function TawkToChat() {
             if (isAuthenticated && user) {
                 window.Tawk_API.setAttributes({
                     'name': user.nombre || 'Usuario',
-                    'email': user.email || '',
+                    'email': user.email && user.email.includes('@') ? user.email : 'usuario@supergains.com',
                     'userId': user._id || '',
                     'role': user.role || 'usuario'
                 }, function(error) {

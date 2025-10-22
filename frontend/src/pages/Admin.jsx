@@ -30,7 +30,7 @@ const AdminDashboard = () => {
 
 
     useEffect(() => {
-        if (isAuthenticated && user?.rol === 'admin') {
+        if (isAuthenticated && user?.role === 'admin') {
             fetchAdminStats();
         }
     }, [isAuthenticated, user]);
@@ -75,7 +75,7 @@ const AdminDashboard = () => {
     };
 
     // Verificar si el usuario es administrador
-    if (!isAuthenticated || user?.rol !== 'admin') {
+    if (!isAuthenticated || user?.role !== 'admin') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
