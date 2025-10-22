@@ -54,26 +54,26 @@ export const validateOrderBusinessRules = async (req, res, next) => {
             });
         }
 
-        // 3. Validar que los productos estén activos
-        const inactiveProducts = [];
-        for (const item of cart.items) {
-            if (!item.product.isActive) {
-                inactiveProducts.push({
-                    productId: item.product._id,
-                    productName: item.product.name,
-                    reason: 'Producto desactivado'
-                });
-            }
-        }
+        // 3. Validar que los productos estén activos (TEMPORALMENTE DESACTIVADO)
+        // const inactiveProducts = [];
+        // for (const item of cart.items) {
+        //     if (!item.product.isActive) {
+        //         inactiveProducts.push({
+        //             productId: item.product._id,
+        //             productName: item.product.name,
+        //             reason: 'Producto desactivado'
+        //         });
+        //     }
+        // }
 
-        if (inactiveProducts.length > 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'Algunos productos no están disponibles',
-                code: 'INACTIVE_PRODUCTS',
-                details: inactiveProducts
-            });
-        }
+        // if (inactiveProducts.length > 0) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         error: 'Algunos productos no están disponibles',
+        //         code: 'INACTIVE_PRODUCTS',
+        //         details: inactiveProducts
+        //     });
+        // }
 
         // 4. Validar límites de cantidad por producto
         const quantityViolations = [];

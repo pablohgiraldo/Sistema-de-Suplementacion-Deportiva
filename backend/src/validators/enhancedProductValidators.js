@@ -227,6 +227,9 @@ export const validateProductSearchSecurity = [
     query('category')
         .optional()
         .isIn([
+            'proteina', 'proteínas', 'creatina', 'pre-entreno', 'post-entreno',
+            'vitaminas', 'minerales', 'quemadores', 'ganadores de peso',
+            'aminoacidos', 'aminoácidos', 'glutamina', 'bcaa', 'otros',
             'Proteínas', 'Creatina', 'Pre-entreno', 'Post-entreno',
             'Vitaminas', 'Minerales', 'Quemadores', 'Ganadores de peso',
             'Aminoácidos', 'Glutamina', 'BCAA', 'Otros'
