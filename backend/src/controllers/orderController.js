@@ -48,6 +48,15 @@ export async function createOrder(req, res) {
             });
         }
 
+        // Obtener información del usuario
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+        }
+
         // Verificar stock disponible para todos los productos
         const stockValidation = [];
         for (const item of cart.items) {
