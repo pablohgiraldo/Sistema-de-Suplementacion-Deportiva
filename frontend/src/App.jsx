@@ -38,6 +38,8 @@ const Support = lazy(() => import('./pages/Support'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 function AppContent() {
   const location = useLocation();
@@ -297,6 +299,8 @@ function AuthenticatedApp({
               }
             />
             <Route path="/support" element={<Support />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
         </Suspense>
       </LazyErrorBoundary>

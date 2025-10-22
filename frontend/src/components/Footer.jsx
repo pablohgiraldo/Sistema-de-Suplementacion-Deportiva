@@ -1,9 +1,11 @@
 // Componente Footer según PRD
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
   return (
     <footer className="bg-black text-white py-12 w-full">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Sección Izquierda - Marca y Copyright */}
           <div>
             <div className="text-2xl font-bold mb-2">SUPERGAINS</div>
@@ -14,26 +16,55 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Sección Central - Navegación */}
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <h3 className="font-bold mb-3">Atención al Cliente</h3>
-              <div className="text-sm space-y-1">
-                <a href="#contacto" className="block hover:text-blue-400 transition-colors cursor-pointer">Servicio y Preguntas Frecuentes</a>
-                <a href="#contacto" className="block hover:text-blue-400 transition-colors cursor-pointer">Contacto</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Rastrear mi pedido</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Envíos</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Devoluciones</a>
-              </div>
+          {/* Atención al Cliente */}
+          <div>
+            <h3 className="font-bold mb-3 text-base">Atención al Cliente</h3>
+            <div className="text-sm space-y-2">
+              <Link to="/support" className="block hover:text-blue-400 transition-colors">
+                Servicio y Preguntas Frecuentes
+              </Link>
+              <Link to="/support" className="block hover:text-blue-400 transition-colors">
+                Contacto
+              </Link>
+              <Link to="/orders" className="block hover:text-blue-400 transition-colors">
+                Rastrear mi pedido
+              </Link>
+              <Link to="/terms" className="block hover:text-blue-400 transition-colors">
+                Envíos y Devoluciones
+              </Link>
             </div>
-            <div>
-              <h3 className="font-bold mb-3">Empresa</h3>
-              <div className="text-sm space-y-1">
-                <a href="#nosotros" className="block hover:text-blue-400 transition-colors cursor-pointer">Acerca de Nosotros</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Carreras</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Aviso Legal</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors cursor-pointer">Política de Privacidad</a>
-              </div>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="font-bold mb-3 text-base">Legal</h3>
+            <div className="text-sm space-y-2">
+              <Link
+                to="/#nosotros"
+                className="block hover:text-blue-400 transition-colors"
+                onClick={(e) => {
+                  // Si ya estamos en la home, hacer scroll
+                  if (window.location.pathname === '/') {
+                    e.preventDefault();
+                    const nosotrosSection = document.getElementById('nosotros');
+                    if (nosotrosSection) {
+                      nosotrosSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }
+                  // Si no, el Link nos llevará a la home y el navegador hará scroll al #nosotros
+                }}
+              >
+                Acerca de Nosotros
+              </Link>
+              <Link to="/terms" className="block hover:text-blue-400 transition-colors">
+                Términos y Condiciones
+              </Link>
+              <Link to="/privacy" className="block hover:text-blue-400 transition-colors">
+                Política de Privacidad
+              </Link>
+              <Link to="/terms" className="block hover:text-blue-400 transition-colors">
+                Aviso Legal
+              </Link>
             </div>
           </div>
 
@@ -69,18 +100,49 @@ export default function Footer() {
 
             <div className="mb-6">
               <h3 className="font-bold mb-3">Opciones de Pago</h3>
-              <div className="grid grid-cols-4 gap-2 text-xs">
-                <div className="bg-white text-black px-2 py-1 rounded text-center font-semibold">AMEX</div>
-                <div className="bg-white text-black px-2 py-1 rounded text-center font-semibold">MC</div>
-                <div className="bg-white text-black px-2 py-1 rounded text-center font-semibold">VISA</div>
-                <div className="bg-white text-black px-2 py-1 rounded text-center font-semibold">PP</div>
+              <div className="grid grid-cols-4 gap-2">
+                {/* Visa */}
+                <div className="bg-white rounded p-2 flex items-center justify-center" title="Visa">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png"
+                    alt="Visa"
+                    className="h-4 w-auto object-contain"
+                  />
+                </div>
+
+                {/* Mastercard */}
+                <div className="bg-white rounded p-2 flex items-center justify-center" title="Mastercard">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png"
+                    alt="Mastercard"
+                    className="h-4 w-auto object-contain"
+                  />
+                </div>
+
+                {/* American Express */}
+                <div className="bg-white rounded p-2 flex items-center justify-center" title="American Express">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/2560px-American_Express_logo_%282018%29.svg.png"
+                    alt="American Express"
+                    className="h-4 w-auto object-contain"
+                  />
+                </div>
+
+                {/* PayPal */}
+                <div className="bg-white rounded p-2 flex items-center justify-center" title="PayPal">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png"
+                    alt="PayPal"
+                    className="h-4 w-auto object-contain"
+                  />
+                </div>
               </div>
             </div>
 
             <div>
               <h3 className="font-bold mb-3">Envíos</h3>
-              <div className="bg-yellow-400 text-red-600 px-3 py-1 rounded text-sm font-bold">
-                DHL
+              <div className="bg-green-600 rounded p-3 flex items-center justify-center">
+                <span className="text-white font-bold text-lg tracking-wide">SERVIENTREGA</span>
               </div>
             </div>
           </div>
