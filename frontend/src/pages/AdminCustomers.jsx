@@ -32,7 +32,7 @@ const AdminCustomers = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (isAuthenticated && user?.rol === 'admin') {
+        if (isAuthenticated && user?.role === 'admin') {
             fetchDashboardData();
         }
     }, [isAuthenticated, user]);
