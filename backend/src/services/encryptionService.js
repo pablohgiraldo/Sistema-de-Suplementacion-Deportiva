@@ -84,7 +84,7 @@ export function encrypt(plaintext) {
         return plaintext; // No cifrar strings vacíos o null
     }
 
-    // En modo test, no cifrar
+    // En modo test, no cifrar para que los tests existentes funcionen
     if (IS_TEST_ENV) {
         return plaintext;
     }
@@ -156,6 +156,32 @@ export function decrypt(encryptedData) {
 }
 
 /**
+ * Función auxiliar para obtener el valor de un campo anidado
+ * @param {Object} obj - Objeto
+ * @param {string} path - Ruta del campo (ej: 'user.profile.nombre')
+ * @returns {any} Valor del campo
+ */
+function getNestedValue(obj, path) {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+}
+
+/**
+ * Función auxiliar para establecer el valor de un campo anidado
+ * @param {Object} obj - Objeto
+ * @param {string} path - Ruta del campo (ej: 'user.profile.nombre')
+ * @param {any} value - Valor a establecer
+ */
+function setNestedValue(obj, path, value) {
+    const keys = path.split('.');
+    const lastKey = keys.pop();
+    const target = keys.reduce((current, key) => {
+        if (!current[key]) current[key] = {};
+        return current[key];
+    }, obj);
+    target[lastKey] = value;
+}
+
+/**
  * Cifra un objeto completo, aplicando cifrado solo a campos específicos
  * @param {Object} obj - Objeto a cifrar
  * @param {string[]} fieldsToEncrypt - Array de nombres de campos a cifrar
@@ -166,12 +192,13 @@ export function encryptObject(obj, fieldsToEncrypt = []) {
         return obj;
     }
 
-    const result = { ...obj };
+    const result = JSON.parse(JSON.stringify(obj)); // Deep clone
 
     for (const field of fieldsToEncrypt) {
-        if (result[field] !== undefined && result[field] !== null && result[field] !== '') {
+        const value = getNestedValue(result, field);
+        if (value !== undefined && value !== null && value !== '') {
             try {
-                result[field] = encrypt(String(result[field]));
+                setNestedValue(result, field, encrypt(String(value)));
             } catch (error) {
                 console.error(`Error cifrando campo ${field}:`, error);
                 // En caso de error, mantener el valor original para no romper la aplicación
@@ -194,12 +221,13 @@ export function decryptObject(obj, fieldsToDecrypt = []) {
         return obj;
     }
 
-    const result = { ...obj };
+    const result = JSON.parse(JSON.stringify(obj)); // Deep clone
 
     for (const field of fieldsToDecrypt) {
-        if (result[field] !== undefined && result[field] !== null && result[field] !== '') {
+        const value = getNestedValue(result, field);
+        if (value !== undefined && value !== null && value !== '') {
             try {
-                result[field] = decrypt(String(result[field]));
+                setNestedValue(result, field, decrypt(String(value)));
             } catch (error) {
                 console.error(`Error descifrando campo ${field}:`, error);
                 // Si no se puede descifrar, puede ser que no esté cifrado (datos antiguos)

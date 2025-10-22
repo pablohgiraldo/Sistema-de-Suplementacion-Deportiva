@@ -4,15 +4,25 @@ import { validateRegister, validateLogin, handleValidationErrors } from '../../s
 // Mock validation middleware
 const mockValidation = (validators) => {
   return async (req, res, next) => {
+    // Solo ejecutar una vez para evitar llamadas duplicadas
+    if (req._validationExecuted) {
+      return next();
+    }
+    req._validationExecuted = true;
+
     for (const validator of validators) {
-      await validator.run(req);
+      await validator(req, res, () => { });
     }
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
         error: 'Datos de entrada inválidos',
-        details: errors.array()
+        details: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg,
+          value: error.value
+        }))
       });
     }
     next();
@@ -70,7 +80,8 @@ describe('User Validators', () => {
         error: 'Datos de entrada inválidos',
         details: expect.arrayContaining([
           expect.objectContaining({
-            msg: 'El nombre es requerido'
+            field: 'nombre',
+            message: 'El nombre es obligatorio'
           })
         ])
       });

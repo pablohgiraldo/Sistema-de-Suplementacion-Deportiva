@@ -1,11 +1,5 @@
 /**
  * Configuración de Tawk.to
- * 
- * Para obtener tus credenciales:
- * 1. Crea una cuenta en https://www.tawk.to/
- * 2. Ve a Administration > Property Settings
- * 3. Copia tu Property ID y Widget ID
- * 4. Reemplaza los valores de ejemplo aquí
  */
 
 export const TAWK_CONFIG = {
