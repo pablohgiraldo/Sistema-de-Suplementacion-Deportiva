@@ -146,7 +146,7 @@ export const validateOrderBusinessRules = async (req, res, next) => {
 
         // Agregar información del carrito al request para uso posterior
         req.cart = cart;
-        req.cartSubtotal = subtotal;
+        req.cartSubtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         next();
 

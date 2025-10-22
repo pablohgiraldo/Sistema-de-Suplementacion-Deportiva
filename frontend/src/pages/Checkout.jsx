@@ -556,7 +556,7 @@ const Checkout = () => {
     };
 
     // Calcular totales
-    const subtotal = cartTotal;
+    const subtotal = cartTotal || 0;
     const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
     const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD
     const loyaltyDiscountAmount = loyaltyDiscount.applied ? loyaltyDiscount.discountAmount : 0;
