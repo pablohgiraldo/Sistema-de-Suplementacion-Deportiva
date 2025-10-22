@@ -6,8 +6,7 @@ import Inventory from '../models/Inventory.js';
 export async function getCart(req, res) {
     try {
         const cart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand')
-            .lean();
+            .populate('items.product', 'name price imageUrl brand');
 
         if (!cart) {
             return res.json({
@@ -19,24 +18,24 @@ export async function getCart(req, res) {
             });
         }
 
-        // Transformar los items para que tengan la estructura esperada por el frontend
         // Filtrar productos que ya no existen (null después del populate)
-        const transformedItems = cart.items
-            .filter(item => item.product !== null)
-            .map(item => ({
-                _id: item.product._id,
-                name: item.product.name,
-                price: item.product.price,
-                imageUrl: item.product.imageUrl,
-                brand: item.product.brand,
-                quantity: item.quantity
-            }));
+        const validItems = cart.items.filter(item => item.product !== null);
 
         // Si hay items con productos eliminados, limpiar el carrito
-        if (cart.items.length !== transformedItems.length) {
-            cart.items = cart.items.filter(item => item.product !== null);
+        if (cart.items.length !== validItems.length) {
+            cart.items = validItems;
             await cart.save();
         }
+
+        // Transformar los items para que tengan la estructura esperada por el frontend
+        const transformedItems = validItems.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            quantity: item.quantity
+        }));
 
         res.json({
             success: true,
@@ -120,8 +119,7 @@ export async function addToCart(req, res) {
 
         // Obtener carrito actualizado con productos poblados
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand')
-            .lean();
+            .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
         // Filtrar productos que ya no existen (null después del populate)
@@ -209,8 +207,7 @@ export async function updateCartItem(req, res) {
 
         // Obtener carrito actualizado
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand')
-            .lean();
+            .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
         // Filtrar productos que ya no existen (null después del populate)
@@ -258,8 +255,7 @@ export async function removeFromCart(req, res) {
 
         // Obtener carrito actualizado
         const updatedCart = await Cart.findOne({ user: req.user.id })
-            .populate('items.product', 'name price imageUrl brand')
-            .lean();
+            .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
         // Filtrar productos que ya no existen (null después del populate)

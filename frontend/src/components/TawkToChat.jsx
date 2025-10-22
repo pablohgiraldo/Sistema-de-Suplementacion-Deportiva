@@ -6,14 +6,35 @@
  */
 
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TAWK_CONFIG } from '../config/tawk.config';
 import api from '../services/api';
 
 export default function TawkToChat() {
     const { user, isAuthenticated } = useAuth();
+    const location = useLocation();
+
+    // Ocultar en páginas de autenticación
+    const hideOnPages = ['/login', '/register'];
+    const shouldHide = hideOnPages.includes(location.pathname);
 
     useEffect(() => {
+        // Si ya está cargado el widget, solo controlamos su visibilidad
+        if (window.Tawk_API && window.Tawk_API.hideWidget) {
+            if (shouldHide) {
+                window.Tawk_API.hideWidget();
+            } else {
+                window.Tawk_API.showWidget();
+            }
+            return;
+        }
+
+        // No cargar el widget en páginas de autenticación
+        if (shouldHide) {
+            return;
+        }
+
         // Configuración de Tawk.to desde archivo de configuración
         const { propertyId, widgetId } = TAWK_CONFIG;
 
@@ -111,7 +132,7 @@ export default function TawkToChat() {
             // Opcional: puedes remover el widget si lo deseas
             // Pero generalmente se deja activo durante toda la sesión
         };
-    }, []);
+    }, [shouldHide, location.pathname]);
 
     // Este componente no renderiza nada visible
     return null;
