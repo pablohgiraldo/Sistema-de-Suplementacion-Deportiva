@@ -402,19 +402,27 @@ export default function ProductDetail() {
         if (!product) return [];
 
         try {
-            // Buscar productos de la misma categoría
-            const response = await api.get(`/products?category=${product.categories[0]}&limit=10`);
-            
-            if (response.data.success && response.data.data.length > 0) {
-                // Filtrar el producto actual en el frontend
-                const filteredProducts = response.data.data.filter(p => p._id !== product._id);
-                return filteredProducts.slice(0, 4); // Limitar a 4 productos
+            // Intentar buscar productos de la misma categoría
+            if (product.categories && product.categories.length > 0) {
+                try {
+                    const response = await api.get(`/products?category=${product.categories[0]}&limit=10`);
+                    
+                    if (response.data.success && response.data.data.length > 0) {
+                        // Filtrar el producto actual en el frontend
+                        const filteredProducts = response.data.data.filter(p => p._id !== product._id);
+                        if (filteredProducts.length > 0) {
+                            return filteredProducts.slice(0, 4); // Limitar a 4 productos
+                        }
+                    }
+                } catch (categoryError) {
+                    console.log('No se encontraron productos de la misma categoría, intentando productos populares...');
+                }
             }
 
-            // Si no hay productos de la misma categoría, buscar productos populares
+            // Si no hay productos de la misma categoría o hay error, buscar productos populares
             const popularResponse = await api.get('/products?limit=10');
             
-            if (popularResponse.data.success) {
+            if (popularResponse.data.success && popularResponse.data.data.length > 0) {
                 // Filtrar el producto actual en el frontend
                 const filteredProducts = popularResponse.data.data.filter(p => p._id !== product._id);
                 return filteredProducts.slice(0, 4); // Limitar a 4 productos
