@@ -391,11 +391,13 @@ function HomePage({ searchQuery, selectedFilter }) {
               title="Productos Destacados"
               subtitle="Los mejores suplementos para tu rendimiento"
             />
-            <ProductGrid
-              products={products}
-              className="mt-6 sm:mt-8"
-              showTitle={false}
-            />
+            <div id="products-section">
+              <ProductGrid
+                products={products}
+                className="mt-6 sm:mt-8"
+                showTitle={false}
+              />
+            </div>
           </>
         )}
       </div>

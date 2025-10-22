@@ -84,6 +84,17 @@ export default function Header({
                   placeholder="Buscar proteínas, alimentos..."
                   value={searchQuery}
                   onChange={(e) => onSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      // Hacer scroll a la sección de productos
+                      setTimeout(() => {
+                        const productsSection = document.getElementById('products-section');
+                        if (productsSection) {
+                          productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }, 100);
+                    }
+                  }}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -378,6 +389,19 @@ export default function Header({
                 placeholder="Buscar proteínas, alimentos..."
                 value={searchQuery}
                 onChange={(e) => onSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    // Cerrar menú móvil
+                    setIsMobileMenuOpen(false);
+                    // Hacer scroll a la sección de productos
+                    setTimeout(() => {
+                      const productsSection = document.getElementById('products-section');
+                      if (productsSection) {
+                        productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 300);
+                  }
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                 aria-label="Buscar productos"
               />
