@@ -130,19 +130,19 @@ export const validateOrderBusinessRules = async (req, res, next) => {
             });
         }
 
-        // 7. Validar valor mínimo de orden (opcional)
-        const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        if (subtotal < 1000) { // $10.000 COP mínimo
-            return res.status(400).json({
-                success: false,
-                error: 'El valor mínimo de la orden es $10.000 COP',
-                code: 'MINIMUM_ORDER_VALUE',
-                details: {
-                    currentSubtotal: subtotal,
-                    minimumRequired: 1000
-                }
-            });
-        }
+        // 7. Validar valor mínimo de orden (opcional) - TEMPORALMENTE DESACTIVADO
+        // const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // if (subtotal < 1000) { // $10.000 COP mínimo
+        //     return res.status(400).json({
+        //         success: false,
+        //         error: 'El valor mínimo de la orden es $10.000 COP',
+        //         code: 'MINIMUM_ORDER_VALUE',
+        //         details: {
+        //             currentSubtotal: subtotal,
+        //             minimumRequired: 1000
+        //         }
+        //     });
+        // }
 
         // Agregar información del carrito al request para uso posterior
         req.cart = cart;
