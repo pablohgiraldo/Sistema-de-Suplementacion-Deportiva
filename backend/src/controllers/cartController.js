@@ -20,14 +20,23 @@ export async function getCart(req, res) {
         }
 
         // Transformar los items para que tengan la estructura esperada por el frontend
-        const transformedItems = cart.items.map(item => ({
-            _id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            imageUrl: item.product.imageUrl,
-            brand: item.product.brand,
-            quantity: item.quantity
-        }));
+        // Filtrar productos que ya no existen (null después del populate)
+        const transformedItems = cart.items
+            .filter(item => item.product !== null)
+            .map(item => ({
+                _id: item.product._id,
+                name: item.product.name,
+                price: item.product.price,
+                imageUrl: item.product.imageUrl,
+                brand: item.product.brand,
+                quantity: item.quantity
+            }));
+
+        // Si hay items con productos eliminados, limpiar el carrito
+        if (cart.items.length !== transformedItems.length) {
+            cart.items = cart.items.filter(item => item.product !== null);
+            await cart.save();
+        }
 
         res.json({
             success: true,
@@ -115,14 +124,17 @@ export async function addToCart(req, res) {
             .lean();
 
         // Transformar los items para que tengan la estructura esperada por el frontend
-        const transformedItems = updatedCart.items.map(item => ({
-            _id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            imageUrl: item.product.imageUrl,
-            brand: item.product.brand,
-            quantity: item.quantity
-        }));
+        // Filtrar productos que ya no existen (null después del populate)
+        const transformedItems = updatedCart.items
+            .filter(item => item.product !== null)
+            .map(item => ({
+                _id: item.product._id,
+                name: item.product.name,
+                price: item.product.price,
+                imageUrl: item.product.imageUrl,
+                brand: item.product.brand,
+                quantity: item.quantity
+            }));
 
         res.json({
             success: true,
@@ -201,14 +213,17 @@ export async function updateCartItem(req, res) {
             .lean();
 
         // Transformar los items para que tengan la estructura esperada por el frontend
-        const transformedItems = updatedCart.items.map(item => ({
-            _id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            imageUrl: item.product.imageUrl,
-            brand: item.product.brand,
-            quantity: item.quantity
-        }));
+        // Filtrar productos que ya no existen (null después del populate)
+        const transformedItems = updatedCart.items
+            .filter(item => item.product !== null)
+            .map(item => ({
+                _id: item.product._id,
+                name: item.product.name,
+                price: item.product.price,
+                imageUrl: item.product.imageUrl,
+                brand: item.product.brand,
+                quantity: item.quantity
+            }));
 
         res.json({
             success: true,
@@ -247,14 +262,17 @@ export async function removeFromCart(req, res) {
             .lean();
 
         // Transformar los items para que tengan la estructura esperada por el frontend
-        const transformedItems = updatedCart.items.map(item => ({
-            _id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            imageUrl: item.product.imageUrl,
-            brand: item.product.brand,
-            quantity: item.quantity
-        }));
+        // Filtrar productos que ya no existen (null después del populate)
+        const transformedItems = updatedCart.items
+            .filter(item => item.product !== null)
+            .map(item => ({
+                _id: item.product._id,
+                name: item.product.name,
+                price: item.product.price,
+                imageUrl: item.product.imageUrl,
+                brand: item.product.brand,
+                quantity: item.quantity
+            }));
 
         res.json({
             success: true,
@@ -324,6 +342,9 @@ export async function validateCartStock(req, res) {
 
         // Validar cada producto en el carrito
         for (const item of cart.items) {
+            // Saltar productos que ya no existen
+            if (!item.product) continue;
+            
             const inventory = await Inventory.findOne({ product: item.product._id });
 
             if (!inventory) {
@@ -412,6 +433,17 @@ export async function syncCartWithInventory(req, res) {
 
         // Verificar cada producto en el carrito
         for (const item of cart.items) {
+            // Si el producto ya no existe, agregarlo a removedItems
+            if (!item.product) {
+                removedItems.push({
+                    productId: 'unknown',
+                    productName: 'Producto eliminado',
+                    quantity: item.quantity,
+                    reason: 'Producto ya no existe en la base de datos'
+                });
+                continue;
+            }
+            
             const inventory = await Inventory.findOne({ product: item.product._id });
 
             if (!inventory || inventory.status !== 'active' || inventory.availableStock < item.quantity) {

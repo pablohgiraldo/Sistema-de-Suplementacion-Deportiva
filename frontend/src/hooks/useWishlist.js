@@ -53,7 +53,7 @@ export const useWishlist = () => {
     // Verificar si un producto está en la wishlist
     const isInWishlist = (productId) => {
         if (!data || !data.items) return false;
-        return data.items.some(item => item.product._id === productId);
+        return data.items.some(item => item.product && item.product._id === productId);
     };
 
     // Alternar producto en wishlist
@@ -65,10 +65,13 @@ export const useWishlist = () => {
         }
     };
 
+    // Filtrar productos que ya no existen (null después del populate)
+    const validItems = data?.items?.filter(item => item.product !== null) || [];
+
     return {
         wishlist: data,
-        items: data?.items || [],
-        itemCount: data?.itemCount || 0,
+        items: validItems,
+        itemCount: validItems.length,
         isLoading,
         isError,
         error,
