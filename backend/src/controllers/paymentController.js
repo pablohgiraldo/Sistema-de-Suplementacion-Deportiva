@@ -168,7 +168,7 @@ export const createRefund = async (req, res) => {
         await order.processRefund(
             order.total,
             reason,
-            req.user.id
+            req.user._id
         );
         
         // Disparar webhook de reembolso
@@ -179,7 +179,7 @@ export const createRefund = async (req, res) => {
             refundAmount: order.total,
             currency: 'COP',
             reason: reason,
-            refundedBy: req.user.id,
+            refundedBy: req.user._id,
             refundDate: new Date().toISOString()
         });
         
@@ -267,7 +267,7 @@ export const handlePayUResponse = async (req, res) => {
 export const getOrderPaymentStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const userId = req.user.id;
+        const userId = req.user._id;
         
         // Validar formato de ObjectId
         if (!mongoose.Types.ObjectId.isValid(orderId)) {

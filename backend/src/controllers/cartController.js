@@ -5,7 +5,7 @@ import Inventory from '../models/Inventory.js';
 // Obtener el carrito del usuario
 export async function getCart(req, res) {
     try {
-        const cart = await Cart.findOne({ user: req.user.id })
+        const cart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         if (!cart) {
@@ -94,9 +94,9 @@ export async function addToCart(req, res) {
         }
 
         // Buscar o crear carrito
-        let cart = await Cart.findOne({ user: req.user.id });
+        let cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
-            cart = new Cart({ user: req.user.id, items: [] });
+            cart = new Cart({ user: req.user._id, items: [] });
         }
 
         // Verificar si el producto ya está en el carrito
@@ -118,7 +118,7 @@ export async function addToCart(req, res) {
         await cart.addItem(productId, quantity, product.price);
 
         // Obtener carrito actualizado con productos poblados
-        const updatedCart = await Cart.findOne({ user: req.user.id })
+        const updatedCart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
@@ -163,7 +163,7 @@ export async function updateCartItem(req, res) {
             });
         }
 
-        const cart = await Cart.findOne({ user: req.user.id });
+        const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
             return res.status(404).json({
                 success: false,
@@ -206,7 +206,7 @@ export async function updateCartItem(req, res) {
         await cart.updateQuantity(productId, quantity);
 
         // Obtener carrito actualizado
-        const updatedCart = await Cart.findOne({ user: req.user.id })
+        const updatedCart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
@@ -243,7 +243,7 @@ export async function removeFromCart(req, res) {
     try {
         const { productId } = req.params;
 
-        const cart = await Cart.findOne({ user: req.user.id });
+        const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
             return res.status(404).json({
                 success: false,
@@ -254,7 +254,7 @@ export async function removeFromCart(req, res) {
         await cart.removeItem(productId);
 
         // Obtener carrito actualizado
-        const updatedCart = await Cart.findOne({ user: req.user.id })
+        const updatedCart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         // Transformar los items para que tengan la estructura esperada por el frontend
@@ -289,7 +289,7 @@ export async function removeFromCart(req, res) {
 // Limpiar carrito
 export async function clearCart(req, res) {
     try {
-        const cart = await Cart.findOne({ user: req.user.id });
+        const cart = await Cart.findOne({ user: req.user._id });
         if (!cart) {
             return res.status(404).json({
                 success: false,
@@ -318,7 +318,7 @@ export async function clearCart(req, res) {
 // Validar stock de todos los productos en el carrito
 export async function validateCartStock(req, res) {
     try {
-        const cart = await Cart.findOne({ user: req.user.id })
+        const cart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         if (!cart || cart.items.length === 0) {
@@ -409,7 +409,7 @@ export async function validateCartStock(req, res) {
 // Sincronizar carrito con inventario (eliminar productos no disponibles)
 export async function syncCartWithInventory(req, res) {
     try {
-        const cart = await Cart.findOne({ user: req.user.id })
+        const cart = await Cart.findOne({ user: req.user._id })
             .populate('items.product', 'name price imageUrl brand');
 
         if (!cart || cart.items.length === 0) {

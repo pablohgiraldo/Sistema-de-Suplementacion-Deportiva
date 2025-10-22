@@ -58,7 +58,7 @@ export const validateTransactionData = (req, res, next) => {
 export const validateOrderForPayment = async (req, res, next) => {
     try {
         const { orderId } = req.body;
-        const userId = req.user.id;
+        const userId = req.user._id;
         
         // Buscar la orden
         const order = await Order.findById(orderId)
