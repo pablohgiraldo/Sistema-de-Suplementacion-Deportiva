@@ -21,10 +21,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Cargar datos de autenticación desde localStorage
     const authData = getAuthData();
+    console.log('AuthContext - Datos del localStorage:', authData);
     if (authData.user && authData.accessToken) {
+      console.log('AuthContext - Usuario del localStorage:', authData.user);
+      console.log('AuthContext - Role del localStorage:', authData.user.role);
       // Verificar si el token sigue siendo válido
       validateToken(authData.accessToken, authData.user);
     } else {
+      console.log('AuthContext - No hay datos de autenticación en localStorage');
       setIsLoading(false);
     }
   }, []);
@@ -39,6 +43,8 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         // Usar la información actualizada del servidor, no la del localStorage
         console.log('Usuario actualizado del servidor:', response.data.data.usuario);
+        console.log('Role del usuario:', response.data.data.usuario.role);
+        console.log('¿Es admin?:', response.data.data.usuario.role === 'admin');
         setUser(response.data.data.usuario);
         setIsAuthenticated(true);
       } else {

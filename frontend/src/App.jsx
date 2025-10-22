@@ -14,6 +14,7 @@ import ProductCard from './components/productCard';
 import ProductGrid from './components/ProductGrid';
 import PageLoader from './components/PageLoader';
 import LazyErrorBoundary from './components/LazyErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary';
 import TawkToChat from './components/TawkToChat';
 import Testimonials from './components/Testimonials';
 import { useProducts } from './hooks/useProducts';
@@ -465,14 +466,16 @@ function HomePage({ searchQuery, selectedFilter }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <AppContent />
-          {/* Widget de chat de soporte Tawk.to */}
-          <TawkToChat />
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <AppContent />
+            {/* Widget de chat de soporte Tawk.to */}
+            <TawkToChat />
+          </Router>
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

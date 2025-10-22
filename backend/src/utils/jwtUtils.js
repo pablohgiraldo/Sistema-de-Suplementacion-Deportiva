@@ -14,7 +14,7 @@ export async function generateAuthTokens(user, deviceInfo = {}) {
         const accessToken = generateToken({
             userId: user._id,
             email: user.email,
-            role: user.rol || 'usuario'
+            role: user.rol || 'usuario' // Esto está bien para el JWT payload
         }, 'access');
 
         // Crear refresh token en la base de datos
@@ -40,7 +40,7 @@ export async function generateAuthTokens(user, deviceInfo = {}) {
                     id: user._id,
                     email: user.email,
                     nombre: user.nombre,
-                    role: user.rol || 'usuario',
+                    role: user.rol || 'usuario', // Mantener 'role' para consistencia con frontend
                     activo: user.activo,
                     lastLogin: new Date()
                 },
@@ -86,7 +86,7 @@ export async function refreshAccessToken(refreshTokenValue, deviceInfo = {}) {
         const newAccessToken = generateToken({
             userId: user._id,
             email: user.email,
-            role: user.rol || 'usuario'
+            role: user.rol || 'usuario' // Esto está bien para el JWT payload
         }, 'access');
 
         return {

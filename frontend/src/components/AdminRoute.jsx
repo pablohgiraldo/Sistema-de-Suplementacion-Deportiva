@@ -8,6 +8,7 @@ const AdminRoute = ({ children }) => {
     console.log('AdminRoute - Rol (rol):', user?.rol);
     console.log('AdminRoute - Rol (role):', user?.role);
     console.log('AdminRoute - Autenticado:', isAuthenticated);
+    console.log('AdminRoute - ¿Es admin?:', user?.role === 'admin');
 
 
     // Verificar si el usuario está autenticado y es administrador
@@ -28,7 +29,7 @@ const AdminRoute = ({ children }) => {
         );
     }
 
-    if (user?.rol !== 'admin') {
+    if (user?.role !== 'admin') { // Usar 'role' para consistencia con backend
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">

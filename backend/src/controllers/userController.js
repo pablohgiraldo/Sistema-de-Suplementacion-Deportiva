@@ -167,7 +167,7 @@ export const obtenerPerfil = async (req, res) => {
                     id: usuario._id,
                     nombre: usuario.nombre,
                     email: usuario.email,
-                    role: usuario.rol, // Convertir rol a role para el frontend
+                    role: usuario.rol, // Mantener 'role' para consistencia con frontend
                     activo: usuario.activo,
                     fechaCreacion: usuario.fechaCreacion
                 }

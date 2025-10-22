@@ -31,7 +31,7 @@ const AdminContact = () => {
             navigate('/login');
             return;
         }
-        if (user?.rol !== 'admin') {
+        if (user?.role !== 'admin') {
             navigate('/');
             return;
         }
@@ -69,7 +69,7 @@ const AdminContact = () => {
 
     // Cargar mensajes al montar el componente
     useEffect(() => {
-        if (isAuthenticated && user?.rol === 'admin') {
+        if (isAuthenticated && user?.role === 'admin') {
             loadMessages();
         }
     }, [isAuthenticated, user]);
@@ -174,7 +174,7 @@ const AdminContact = () => {
         loadMessages(1);
     };
 
-    if (!isAuthenticated || user?.rol !== 'admin') {
+    if (!isAuthenticated || user?.role !== 'admin') {
         return null;
     }
 
