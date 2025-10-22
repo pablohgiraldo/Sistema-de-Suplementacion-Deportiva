@@ -8,6 +8,7 @@ export async function getProducts(req, res) {
       price_min,
       price_max,
       category,
+      exclude,
       limit = 50,
       page = 1
     } = req.query;
@@ -36,6 +37,11 @@ export async function getProducts(req, res) {
       // Permitir múltiples categorías separadas por coma
       const categories = category.split(',').map(cat => cat.trim());
       query.categories = { $in: categories };
+    }
+
+    // Excluir producto específico
+    if (exclude) {
+      query._id = { $ne: exclude };
     }
 
     // Configurar paginación con validaciones mejoradas

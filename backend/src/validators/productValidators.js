@@ -179,6 +179,11 @@ export const validateGetProducts = [
         .withMessage('Las categorías deben tener entre 1 y 200 caracteres')
         .trim(),
 
+    query('exclude')
+        .optional()
+        .isMongoId()
+        .withMessage('El ID de exclusión debe ser un ID válido de MongoDB'),
+
     // Validación personalizada para verificar que price_min <= price_max
     query().custom((query) => {
         if (query.price_min && query.price_max && parseFloat(query.price_min) > parseFloat(query.price_max)) {

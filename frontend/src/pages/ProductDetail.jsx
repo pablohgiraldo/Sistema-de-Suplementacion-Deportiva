@@ -9,6 +9,7 @@ import {
     FormGrid
 } from '../components/forms';
 import { useInventory, inventoryUtils } from '../hooks/useInventory';
+import ProductCard from '../components/productCard';
 import api from '../services/api';
 import WishlistButton from '../components/WishlistButton';
 
@@ -49,6 +50,8 @@ export default function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedFlavor, setSelectedFlavor] = useState('');
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [relatedProductsLoading, setRelatedProductsLoading] = useState(false);
     const [selectedSize, setSelectedSize] = useState('');
     const [expandedSections, setExpandedSections] = useState({
         description: false,
@@ -393,6 +396,36 @@ export default function ProductDetail() {
             ]
         };
     }, []);
+
+    // Función para obtener productos relacionados
+    const getRelatedProducts = useCallback(async () => {
+        if (!product) return [];
+
+        try {
+            // Buscar productos de la misma categoría
+            const response = await api.get(`/products?category=${product.categories[0]}&limit=10`);
+            
+            if (response.data.success && response.data.data.length > 0) {
+                // Filtrar el producto actual en el frontend
+                const filteredProducts = response.data.data.filter(p => p._id !== product._id);
+                return filteredProducts.slice(0, 4); // Limitar a 4 productos
+            }
+
+            // Si no hay productos de la misma categoría, buscar productos populares
+            const popularResponse = await api.get('/products?limit=10');
+            
+            if (popularResponse.data.success) {
+                // Filtrar el producto actual en el frontend
+                const filteredProducts = popularResponse.data.data.filter(p => p._id !== product._id);
+                return filteredProducts.slice(0, 4); // Limitar a 4 productos
+            }
+
+            return [];
+        } catch (error) {
+            console.error('Error al obtener productos relacionados:', error);
+            return [];
+        }
+    }, [product]);
 
     // Función para obtener información de descuentos
     const getDiscountInfo = useCallback(() => {
@@ -891,6 +924,25 @@ export default function ProductDetail() {
             fetchProduct();
         }
     }, [productId]);
+
+    // useEffect para cargar productos relacionados
+    useEffect(() => {
+        const fetchRelatedProducts = async () => {
+            if (!product) return;
+            
+            try {
+                setRelatedProductsLoading(true);
+                const products = await getRelatedProducts();
+                setRelatedProducts(products);
+            } catch (error) {
+                console.error('Error al cargar productos relacionados:', error);
+            } finally {
+                setRelatedProductsLoading(false);
+            }
+        };
+
+        fetchRelatedProducts();
+    }, [product, getRelatedProducts]);
 
     const handleAddToCart = async () => {
         if (!isAuthenticated) {
@@ -2961,6 +3013,57 @@ export default function ProductDetail() {
                                     </FormGrid>
                                 </FormGroup>
                             </form>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Sección de Productos Relacionados */}
+            <div className="bg-gray-50 py-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Productos Relacionados</h2>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                            Descubre otros productos que podrían interesarte basados en tu selección actual
+                        </p>
+                    </div>
+
+                    {/* Productos relacionados */}
+                    {relatedProductsLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[...Array(4)].map((_, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+                                    {/* Imagen placeholder */}
+                                    <div className="w-full h-48 bg-gray-200 rounded-lg mb-4"></div>
+                                    
+                                    {/* Contenido placeholder */}
+                                    <div className="space-y-3">
+                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : relatedProducts.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {relatedProducts.map((relatedProduct) => (
+                                <ProductCard key={relatedProduct._id} p={relatedProduct} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <div className="text-gray-400 mb-4">
+                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay productos relacionados</h3>
+                            <p className="text-gray-500">Pronto agregaremos más productos similares</p>
                         </div>
                     )}
                 </div>

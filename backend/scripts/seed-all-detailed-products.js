@@ -2233,7 +2233,7 @@ async function seedAllDetailedProducts() {
         console.log("🗑️  Limpiando productos existentes...");
         await Product.deleteMany({});
         await Inventory.deleteMany({});
-        
+
         console.log("🗑️  Limpiando carritos y wishlists...");
         await Cart.deleteMany({});
         await Wishlist.deleteMany({});
