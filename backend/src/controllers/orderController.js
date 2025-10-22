@@ -222,12 +222,20 @@ export async function getOrders(req, res) {
         const userId = req.user._id;
         const userRole = req.user.role;
 
+        // Debug: verificar información del usuario
+        console.log('getOrders - req.user:', req.user);
+        console.log('getOrders - userId:', userId);
+        console.log('getOrders - userRole:', userRole);
+
         // Construir query
         let query = {};
 
         // Si no es admin, solo mostrar órdenes del usuario
         if (userRole !== 'admin') {
             query.user = userId;
+            console.log('getOrders - Usuario no es admin, filtrando por userId:', userId);
+        } else {
+            console.log('getOrders - Usuario es admin, mostrando todas las órdenes');
         }
         // Si es admin, query queda vacío para mostrar todas las órdenes
 
