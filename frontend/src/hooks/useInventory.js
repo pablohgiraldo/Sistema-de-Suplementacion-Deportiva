@@ -1,5 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { inventoryService } from '../services/inventoryService';
+
+// Caché global para inventario
+const inventoryCache = new Map();
+const cacheTimeout = 5 * 60 * 1000; // 5 minutos
 
 // Hook para manejar inventario de productos
 export const useInventory = (productId) => {
@@ -10,23 +14,41 @@ export const useInventory = (productId) => {
     const fetchInventory = useCallback(async () => {
         if (!productId) return;
 
+        // Verificar caché primero
+        const cached = inventoryCache.get(productId);
+        if (cached && Date.now() - cached.timestamp < cacheTimeout) {
+            setInventory(cached.data);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
             const result = await inventoryService.getProductInventory(productId);
             if (result.success) {
-                setInventory(result.data);
+                const inventoryData = result.data;
+                // Guardar en caché
+                inventoryCache.set(productId, {
+                    data: inventoryData,
+                    timestamp: Date.now()
+                });
+                setInventory(inventoryData);
                 setError(null);
             } else {
                 // Si no hay inventario registrado, crear un inventario por defecto
-                // Esto permite que los productos funcionen aunque no tengan inventario específico
                 const defaultInventory = {
                     product: productId,
                     availableStock: 100, // Stock por defecto
                     status: 'active',
                     isDefault: true // Marcar como inventario por defecto
                 };
+                // Guardar en caché
+                inventoryCache.set(productId, {
+                    data: defaultInventory,
+                    timestamp: Date.now()
+                });
                 setInventory(defaultInventory);
                 setError(null);
             }
@@ -43,8 +65,10 @@ export const useInventory = (productId) => {
     }, [fetchInventory]);
 
     const refreshInventory = useCallback(() => {
+        // Limpiar caché antes de refrescar
+        inventoryCache.delete(productId);
         fetchInventory();
-    }, [fetchInventory]);
+    }, [fetchInventory, productId]);
 
     return {
         inventory,
@@ -52,6 +76,16 @@ export const useInventory = (productId) => {
         error,
         refreshInventory
     };
+};
+
+// Función para limpiar todo el caché
+export const clearInventoryCache = () => {
+    inventoryCache.clear();
+};
+
+// Función para limpiar caché de un producto específico
+export const clearProductCache = (productId) => {
+    inventoryCache.delete(productId);
 };
 
 // Hook para múltiples productos
@@ -70,10 +104,37 @@ export const useMultipleInventory = (productIds) => {
         setError(null);
 
         try {
-            const promises = productIds.map(async (productId) => {
+            // Separar productos en caché y productos que necesitan fetch
+            const cachedProducts = {};
+            const productsToFetch = [];
+
+            productIds.forEach(productId => {
+                const cached = inventoryCache.get(productId);
+                if (cached && Date.now() - cached.timestamp < cacheTimeout) {
+                    cachedProducts[productId] = cached.data;
+                } else {
+                    productsToFetch.push(productId);
+                }
+            });
+
+            // Solo hacer fetch de productos que no están en caché
+            const promises = productsToFetch.map(async (productId) => {
                 try {
                     const result = await inventoryService.getProductInventory(productId);
-                    return { productId, inventory: result.success ? result.data : null };
+                    const inventoryData = result.success ? result.data : {
+                        product: productId,
+                        availableStock: 100,
+                        status: 'active',
+                        isDefault: true
+                    };
+
+                    // Guardar en caché
+                    inventoryCache.set(productId, {
+                        data: inventoryData,
+                        timestamp: Date.now()
+                    });
+
+                    return { productId, inventory: inventoryData };
                 } catch (err) {
                     console.error(`Error fetching inventory for product ${productId}:`, err);
                     return { productId, inventory: null };
@@ -81,7 +142,7 @@ export const useMultipleInventory = (productIds) => {
             });
 
             const results = await Promise.all(promises);
-            const inventoryMap = {};
+            const inventoryMap = { ...cachedProducts };
 
             results.forEach(({ productId, inventory }) => {
                 inventoryMap[productId] = inventory;
