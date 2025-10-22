@@ -30,8 +30,15 @@ const ProductGrid = ({ products, className = '', showTitle = true, title = "Prod
                 </div>
             )}
 
-            {/* Grid responsive optimizado para diferentes dispositivos */}
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
+            {/* Grid responsive optimizado para HU47 - Catálogo visual mejorado */}
+            <div className="grid gap-4 sm:gap-5 md:gap-6 lg:gap-7 xl:gap-8
+                          grid-cols-2 
+                          sm:grid-cols-2 
+                          md:grid-cols-3 
+                          lg:grid-cols-4 
+                          xl:grid-cols-4 
+                          2xl:grid-cols-5
+                          auto-rows-fr">
                 {products.map(product => (
                     <ProductCard key={product._id} p={product} />
                 ))}

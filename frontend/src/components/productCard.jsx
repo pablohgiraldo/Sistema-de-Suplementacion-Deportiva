@@ -194,9 +194,9 @@ const ProductCard = React.memo(({ p }) => {
   }, [p.imageUrl, p._id]);
 
   return (
-    <div className="group relative border-2 border-transparent rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-blue-500 transition-all duration-500 bg-white transform hover:-translate-y-2 hover:scale-[1.02]" onClick={handleProductClick}>
+    <div className="group relative border-2 border-transparent rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:border-blue-500 transition-all duration-500 bg-white transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:scale-[1.01] sm:hover:scale-[1.02] flex flex-col h-full cursor-pointer" onClick={handleProductClick}>
       {/* Imagen del producto */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square">
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-square flex-shrink-0">
         <img
           src={getProductImageUrl()}
           alt={p.name}
@@ -210,7 +210,7 @@ const ProductCard = React.memo(({ p }) => {
 
         {/* Badge del producto (Bestseller/New Flavor) */}
         {getProductBadge() && (
-          <div className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${getProductBadge().type === 'bestseller'
+          <div className={`absolute top-2 sm:top-3 left-2 sm:left-3 z-10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl ${getProductBadge().type === 'bestseller'
             ? 'bg-black text-white group-hover:bg-gray-800'
             : 'bg-blue-500 text-white group-hover:bg-blue-600'
             }`}>
@@ -219,7 +219,7 @@ const ProductCard = React.memo(({ p }) => {
         )}
 
         {/* Botón de wishlist */}
-        <div className="absolute top-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <WishlistButton
             productId={p._id}
             productName={p.name}
@@ -228,16 +228,16 @@ const ProductCard = React.memo(({ p }) => {
         </div>
 
         {/* Icono de acción (bolsa de compras) */}
-        <div className="absolute bottom-3 right-3 z-10 transition-all duration-300 group-hover:scale-110">
+        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleAddToCart(e);
             }}
             disabled={inventoryLoading || !canAddToCart(1)}
-            className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5 transition-transform duration-300 hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </button>
@@ -245,13 +245,13 @@ const ProductCard = React.memo(({ p }) => {
       </div>
 
       {/* Contenido del producto */}
-      <div className="p-4 space-y-3">
+      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 flex-grow flex flex-col">
         {/* Tags de sabores */}
         {(() => {
           const flavorInfo = getFlavorInfo();
           return (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium transition-all duration-300 group-hover:bg-blue-100 group-hover:text-blue-800 group-hover:scale-105">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
+              <span className="text-[10px] sm:text-xs bg-gray-200 text-gray-800 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-medium transition-all duration-300 group-hover:bg-blue-100 group-hover:text-blue-800 group-hover:scale-105">
                 {flavorInfo.primaryFlavor} + {flavorInfo.totalFlavors}
               </span>
             </div>
@@ -259,13 +259,13 @@ const ProductCard = React.memo(({ p }) => {
         })()}
 
         {/* Nombre del producto */}
-        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight transition-colors duration-300 group-hover:text-blue-600">
+        <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 line-clamp-2 leading-tight transition-colors duration-300 group-hover:text-blue-600">
           {p.name || 'Sin nombre'}
         </h3>
 
-        {/* Descripción */}
+        {/* Descripción - oculta en móvil */}
         {p.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="hidden sm:block text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
             {p.description}
           </p>
         )}
@@ -274,12 +274,12 @@ const ProductCard = React.memo(({ p }) => {
         {(() => {
           const rating = getRating();
           return (
-            <div className="flex items-center gap-2 transition-all duration-300 group-hover:scale-105">
+            <div className="flex items-center gap-1 sm:gap-2 transition-all duration-300 group-hover:scale-105">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`w-4 h-4 transition-all duration-300 ${i < Math.floor(rating.rating) ? 'text-yellow-400 group-hover:text-yellow-500' : 'text-gray-300 group-hover:text-gray-400'}`}
+                    className={`w-3 h-3 sm:w-4 sm:h-4 transition-all duration-300 ${i < Math.floor(rating.rating) ? 'text-yellow-400 group-hover:text-yellow-500' : 'text-gray-300 group-hover:text-gray-400'}`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -287,21 +287,21 @@ const ProductCard = React.memo(({ p }) => {
                   </svg>
                 ))}
               </div>
-              <span className="text-sm text-gray-600 group-hover:text-gray-700">({rating.reviewCount.toLocaleString()})</span>
+              <span className="text-[10px] sm:text-xs lg:text-sm text-gray-600 group-hover:text-gray-700">({rating.reviewCount.toLocaleString()})</span>
             </div>
           );
         })()}
 
         {/* Precio */}
-        <div className="space-y-1 transition-all duration-300 group-hover:scale-105">
+        <div className="space-y-0.5 sm:space-y-1 transition-all duration-300 group-hover:scale-105 mt-auto">
           {p.originalPrice && p.originalPrice > p.price && (
-            <p className="text-sm text-gray-400 line-through group-hover:text-gray-500">{formatPrice(p.originalPrice)}</p>
+            <p className="text-xs sm:text-sm text-gray-400 line-through group-hover:text-gray-500">{formatPrice(p.originalPrice)}</p>
           )}
-          <div className="flex items-baseline gap-2">
-            <p className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors duration-300">
+          <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <p className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-green-600 transition-colors duration-300">
               {formatPrice(p.price)}
             </p>
-            <p className="text-sm text-gray-600 group-hover:text-gray-700">
+            <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 group-hover:text-gray-700">
               ({formatPrice(getPricePerKg())}/kg)
             </p>
           </div>
