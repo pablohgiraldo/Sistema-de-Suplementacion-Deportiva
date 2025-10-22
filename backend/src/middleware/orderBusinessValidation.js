@@ -1,6 +1,7 @@
 import Cart from '../models/Cart.js';
 import Inventory from '../models/Inventory.js';
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
 
 // Middleware para validaciones de negocio específicas de órdenes
 export const validateOrderBusinessRules = async (req, res, next) => {
