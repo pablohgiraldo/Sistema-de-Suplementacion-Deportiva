@@ -228,3 +228,31 @@ export const inventoryRateLimit = rateLimit({
         });
     }
 });
+
+// Rate limiting para contacto (moderadamente restrictivo para prevenir spam)
+export const contactRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: process.env.NODE_ENV === 'production' ? 5 : 100, // 5 mensajes por 15 minutos para prevenir spam
+    message: {
+        success: false,
+        error: 'Demasiados mensajes de contacto. Intenta de nuevo en 15 minutos.',
+        code: 'CONTACT_RATE_LIMIT_EXCEEDED'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    handler: (req, res) => {
+        logRateLimit('warn', 'Rate limit exceeded for contact endpoint', {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.path,
+            method: req.method
+        });
+
+        res.status(429).json({
+            success: false,
+            error: 'Demasiados mensajes de contacto. Intenta de nuevo en 15 minutos.',
+            code: 'CONTACT_RATE_LIMIT_EXCEEDED'
+        });
+    }
+});

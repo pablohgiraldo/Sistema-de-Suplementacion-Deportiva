@@ -1,5 +1,6 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { formTypography } from '../../config/typography.js';
+import FormValidation, { validationRules } from './FormValidation.jsx';
 
 const FormInput = forwardRef(({
     label,
@@ -17,14 +18,26 @@ const FormInput = forwardRef(({
     autoComplete,
     maxLength,
     rows,
+    validationRules = [],
+    showValidation = true,
+    onValidationChange,
     ...props
 }, ref) => {
     const inputId = id || name;
     const hasError = !!error;
 
+    // Integrar validación en tiempo real
+    const validation = FormValidation({
+        value,
+        rules: validationRules,
+        onValidationChange,
+        showValidation: showValidation && !disabled
+    });
+
     const baseInputClasses = `
         w-full form-input
-        ${hasError ? 'form-input-error' : ''}
+        ${hasError || (!validation.isValid && validation.isDirty) ? 'form-input-error' : ''}
+        ${validation.validationClasses}
         ${className}
     `.trim();
 
@@ -37,7 +50,11 @@ const FormInput = forwardRef(({
         type: rows ? undefined : type,
         value,
         onChange,
-        onBlur,
+        onBlur: (e) => {
+            validation.handleBlur();
+            onBlur?.(e);
+        },
+        onFocus: validation.handleFocus,
         placeholder,
         required,
         disabled,
@@ -59,12 +76,33 @@ const FormInput = forwardRef(({
                 </label>
             )}
 
-            <InputComponent {...inputProps} />
+            <div className="relative">
+                <InputComponent {...inputProps} />
 
+                {/* Icono de validación */}
+                {validation.validationIcon && (
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        {validation.validationIcon}
+                    </span>
+                )}
+            </div>
+
+            {/* Mensaje de error */}
             {hasError && (
                 <p className={`${formTypography.error} mt-1`}>
                     {error}
                 </p>
+            )}
+
+            {/* Mensajes de validación en tiempo real */}
+            {showValidation && validation.isDirty && validation.errors.length > 0 && (
+                <div className="mt-1 space-y-1">
+                    {validation.errors.map((error, index) => (
+                        <p key={index} className={`${formTypography.error} text-sm`}>
+                            {error.message}
+                        </p>
+                    ))}
+                </div>
             )}
         </div>
     );

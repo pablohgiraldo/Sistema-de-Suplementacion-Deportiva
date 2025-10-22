@@ -23,7 +23,7 @@ export default function Footer() {
               <Link to="/support" className="block hover:text-blue-400 transition-colors">
                 Servicio y Preguntas Frecuentes
               </Link>
-              <Link to="/support" className="block hover:text-blue-400 transition-colors">
+              <Link to="/contact" className="block hover:text-blue-400 transition-colors">
                 Contacto
               </Link>
               <Link to="/orders" className="block hover:text-blue-400 transition-colors">

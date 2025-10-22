@@ -9,7 +9,8 @@ import {
     PasswordInput,
     FormNotification,
     FormStatus,
-    FormProgress
+    FormProgress,
+    validationRules
 } from '../components/forms';
 import RateLimitHandler from '../components/RateLimitHandler';
 import { useFormNotifications } from '../hooks/useFormNotifications';
@@ -200,6 +201,12 @@ export default function Register() {
                                 onChange={handleChange}
                                 autoComplete="name"
                                 required
+                                validationRules={[
+                                    validationRules.required('El nombre es obligatorio'),
+                                    validationRules.minLength(2, 'El nombre debe tener al menos 2 caracteres'),
+                                    validationRules.maxLength(50, 'El nombre no puede tener más de 50 caracteres')
+                                ]}
+                                showValidation={true}
                             />
 
                             <FormInput
@@ -212,6 +219,11 @@ export default function Register() {
                                 onChange={handleChange}
                                 autoComplete="email"
                                 required
+                                validationRules={[
+                                    validationRules.required('El email es obligatorio'),
+                                    validationRules.email('Ingresa un email válido')
+                                ]}
+                                showValidation={true}
                             />
 
                             <PasswordInput
@@ -223,6 +235,11 @@ export default function Register() {
                                 onChange={handleChange}
                                 autoComplete="new-password"
                                 required
+                                validationRules={[
+                                    validationRules.required('La contraseña es obligatoria'),
+                                    validationRules.password('La contraseña debe tener al menos 6 caracteres')
+                                ]}
+                                showValidation={true}
                             />
 
                             <PasswordInput
@@ -234,6 +251,11 @@ export default function Register() {
                                 onChange={handleChange}
                                 autoComplete="new-password"
                                 required
+                                validationRules={[
+                                    validationRules.required('Debes confirmar la contraseña'),
+                                    validationRules.confirmPassword(formData.contraseña, 'Las contraseñas no coinciden')
+                                ]}
+                                showValidation={true}
                             />
 
                             <FormButton

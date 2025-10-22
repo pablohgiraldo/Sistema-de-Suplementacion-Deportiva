@@ -110,22 +110,22 @@ export default function Header({
               {/* Perfil de usuario */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-                  <Link 
-                    to="/profile" 
-                    title="Mi Perfil" 
+                  <Link
+                    to="/profile"
+                    title="Mi Perfil"
                     className="flex items-center gap-2 hover:text-blue-600 transition-colors group"
                   >
-                    <svg 
-                      className="w-6 h-6 text-gray-700 group-hover:text-blue-600 transition-colors" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-6 h-6 text-gray-700 group-hover:text-blue-600 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                     <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-600">
@@ -195,17 +195,17 @@ export default function Header({
                     className="p-2 rounded-lg hover:bg-red-50 transition-all duration-200 group relative"
                     title="Mi Lista de Deseos"
                   >
-                    <svg 
-                      className="w-6 h-6 text-gray-700 group-hover:text-red-500 transition-colors" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-6 h-6 text-gray-700 group-hover:text-red-500 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                       />
                     </svg>
                   </Link>
@@ -216,17 +216,17 @@ export default function Header({
                     className="p-2 rounded-lg hover:bg-blue-50 transition-all duration-200 group relative"
                     title="Mi Carrito"
                   >
-                    <svg 
-                      className="w-6 h-6 text-gray-700 group-hover:text-blue-600 transition-colors" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-6 h-6 text-gray-700 group-hover:text-blue-600 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                       />
                     </svg>
                     {cartItemsCount > 0 && (
@@ -287,41 +287,40 @@ export default function Header({
               {/* Categorías principales con dropdowns según PRD */}
               <div className="flex items-center gap-4 lg:gap-6 flex-wrap">
                 {/* Categorías con submenús usando CategoryDropdown */}
-                <CategoryDropdown 
-                  category="Proteínas en Polvo" 
+                <CategoryDropdown
+                  category="Proteínas en Polvo"
                   onFilterClick={onFilterClick}
                   onCategoryClick={onCategoryClick}
                 />
-                <CategoryDropdown 
-                  category="Barras y Snacks" 
+                <CategoryDropdown
+                  category="Barras y Snacks"
                   onFilterClick={onFilterClick}
                   onCategoryClick={onCategoryClick}
                 />
-                <CategoryDropdown 
-                  category="Vitaminas y Más" 
+                <CategoryDropdown
+                  category="Vitaminas y Más"
                   onFilterClick={onFilterClick}
                   onCategoryClick={onCategoryClick}
                 />
-                <CategoryDropdown 
-                  category="Rendimiento" 
+                <CategoryDropdown
+                  category="Rendimiento"
                   onFilterClick={onFilterClick}
                   onCategoryClick={onCategoryClick}
                 />
-                <CategoryDropdown 
-                  category="Accesorios" 
+                <CategoryDropdown
+                  category="Accesorios"
                   onFilterClick={onFilterClick}
                   onCategoryClick={onCategoryClick}
                 />
-                
+
                 {/* Categorías simples sin submenú */}
                 {["Promociones", "Outlet", "Objetivos", "Nosotros", "Soporte"].map((category) => (
                   <button
                     key={category}
-                    className={`text-sm font-medium transition-colors duration-200 py-2 whitespace-nowrap ${
-                      selectedCategory === category 
-                        ? 'text-blue-600 font-semibold' 
-                        : 'text-gray-700 hover:text-blue-600'
-                    }`}
+                    className={`text-sm font-medium transition-colors duration-200 py-2 whitespace-nowrap ${selectedCategory === category
+                      ? 'text-blue-600 font-semibold'
+                      : 'text-gray-700 hover:text-blue-600'
+                      }`}
                     onClick={() => {
                       // Mapear categorías del menú a filtros
                       const filterMap = {

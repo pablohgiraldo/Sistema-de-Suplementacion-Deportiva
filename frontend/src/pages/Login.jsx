@@ -8,7 +8,8 @@ import {
     FormError,
     PasswordInput,
     FormNotification,
-    FormStatus
+    FormStatus,
+    validationRules
 } from '../components/forms';
 import RateLimitHandler from '../components/RateLimitHandler';
 import { useFormNotifications } from '../hooks/useFormNotifications';
@@ -130,6 +131,11 @@ export default function Login() {
                                 onChange={handleChange}
                                 autoComplete="email"
                                 required
+                                validationRules={[
+                                    validationRules.required('El email es obligatorio'),
+                                    validationRules.email('Ingresa un email válido')
+                                ]}
+                                showValidation={true}
                             />
 
                             <PasswordInput
@@ -141,6 +147,11 @@ export default function Login() {
                                 onChange={handleChange}
                                 autoComplete="current-password"
                                 required
+                                validationRules={[
+                                    validationRules.required('La contraseña es obligatoria'),
+                                    validationRules.minLength(6, 'La contraseña debe tener al menos 6 caracteres')
+                                ]}
+                                showValidation={true}
                             />
 
                             <FormButton

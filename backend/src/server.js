@@ -35,6 +35,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import automationRoutes from "./routes/automationRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import simpleAlertScheduler from "./services/simpleAlertScheduler.js";
 import orderAutomationScheduler from "./services/orderAutomationScheduler.js";
 
@@ -116,6 +117,16 @@ const cartLimiter = rateLimit({
   message: {
     success: false,
     message: 'Demasiadas solicitudes de carrito, intenta de nuevo en 15 minutos.'
+  }
+});
+
+// Rate limiting para contacto
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 5 : 100, // 5 mensajes por 15 minutos para prevenir spam
+  message: {
+    success: false,
+    message: 'Demasiados mensajes de contacto, intenta de nuevo en 15 minutos.'
   }
 });
 
@@ -213,6 +224,9 @@ app.use("/api/automations", automationRoutes);
 
 // Dashboard omnicanal routes (solo administradores)
 app.use("/api/dashboard", dashboardRoutes);
+
+// Rutas de contacto - público para crear mensajes, protegido para administradores
+app.use("/api/contact", contactLimiter, contactRoutes);
 
 // Rutas de salud y monitoreo - sin rate limiting para pruebas de estrés
 app.use("/api/health", healthRoutes);

@@ -5,6 +5,16 @@ import { useAuth } from '../contexts/AuthContext';
 import useNotifications from '../hooks/useNotifications';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LoyaltyRedeemCard from '../components/LoyaltyRedeemCard';
+import { 
+    FormInput, 
+    FormButton, 
+    FormGroup, 
+    FormError, 
+    FormSelect,
+    AddressInput,
+    CardInput,
+    FormCheckbox
+} from '../components/forms';
 
 const Checkout = () => {
     const navigate = useNavigate();

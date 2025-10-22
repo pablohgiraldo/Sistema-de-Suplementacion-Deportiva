@@ -40,6 +40,7 @@ const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminCustomerRecommendations = lazy(() => import('./pages/AdminCustomerRecommendations'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Contact = lazy(() => import('./pages/Contact'));
 
 function AppContent() {
   const location = useLocation();
@@ -299,6 +300,7 @@ function AuthenticatedApp({
               }
             />
             <Route path="/support" element={<Support />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
@@ -335,7 +337,7 @@ function HomePage({ searchQuery, selectedFilter }) {
     const filterLower = selectedFilter?.toLowerCase() || '';
     const productCategories = product.categories || [];
     const categoryMatch = productCategories.some(cat => cat.toLowerCase().includes(filterLower));
-    
+
     const matchesFilter = selectedFilter === "Todos los Productos" ||
       categoryMatch ||
       (selectedFilter === "Más Vendidos" && product.stock > 50) ||
