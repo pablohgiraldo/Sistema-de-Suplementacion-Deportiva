@@ -3,6 +3,12 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 const AdminRoute = ({ children }) => {
     const { user, isAuthenticated } = useAuth();
 
+    // Debug: verificar qué información está recibiendo
+    console.log('AdminRoute - Usuario:', user);
+    console.log('AdminRoute - Rol (rol):', user?.rol);
+    console.log('AdminRoute - Rol (role):', user?.role);
+    console.log('AdminRoute - Autenticado:', isAuthenticated);
+
 
     // Verificar si el usuario está autenticado y es administrador
     if (!isAuthenticated) {
@@ -22,7 +28,7 @@ const AdminRoute = ({ children }) => {
         );
     }
 
-    if (user?.role !== 'admin') {
+    if (user?.rol !== 'admin') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">

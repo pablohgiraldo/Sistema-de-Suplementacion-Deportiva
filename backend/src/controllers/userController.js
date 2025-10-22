@@ -163,7 +163,14 @@ export const obtenerPerfil = async (req, res) => {
             success: true,
             message: 'Perfil obtenido exitosamente',
             data: {
-                usuario
+                usuario: {
+                    id: usuario._id,
+                    nombre: usuario.nombre,
+                    email: usuario.email,
+                    role: usuario.rol, // Convertir rol a role para el frontend
+                    activo: usuario.activo,
+                    fechaCreacion: usuario.fechaCreacion
+                }
             }
         });
 
@@ -549,7 +556,7 @@ export const cambiarRolUsuario = async (req, res) => {
         }
 
         // Actualizar rol
-        usuario.role = role;
+        usuario.rol = rol;
         await usuario.save();
 
         res.json({

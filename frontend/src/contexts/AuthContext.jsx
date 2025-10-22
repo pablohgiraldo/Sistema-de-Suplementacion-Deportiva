@@ -37,7 +37,9 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.data.success) {
-        setUser(userData);
+        // Usar la información actualizada del servidor, no la del localStorage
+        console.log('Usuario actualizado del servidor:', response.data.data.usuario);
+        setUser(response.data.data.usuario);
         setIsAuthenticated(true);
       } else {
         // Token inválido, limpiar datos
