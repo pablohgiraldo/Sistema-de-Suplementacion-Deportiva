@@ -43,6 +43,7 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Contact = lazy(() => import('./pages/Contact'));
 const AdminContact = lazy(() => import('./pages/AdminContact'));
+const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 
 function AppContent() {
   const location = useLocation();
@@ -298,6 +299,14 @@ function AuthenticatedApp({
               element={
                 <ProtectedRoute>
                   <Orders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:orderId"
+              element={
+                <ProtectedRoute>
+                  <OrderDetail />
                 </ProtectedRoute>
               }
             />

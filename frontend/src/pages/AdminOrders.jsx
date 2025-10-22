@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useOrders } from '../hooks/useOrders';
 import { useCancelOrder } from '../hooks/useOrders';
 import PageLoader from '../components/PageLoader';
@@ -402,12 +403,13 @@ const AdminOrders = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-2">
-                                                    <button
+                                                    <Link
+                                                        to={`/orders/${order._id}`}
                                                         className="text-blue-600 hover:text-blue-900 flex items-center"
                                                         title="Ver detalles"
                                                     >
                                                         <EyeIcon className="h-4 w-4" />
-                                                    </button>
+                                                    </Link>
                                                     {order.status === 'pending' && (
                                                         <button
                                                             onClick={() => {
@@ -453,8 +455,8 @@ const AdminOrders = () => {
                                             key={i + 1}
                                             onClick={() => handlePageChange(i + 1)}
                                             className={`px-3 py-1 border border-gray-300 rounded-md text-sm font-medium ${pagination.page === i + 1
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {i + 1}
