@@ -293,7 +293,7 @@ export async function getOrderById(req, res) {
     try {
         const { id } = req.params;
         const userId = req.user._id;
-        const userRole = req.user.role;
+        const userRole = req.user.rol; // Cambiar de .role a .rol para coincidir con la BD
 
         const order = await Order.findById(id)
             .populate('user', 'nombre email')
@@ -815,7 +815,7 @@ export async function getOrderStatus(req, res) {
     try {
         const { id } = req.params;
         const userId = req.user._id;
-        const userRole = req.user.role;
+        const userRole = req.user.rol; // Cambiar de .role a .rol para coincidir con la BD
 
         // Buscar la orden
         const order = await Order.findById(id)
