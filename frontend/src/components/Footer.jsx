@@ -141,8 +141,12 @@ export default function Footer() {
 
             <div>
               <h3 className="font-bold mb-3">Envíos</h3>
-              <div className="bg-green-600 rounded p-3 flex items-center justify-center">
-                <span className="text-white font-bold text-lg tracking-wide">SERVIENTREGA</span>
+              <div className="rounded overflow-hidden">
+                <img
+                  src="https://servientrega.us/wp-content/uploads/2023/06/header-paginas-servientrega.jpg"
+                  alt="Servientrega"
+                  className="w-full h-auto object-cover"
+                />
               </div>
             </div>
           </div>
