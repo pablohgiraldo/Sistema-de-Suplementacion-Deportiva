@@ -54,8 +54,16 @@ const AdminOrders = () => {
     const { data: ordersData, isLoading, error, refetch } = useOrders(filters);
     const cancelOrderMutation = useCancelOrder();
 
+    // Debug: verificar qué está devolviendo el hook
+    console.log('AdminOrders - ordersData:', ordersData);
+    console.log('AdminOrders - isLoading:', isLoading);
+    console.log('AdminOrders - error:', error);
+
     const orders = ordersData?.data || [];
     const pagination = ordersData?.pagination || {};
+
+    console.log('AdminOrders - orders:', orders);
+    console.log('AdminOrders - pagination:', pagination);
 
     const handleStatusFilter = (status) => {
         setFilters(prev => ({
