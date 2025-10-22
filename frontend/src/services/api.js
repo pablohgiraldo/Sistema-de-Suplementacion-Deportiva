@@ -3,7 +3,7 @@ import { getAccessToken, getRefreshToken, saveAccessToken, clearAuthData } from 
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
-  timeout: 15000, // 15 segundos de timeout para operaciones complejas
+  timeout: 30000 // Aumentar timeout a 30 segundos, // 15 segundos de timeout para operaciones complejas
 });
 
 // Interceptor para requests - agregar token automáticamente
