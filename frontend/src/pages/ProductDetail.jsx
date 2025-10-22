@@ -182,167 +182,181 @@ export default function ProductDetail() {
 
     // Función para obtener valores nutricionales
     const getNutritionalValues = useCallback(() => {
-        if (!productId) return null;
-        const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        if (!product?.nutritionalInfo) {
+            return {
+                protein: 0,
+                carbohydrates: 0,
+                fats: 0,
+                fibres: 0,
+                calories: 0,
+                servingSize: 'N/A'
+            };
+        }
 
-        // Valores nutricionales por porción (30g) - Proteína Gold Whey Standard
+        // Valores nutricionales reales desde la base de datos
         return {
-            protein: Math.min(24 + (seed % 2), 26), // 24-26g por porción
-            carbohydrates: Math.min(3 + (seed % 1), 4), // 3-4g (principalmente de edulcorantes)
-            fats: Math.min(1 + (seed % 1), 2), // 1-2g
-            fibres: 0, // Sin fibra
-            calories: Math.min(100 + (seed % 20), 120), // 100-120 kcal
-            servingSize: 30 // gramos por porción
+            protein: product.nutritionalInfo.protein || 0,
+            carbohydrates: product.nutritionalInfo.carbs || 0,
+            fats: product.nutritionalInfo.fats || 0,
+            fibres: product.nutritionalInfo.fiber || 0,
+            calories: product.nutritionalInfo.calories || 0,
+            sugar: product.nutritionalInfo.sugar || 0,
+            sodium: product.nutritionalInfo.sodium || 0,
+            servingSize: product.nutritionalInfo.servingSize || 'N/A',
+            servingsPerContainer: product.nutritionalInfo.servingsPerContainer || 0,
+            vitamins: product.nutritionalInfo.vitamins || [],
+            minerals: product.nutritionalInfo.minerals || []
         };
-    }, [productId]);
+    }, [product]);
 
-    // Función para obtener perfil de aminoácidos
+    // Función para obtener perfil de aminoácidos desde la base de datos
     const getAminoAcidProfile = useCallback(() => {
-        if (!productId) return null;
-        const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        if (!product?.aminoAcids || product.aminoAcids.length === 0) return null;
 
-        // Perfil de aminoácidos esenciales - valores en mg por porción (30g) - Proteína Gold Whey Standard
-        return {
-            leucine: Math.round((2000 + (seed % 300)) / 100) * 100, // 2000-2300mg
-            isoleucine: Math.round((1200 + (seed % 200)) / 100) * 100, // 1200-1400mg
-            valine: Math.round((1300 + (seed % 200)) / 100) * 100, // 1300-1500mg
-            lysine: Math.round((1800 + (seed % 300)) / 100) * 100, // 1800-2100mg
-            phenylalanine: Math.round((1000 + (seed % 200)) / 100) * 100, // 1000-1200mg
-            threonine: Math.round((900 + (seed % 200)) / 100) * 100, // 900-1100mg
-            methionine: Math.round((500 + (seed % 100)) / 100) * 100, // 500-600mg
-            tryptophan: Math.round((300 + (seed % 100)) / 100) * 100, // 300-400mg
-            histidine: Math.round((400 + (seed % 100)) / 100) * 100, // 400-500mg
-            servingSize: 30 // gramos por porción
-        };
-    }, [productId]);
+        // Convertir array de aminoácidos a objeto para el componente
+        const profile = {};
+        product.aminoAcids.forEach(amino => {
+            const key = amino.name.toLowerCase().replace(/\s+/g, '');
+            profile[key] = amino.perServing;
+        });
 
-    // Función para obtener lista de ingredientes
+        profile.servingSize = product.nutritionalInfo?.servingSize || '30g';
+        return profile;
+    }, [product]);
+
+    // Función para obtener lista de ingredientes desde la base de datos
     const getIngredients = useCallback(() => {
-        // Lista de ingredientes específica para Proteína Gold Whey Standard
-        const baseIngredients = [
-            "Proteína de suero de leche concentrada (Whey Protein Concentrate)",
-            "Proteína de suero de leche aislada (Whey Protein Isolate)",
-            "Cacao en polvo desgrasado",
-            "Lecitina de girasol (emulgente)",
-            "Sal",
-            "Aroma natural de chocolate",
-            "Edulcorante: Sucralosa",
-            "Estabilizador: Goma guar",
-            "Colorante: Caramelo (E150c)"
+        if (!product?.ingredients) {
+            return {
+                ingredients: [],
+                origin: "Información no disponible",
+                contentSize: product?.productDetails?.size || "N/A",
+                allergens: "Información no disponible"
+            };
+        }
+
+        // Combinar ingredientes principales y aditivos
+        const allIngredients = [
+            ...(product.ingredients.main || []),
+            ...(product.ingredients.additives || [])
         ];
 
         return {
-            ingredients: baseIngredients,
-            origin: "Ingredientes de origen: UE/No UE",
-            contentSize: "1kg / 33 porciones de 30g",
-            allergens: "Contiene leche. Puede contener trazas de soja y huevo"
+            ingredients: allIngredients,
+            origin: "Ingredientes de calidad verificada",
+            contentSize: `${product.productDetails?.size || 'N/A'} / ${product.productDetails?.servings || 'N/A'} porciones`,
+            allergens: (product.ingredients.allergens || []).join('. ')
         };
-    }, []);
+    }, [product]);
 
-    // Función para obtener información de uso recomendado
+    // Función para obtener información de uso recomendado desde la base de datos
     const getUsageInstructions = useCallback(() => {
-        // Información específica para Proteína Gold Whey Standard
+        if (!product?.usage) {
+            return {
+                productType: product?.name || "Producto",
+                servingSize: product?.nutritionalInfo?.servingSize || "N/A",
+                preparation: {
+                    steps: ["Consultar etiqueta del producto"],
+                    tips: []
+                },
+                timing: {
+                    preWorkout: "Consultar indicaciones",
+                    postWorkout: "Consultar indicaciones",
+                    daily: "Según necesidades"
+                },
+                dosage: {
+                    beginners: "Consultar etiqueta",
+                    intermediate: "Consultar etiqueta",
+                    advanced: "Consultar etiqueta"
+                },
+                storage: "Conservar en lugar fresco y seco",
+                warnings: ["Consultar etiqueta del producto"]
+            };
+        }
+
         return {
-            productType: "Proteína Gold Whey Standard",
-            servingSize: "30g",
+            productType: product.name,
+            servingSize: product.nutritionalInfo?.servingSize || "N/A",
             preparation: {
-                steps: [
-                    "Mezcla 30g (1 scoop) de proteína con 200-250ml de agua, leche o tu bebida favorita",
-                    "Agita vigorosamente durante 10-15 segundos en un shaker",
-                    "Consume inmediatamente después de la preparación"
-                ],
-                tips: [
-                    "Para mejor textura, usa agua fría o leche fría",
-                    "Puedes añadir frutas o avena para crear batidos más completos",
-                    "No uses agua hirviendo para preservar las propiedades de la proteína"
-                ]
+                steps: [product.usage.instructions || "Ver etiqueta del producto"],
+                tips: []
             },
             timing: {
-                preWorkout: "30-45 minutos antes del entrenamiento",
-                postWorkout: "Inmediatamente después del entrenamiento (ventana anabólica)",
-                daily: "Entre comidas como snack proteico"
+                recommended: product.usage.timing || "Según indicaciones del producto"
             },
             dosage: {
-                beginners: "1 porción (30g) al día",
-                intermediate: "1-2 porciones (30-60g) al día",
-                advanced: "2-3 porciones (60-90g) al día"
+                recommended: product.usage.dosage || "Según indicaciones"
             },
             storage: "Conservar en lugar fresco y seco, alejado de la luz directa",
-            warnings: [
-                "No exceder la dosis diaria recomendada",
-                "Mantener fuera del alcance de los niños",
-                "Consulte a un profesional de la salud si está embarazada, amamantando o tiene alguna condición médica"
-            ]
+            warnings: product.usage.warnings || []
         };
-    }, []);
+    }, [product]);
 
-    // Función para obtener información de alérgenos
+    // Función para obtener información de alérgenos desde la base de datos
     const getAllergenInfo = useCallback(() => {
-        // Información específica para Proteína Gold Whey Standard
+        if (!product?.ingredients?.allergens || product.ingredients.allergens.length === 0) {
+            return {
+                mainAllergens: [],
+                possibleTraces: [],
+                certifications: product?.productDetails ? [
+                    product.productDetails.isVegan && "Apto para veganos",
+                    product.productDetails.isGlutenFree && "Sin gluten",
+                    product.productDetails.isLactoseFree && "Sin lactosa",
+                    product.productDetails.isSugarFree && "Sin azúcar"
+                ].filter(Boolean) : []
+            };
+        }
+
+        // Extraer alérgenos de la información del producto
+        const allergensList = product.ingredients.allergens;
+
         return {
-            mainAllergens: [
-                {
-                    name: "Leche",
-                    icon: "🥛",
-                    description: "Contiene proteínas de suero de leche",
-                    severity: "Alérgeno principal"
-                }
-            ],
-            possibleTraces: [
-                {
-                    name: "Soja",
-                    icon: "🌱",
-                    description: "Puede contener trazas debido al procesamiento",
-                    severity: "Trazas"
-                },
-                {
-                    name: "Huevo",
-                    icon: "🥚",
-                    description: "Puede contener trazas debido al procesamiento",
-                    severity: "Trazas"
-                }
-            ],
-            allergenStatement: "Este producto contiene leche. Puede contener trazas de soja y huevo debido al procesamiento compartido.",
-            crossContamination: "Fabricado en instalaciones que procesan productos que contienen leche, soja y huevo.",
-            certification: "Certificado sin gluten",
+            mainAllergens: allergensList.map(allergen => ({
+                name: allergen,
+                icon: "⚠️",
+                description: allergen,
+                severity: allergen.toLowerCase().includes('contiene') ? "Alérgeno principal" : "Trazas"
+            })),
+            possibleTraces: [],
+            allergenStatement: allergensList.join('. '),
+            crossContamination: "Verificar etiqueta del producto para información de fabricación.",
+            certification: product.productDetails?.isGlutenFree ? "Sin gluten certificado" : "",
+            certifications: [
+                product.productDetails?.isVegan && "Apto para veganos",
+                product.productDetails?.isGlutenFree && "Sin gluten",
+                product.productDetails?.isLactoseFree && "Sin lactosa",
+                product.productDetails?.isSugarFree && "Sin azúcar"
+            ].filter(Boolean),
             recommendations: [
-                "Si eres alérgico a la leche, NO consumas este producto",
-                "Si tienes alergias severas, consulta con tu médico antes del consumo",
                 "Lee siempre la etiqueta antes de consumir",
+                "Si tienes alergias severas, consulta con tu médico",
                 "En caso de reacción alérgica, suspende el consumo inmediatamente"
             ]
         };
-    }, []);
+    }, [product]);
 
     // Función para obtener información de almacenamiento
     const getStorageInfo = useCallback(() => {
-        // Información específica para Proteína Gold Whey Standard
         return {
             idealConditions: {
-                temperature: "15°C - 25°C (59°F - 77°F)",
-                humidity: "Máximo 70% humedad relativa",
-                light: "Proteger de la luz directa",
+                temperature: "15°C - 25°C (temperatura ambiente)",
+                humidity: "Lugar seco, máximo 70% humedad relativa",
+                light: "Proteger de la luz solar directa",
                 ventilation: "Lugar bien ventilado"
             },
             recommendedLocations: [
                 {
-                    location: "Despensa",
+                    location: "Despensa o Alacena",
                     icon: null,
                     description: "Lugar fresco y seco, alejado de fuentes de calor",
-                    tips: ["Mantener en su envase original", "Evitar cambios bruscos de temperatura"]
-                },
-                {
-                    location: "Refrigerador",
-                    icon: null,
-                    description: "Opcional para mayor duración, pero no necesario",
-                    tips: ["Asegurar que esté bien sellado", "Dejar que alcance temperatura ambiente antes de usar"]
+                    tips: ["Mantener bien cerrado después de cada uso", "Evitar cambios bruscos de temperatura"]
                 }
             ],
             avoidConditions: [
                 {
                     condition: "Calor extremo",
                     icon: null,
-                    reason: "Puede degradar las proteínas y afectar la textura"
+                    reason: "Puede degradar el producto y afectar su calidad"
                 },
                 {
                     condition: "Humedad alta",
@@ -642,60 +656,90 @@ export default function ProductDetail() {
 
     // Función para obtener Key Facts del producto
     const getKeyFacts = useCallback(() => {
-        if (!productId) return [];
+        if (!product) return [];
 
-        // Key Facts específicos para Proteína Gold Whey Standard
-        const keyFacts = [
-            {
-                id: 'protein-power',
-                title: 'Protein Power',
-                subtitle: 'Potencia Proteica',
-                description: '30g de proteína de suero de leche de alta calidad por porción',
-                icon: (
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                    </svg>
-                ),
+        const keyFacts = [];
+        const nutritionalInfo = product.nutritionalInfo;
+        const productDetails = product.productDetails;
+
+        // Icono de proteína
+        const proteinIcon = (
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+            </svg>
+        );
+
+        // Icono de check/calidad
+        const checkIcon = (
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+        );
+
+        // Icono de estrella
+        const starIcon = (
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+        );
+
+        // 1. Proteína (si el producto la tiene)
+        if (nutritionalInfo?.protein && nutritionalInfo.protein > 0) {
+            keyFacts.push({
+                id: 'protein-content',
+                title: 'High Protein',
+                subtitle: 'Alto en Proteína',
+                description: `${nutritionalInfo.protein}g de proteína por porción (${nutritionalInfo.servingSize})`,
+                icon: proteinIcon,
                 color: 'purple',
                 gradient: 'from-purple-500 to-purple-600',
                 bgColor: 'purple-50',
                 textColor: 'purple-900'
-            },
-            {
-                id: 'no-added-sugar',
-                title: 'No Added Sugar',
-                subtitle: 'Sin Azúcar Añadido',
-                description: 'Endulzado naturalmente con sucralosa, sin azúcares añadidos',
-                icon: (
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                ),
+            });
+        }
+
+        // 2. Bajo en azúcar / Sin azúcar
+        if (productDetails?.isSugarFree || (nutritionalInfo?.sugar !== undefined && nutritionalInfo.sugar <= 2)) {
+            keyFacts.push({
+                id: 'low-sugar',
+                title: 'Low Sugar',
+                subtitle: productDetails?.isSugarFree ? 'Sin Azúcar' : 'Bajo en Azúcar',
+                description: productDetails?.isSugarFree ? 'Sin azúcares añadidos' : `Solo ${nutritionalInfo.sugar}g de azúcar por porción`,
+                icon: checkIcon,
                 color: 'green',
                 gradient: 'from-green-500 to-green-600',
                 bgColor: 'green-50',
                 textColor: 'green-900'
-            },
-            {
-                id: 'maximum-key',
-                title: 'Maximum Key',
-                subtitle: 'Máxima Calidad',
-                description: 'Procesado con tecnología avanzada para máxima pureza y absorción',
-                icon: (
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                ),
+            });
+        }
+
+        // 3. Certificaciones especiales (Vegano, Sin Gluten, Sin Lactosa)
+        const certifications = [];
+        if (productDetails?.isVegan) certifications.push('Vegano');
+        if (productDetails?.isGlutenFree) certifications.push('Sin Gluten');
+        if (productDetails?.isLactoseFree) certifications.push('Sin Lactosa');
+
+        if (certifications.length > 0) {
+            keyFacts.push({
+                id: 'certifications',
+                title: 'Certified Quality',
+                subtitle: 'Calidad Certificada',
+                description: certifications.join(' • '),
+                icon: starIcon,
                 color: 'yellow',
                 gradient: 'from-yellow-500 to-yellow-600',
                 bgColor: 'yellow-50',
                 textColor: 'yellow-900'
-            },
-            {
-                id: 'many-flavors',
-                title: 'Many Flavors',
-                subtitle: 'Muchos Sabores',
-                description: 'Disponible en múltiples sabores deliciosos para todos los gustos',
+            });
+        }
+
+        // 4. Sabor / Presentación
+        if (productDetails?.flavor) {
+            keyFacts.push({
+                id: 'flavor',
+                title: 'Great Taste',
+                subtitle: 'Sabor Delicioso',
+                description: `Sabor ${productDetails.flavor}`,
                 icon: (
                     <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
@@ -705,11 +749,45 @@ export default function ProductDetail() {
                 gradient: 'from-blue-500 to-blue-600',
                 bgColor: 'blue-50',
                 textColor: 'blue-900'
-            }
-        ];
+            });
+        }
+
+        // Si no hay suficientes key facts, agregar uno genérico sobre porciones
+        if (keyFacts.length < 3 && nutritionalInfo?.servingsPerContainer) {
+            keyFacts.push({
+                id: 'servings',
+                title: 'Great Value',
+                subtitle: 'Excelente Valor',
+                description: `${nutritionalInfo.servingsPerContainer} porciones por envase`,
+                icon: checkIcon,
+                color: 'indigo',
+                gradient: 'from-indigo-500 to-indigo-600',
+                bgColor: 'indigo-50',
+                textColor: 'indigo-900'
+            });
+        }
+
+        // Si aún faltan, agregar sobre calorías
+        if (keyFacts.length < 4 && nutritionalInfo?.calories) {
+            keyFacts.push({
+                id: 'calories',
+                title: 'Calorie Info',
+                subtitle: 'Información Calórica',
+                description: `${nutritionalInfo.calories} calorías por porción`,
+                icon: (
+                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                    </svg>
+                ),
+                color: 'orange',
+                gradient: 'from-orange-500 to-orange-600',
+                bgColor: 'orange-50',
+                textColor: 'orange-900'
+            });
+        }
 
         return keyFacts;
-    }, [productId]);
+    }, [product]);
 
 
     // Función para alternar selección de producto
@@ -916,26 +994,56 @@ export default function ProductDetail() {
         <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto min-h-screen">
                 <div className="flex flex-col lg:flex-row gap-12">
-                    {/* Galería de imágenes - Lado izquierdo */}
-                    <div className="lg:w-1/2">
-                        <div className="space-y-6">
-                            {/* Imagen principal */}
-                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 aspect-[4/3]">
+                    {/* Galería de imágenes mejorada - HU48 - Lado izquierdo */}
+                    <div className="lg:w-1/2 lg:sticky lg:top-8 lg:self-start">
+                        <div className="space-y-4 sm:space-y-6">
+                            {/* Imagen principal con navegación */}
+                            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 aspect-square shadow-xl group">
                                 <img
                                     src={galleryImages[selectedImageIndex] || product?.imageUrl}
                                     alt={product?.name}
-                                    className="w-full h-full object-cover transition-all duration-500"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                     loading="eager"
                                 />
 
-                                {/* Botones de la imagen */}
-                                <div className="absolute bottom-4 right-4 flex gap-3">
+                                {/* Navegación de imágenes - Flechas */}
+                                {galleryImages.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={() => setSelectedImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))}
+                                            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                                            aria-label="Imagen anterior"
+                                        >
+                                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedImageIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1))}
+                                            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                                            aria-label="Imagen siguiente"
+                                        >
+                                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Indicador de imagen actual */}
+                                <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-black/70 backdrop-blur-sm text-white text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-full">
+                                    {selectedImageIndex + 1} / {galleryImages.length}
+                                </div>
+
+                                {/* Botones de acción */}
+                                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 flex gap-2 sm:gap-3">
                                     {/* Botón de corte transversal */}
                                     <button
                                         onClick={toggleCrossSection}
-                                        className="w-12 h-12 bg-gray-800 bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800/90 hover:bg-gray-800 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                                        title="Ver corte transversal"
                                     >
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                                         </svg>
                                     </button>
@@ -943,39 +1051,47 @@ export default function ProductDetail() {
                                     {/* Botón de información nutricional */}
                                     <button
                                         onClick={toggleNutritionalOverlay}
-                                        className="w-12 h-12 bg-gray-800 bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800/90 hover:bg-gray-800 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                                        title="Información nutricional"
                                     >
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                         </svg>
                                     </button>
 
                                     {/* Botón de zoom */}
-                                    <button className="w-12 h-12 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110">
-                                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button
+                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+                                        title="Ampliar imagen"
+                                    >
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                                         </svg>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Thumbnails */}
-                            <div className="mt-8">
-                                <div className="grid grid-cols-4 gap-4">
+                            {/* Thumbnails mejorados */}
+                            <div className="px-1">
+                                <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                                     {galleryImages.map((image, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setSelectedImageIndex(index)}
-                                            className={`relative overflow-hidden rounded-xl aspect-square transition-all duration-300 ${selectedImageIndex === index
-                                                ? 'ring-2 ring-blue-500 scale-105'
-                                                : 'hover:scale-105 hover:ring-2 hover:ring-gray-300'
+                                            className={`relative overflow-hidden rounded-lg sm:rounded-xl aspect-square transition-all duration-300 transform ${selectedImageIndex === index
+                                                ? 'ring-2 sm:ring-4 ring-blue-500 scale-95 sm:scale-100 shadow-lg'
+                                                : 'hover:scale-95 sm:hover:scale-105 hover:ring-2 hover:ring-gray-300 opacity-70 hover:opacity-100'
                                                 }`}
                                         >
                                             <img
                                                 src={image}
-                                                alt={`${product?.name} ${index + 1}`}
+                                                alt={`${product?.name} vista ${index + 1}`}
                                                 className="w-full h-full object-cover"
+                                                loading="lazy"
                                             />
+                                            {selectedImageIndex === index && (
+                                                <div className="absolute inset-0 bg-blue-500/10 pointer-events-none" />
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -1091,7 +1207,7 @@ export default function ProductDetail() {
                                                 getDiscountInfo()?.discountType?.color === 'purple' ? 'bg-gray-500' :
                                                     'bg-gray-500'
                                             }`}>
-                                            {getDiscountInfo()?.discountType?.icon} {getDiscountInfo()?.discountType?.name}
+                                            {getDiscountInfo()?.discountType?.name}
                                         </span>
                                         <span className="text-xs text-gray-500">
                                             Válido hasta {getDiscountInfo()?.validUntil?.toLocaleDateString()}
@@ -1236,7 +1352,7 @@ export default function ProductDetail() {
 
                         {/* Secciones expandibles */}
                         <div className="space-y-4 mt-12">
-                            {/* Descripción detallada */}
+                            {/* Descripción */}
                             <div className="overflow-hidden">
                                 <button
                                     onClick={() => toggleSection('description')}

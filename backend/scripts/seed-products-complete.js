@@ -3,17 +3,17 @@ import mongoose from "mongoose";
 import Product from "../src/models/Product.js";
 import Inventory from "../src/models/Inventory.js";
 
-// Catálogo completo de productos SuperGains (Precios en USD)
+// Catálogo completo de productos SuperGains - HU48 (Precios en USD)
 const products = [
-  // PROTEÍNAS
+  // ==================== PROTEÍNAS EN POLVO (10+ productos únicos) ====================
   {
-    name: "Designer Whey Protein 2lb - Chocolate",
-    brand: "SuperGains",
-    price: 39.99,
+    name: "Whey Protein Isolate Gold Standard - Doble Chocolate Rico",
+    brand: "SuperGains Elite",
+    price: 54.99,
     stock: 45,
     imageUrl: "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&h=400&fit=crop",
-    description: "Proteína de suero de alta calidad con 24g de proteína por porción. Sabor chocolate cremoso. Ideal para recuperación muscular post-entrenamiento.",
-    categories: ["proteina", "whey", "chocolate"]
+    description: "Proteína aislada de suero premium con 25g de proteína pura por porción y menos de 1g de carbohidratos. Procesada mediante microfiltración de flujo cruzado para preservar los péptidos naturales de proteína. Perfecta para fase de definición muscular. Contiene enzimas digestivas (lactasa, proteasa) para máxima absorción. Sabor intenso a chocolate doble con cacao belga premium. Mezcla instantánea sin grumos. Ideal para post-entrenamiento o como snack proteico entre comidas. Sin gluten, sin azúcares añadidos.",
+    categories: ["proteina", "whey", "isolate", "chocolate", "sin-azucar", "sin-gluten"]
   },
   {
     name: "Designer Whey Protein 2lb - Vainilla",

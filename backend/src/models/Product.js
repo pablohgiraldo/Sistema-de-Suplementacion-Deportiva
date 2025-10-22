@@ -34,7 +34,7 @@ const productSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      maxlength: [500, "La descripción no puede tener más de 500 caracteres"]
+      maxlength: [1000, "La descripción no puede tener más de 1000 caracteres"]
     },
     categories: {
       type: [String],
@@ -44,6 +44,58 @@ const productSchema = new mongoose.Schema(
         },
         message: "No puede tener más de 10 categorías"
       }
+    },
+    // Información nutricional detallada
+    nutritionalInfo: {
+      servingSize: String,
+      servingsPerContainer: Number,
+      calories: Number,
+      protein: Number,
+      carbs: Number,
+      fats: Number,
+      fiber: Number,
+      sugar: Number,
+      sodium: Number,
+      vitamins: [{
+        name: String,
+        amount: String,
+        dailyValue: Number
+      }],
+      minerals: [{
+        name: String,
+        amount: String,
+        dailyValue: Number
+      }]
+    },
+    // Ingredientes
+    ingredients: {
+      main: [String],
+      additives: [String],
+      allergens: [String]
+    },
+    // Perfil de aminoácidos (para proteínas)
+    aminoAcids: [{
+      name: String,
+      amount: String,
+      perServing: Number
+    }],
+    // Instrucciones de uso
+    usage: {
+      instructions: String,
+      dosage: String,
+      timing: String,
+      warnings: [String]
+    },
+    // Información adicional
+    productDetails: {
+      flavor: String,
+      size: String,
+      weight: String,
+      servings: Number,
+      isVegan: Boolean,
+      isGlutenFree: Boolean,
+      isLactoseFree: Boolean,
+      isSugarFree: Boolean
     }
   },
   {

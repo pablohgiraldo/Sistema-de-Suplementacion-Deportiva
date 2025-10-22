@@ -227,6 +227,34 @@ const ProductCard = React.memo(({ p }) => {
           />
         </div>
 
+        {/* Botón de carrito */}
+        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 z-10 transition-all duration-300 group-hover:scale-110">
+          <button
+            onClick={handleAddToCart}
+            disabled={inventoryLoading || !canAddToCart(1)}
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+              inventoryLoading || !canAddToCart(1)
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 hover:shadow-xl'
+            }`}
+            title={inventoryLoading ? 'Cargando...' : !canAddToCart(1) ? 'Sin stock' : 'Agregar al carrito'}
+          >
+            <svg 
+              className="w-4 h-4 sm:w-5 sm:h-5 text-white" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l1.5 6m0 0h8.5M17 19a2 2 0 100 4 2 2 0 000-4zM9 19a2 2 0 100 4 2 2 0 000-4z" 
+              />
+            </svg>
+          </button>
+        </div>
+
         {/* Icono de acción (bolsa de compras) */}
         <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 z-10 transition-all duration-300 group-hover:scale-110">
           <button
@@ -265,7 +293,13 @@ const ProductCard = React.memo(({ p }) => {
 
         {/* Descripción - oculta en móvil */}
         {p.description && (
-          <p className="hidden sm:block text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="hidden sm:block text-xs sm:text-sm text-gray-600 leading-relaxed overflow-hidden"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              maxHeight: '2.8rem'
+            }}>
             {p.description}
           </p>
         )}
