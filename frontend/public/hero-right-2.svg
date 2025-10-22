@@ -1,0 +1,17 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="gr2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A0A0A"/>
+      <stop offset="100%" stop-color="#171717"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#gr2)"/>
+  <rect x="0" y="0" width="1200" height="900" fill="#000" opacity="0.25"/>
+  <g opacity="0.9">
+    <rect x="240" y="230" width="320" height="440" rx="30" fill="#ffffff"/>
+    <rect x="700" y="280" width="220" height="360" rx="22" fill="#10B981"/>
+  </g>
+  <text x="50%" y="78%" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="700" text-anchor="middle">ISOCLEAR WHEY ISOLATE</text>
+  <text x="50%" y="86%" fill="#E5E7EB" font-family="Inter, Arial, sans-serif" font-size="22" text-anchor="middle">Bebida proteica refrescante y transparente</text>
+</svg>
+

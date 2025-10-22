@@ -15,6 +15,7 @@ import ProductGrid from './components/ProductGrid';
 import PageLoader from './components/PageLoader';
 import LazyErrorBoundary from './components/LazyErrorBoundary';
 import TawkToChat from './components/TawkToChat';
+import Testimonials from './components/Testimonials';
 import { useProducts } from './hooks/useProducts';
 import { preloadCriticalComponents, preloadAdminComponents, preloadProductComponents } from './utils/preloadComponents';
 
@@ -176,7 +177,7 @@ function AuthenticatedApp({
       <LazyErrorBoundary>
         <Suspense fallback={<PageLoader message="Cargando página..." />}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<HomePage searchQuery={searchQuery} selectedFilter={selectedFilter} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
@@ -304,12 +305,35 @@ function AuthenticatedApp({
   );
 }
 
-function HomePage() {
+function HomePage({ searchQuery, selectedFilter }) {
   // Usar React Query para obtener productos
   const { data: productsData, isLoading: loading, error } = useProducts();
 
   // Extraer productos de la respuesta
-  const products = productsData?.data || [];
+  const allProducts = productsData?.data || [];
+
+  // Filtrar productos por búsqueda y categoría
+  const products = allProducts.filter(product => {
+    // Filtro de búsqueda
+    const matchesSearch = !searchQuery ||
+      product.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.descripcion?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.categoria?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Filtro de categoría
+    const matchesFilter = selectedFilter === "Todos los Productos" ||
+      product.categoria?.includes(selectedFilter) ||
+      (selectedFilter === "Más Vendidos" && product.stock > 50) ||
+      (selectedFilter === "Proteínas" && product.categoria?.includes("Proteína")) ||
+      (selectedFilter === "Vitaminas y Más" && product.categoria?.includes("Vitamina")) ||
+      (selectedFilter === "Rendimiento" && product.categoria?.includes("Rendimiento")) ||
+      (selectedFilter === "Alimentos y Snacks" && product.categoria?.includes("Snack")) ||
+      (selectedFilter === "Barras de Proteína" && product.categoria?.includes("Barra")) ||
+      (selectedFilter === "Outlet" && product.precio < 50000) ||
+      (selectedFilter === "Vegano" && product.nombre?.toLowerCase().includes("vegan"));
+
+    return matchesSearch && matchesFilter;
+  });
 
   if (loading) {
     return (
@@ -362,24 +386,24 @@ function HomePage() {
       </div>
 
       {/* Sección Nosotros */}
-      <section id="nosotros" className="bg-gray-100 py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Sobre SuperGains</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+      <section id="nosotros" className="bg-gray-100 py-12 sm:py-16 lg:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Sobre SuperGains</h2>
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Somos la tienda líder en suplementos deportivos y nutrición. Nuestra misión es ayudarte a alcanzar tus objetivos de fitness con productos de la más alta calidad.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
               <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Calidad Premium</h3>
-              <p className="text-gray-600">Productos de las mejores marcas del mercado</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">Calidad Premium</h3>
+              <p className="text-sm sm:text-base text-gray-600">Productos de las mejores marcas del mercado</p>
             </div>
 
             <div className="text-center">
@@ -388,8 +412,8 @@ function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Envío Rápido</h3>
-              <p className="text-gray-600">Entrega en 24-48 horas en toda Colombia</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">Envío Rápido</h3>
+              <p className="text-sm sm:text-base text-gray-600">Entrega en 24-48 horas en toda Colombia</p>
             </div>
 
             <div className="text-center">
@@ -398,12 +422,15 @@ function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Resultados Garantizados</h3>
-              <p className="text-gray-600">Productos que realmente funcionan</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">Resultados Garantizados</h3>
+              <p className="text-sm sm:text-base text-gray-600">Productos que realmente funcionan</p>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Sección Testimonios */}
+      <Testimonials />
     </main>
   );
 }
