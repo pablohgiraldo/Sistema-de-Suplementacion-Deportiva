@@ -454,7 +454,7 @@ GET /api/products/search?q=whey protein&sortBy=price&limit=20
 GET /api/products/:id
 ```
 
-## 🎉 Sprint 4 Completado (Diciembre 2024)
+## Sprint 4 Completado (Octubre 2025)
 
 El **Sprint 4 ha sido completado exitosamente**, consolidando SuperGains como una plataforma completa con checkout funcional, CRM, pagos seguros y documentación consolidada.
 
@@ -512,7 +512,7 @@ El **Sprint 4 ha sido completado exitosamente**, consolidando SuperGains como un
 - **[CHECKOUT_IMPLEMENTATION_SUCCESS.md](./docs/CHECKOUT_IMPLEMENTATION_SUCCESS.md)** - Implementación exitosa del checkout
 - **[COMPLIANCE_SUMMARY.md](./docs/compliance/COMPLIANCE_SUMMARY.md)** - Resumen de cumplimiento GDPR e INVIMA
 
-### 📈 Métricas del Proyecto (Diciembre 2024)
+### 📈 Métricas del Proyecto (Noviembre 2025)
 
 | Métrica | Valor |
 |---------|-------|
@@ -568,7 +568,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md
 
 - **Escuela**: Escuela de Ingenierías
 - **Programa**: Proyecto Aplicado en TIC 1
-- **Período**: Agosto - Diciembre 2024
+- **Período**: Agosto - Noviembre 2025
 
 ---
 
@@ -593,4 +593,4 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md
 **Desarrollado con dedicación por el equipo de SuperGains Digital Transformation**
 
 *Universidad Pontificia Bolivariana - Medellín, Colombia*  
-*Agosto - Diciembre 2024*
+*Agosto - Noviembre 2025*
