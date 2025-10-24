@@ -49,8 +49,8 @@ const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 
 function AppContent() {
   const location = useLocation();
-  const { isLoading: authLoading } = useAuth();
   const { isMaintenanceMode } = useMaintenanceMode();
+  const { isLoading: authLoading } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("Todos los Productos");
   const [selectedFilter, setSelectedFilter] = useState("Todos los Productos");
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +74,7 @@ function AppContent() {
     }
   }, [location.pathname]);
 
-  // Mostrar página de mantenimiento si está activada
+  // Mostrar página de mantenimiento si está activada (ANTES de cualquier otra verificación)
   if (isMaintenanceMode) {
     return <MaintenancePage />;
   }
