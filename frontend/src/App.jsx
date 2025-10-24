@@ -476,7 +476,8 @@ function HomePage({ searchQuery, selectedFilter }) {
 }
 
 function MaintenanceWrapper({ children }) {
-  const { isMaintenanceMode } = useMaintenanceMode();
+  // Verificación directa del localStorage antes de cualquier hook
+  const isMaintenanceMode = localStorage.getItem('maintenanceMode') === 'true';
   
   if (isMaintenanceMode) {
     return <MaintenancePage />;
