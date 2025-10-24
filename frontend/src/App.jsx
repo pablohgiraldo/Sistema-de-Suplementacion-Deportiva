@@ -17,7 +17,9 @@ import LazyErrorBoundary from './components/LazyErrorBoundary';
 import ErrorBoundary from './components/ErrorBoundary';
 import TawkToChat from './components/TawkToChat';
 import Testimonials from './components/Testimonials';
+import MaintenancePage from './components/MaintenancePage';
 import { useProducts } from './hooks/useProducts';
+import { useMaintenanceMode } from './hooks/useMaintenanceMode';
 import { preloadCriticalComponents, preloadAdminComponents, preloadProductComponents } from './utils/preloadComponents';
 
 // Lazy loading de páginas
@@ -48,6 +50,7 @@ const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 function AppContent() {
   const location = useLocation();
   const { isLoading: authLoading } = useAuth();
+  const { isMaintenanceMode } = useMaintenanceMode();
   const [selectedCategory, setSelectedCategory] = useState("Todos los Productos");
   const [selectedFilter, setSelectedFilter] = useState("Todos los Productos");
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,6 +73,11 @@ function AppContent() {
       preloadAdminComponents();
     }
   }, [location.pathname]);
+
+  // Mostrar página de mantenimiento si está activada
+  if (isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
 
   // Mostrar loading mientras se valida la autenticación
   if (authLoading) {

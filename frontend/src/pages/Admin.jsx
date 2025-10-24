@@ -11,6 +11,7 @@ import {
 } from '../components/LazyComponents';
 import OmnichannelDashboard from '../components/OmnichannelDashboard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import MaintenanceToggle from '../components/MaintenanceToggle';
 import useNotifications from '../hooks/useNotifications';
 import { useInventoryAlertsSummary } from '../hooks/useInventoryAlerts';
 import AlertNotification from '../components/AlertNotification';
@@ -188,6 +189,11 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Control de Mantenimiento */}
+                <div className="mb-8">
+                    <MaintenanceToggle />
+                </div>
 
                 {/* Dashboard Omnicanal */}
                 <div className="mb-8">
