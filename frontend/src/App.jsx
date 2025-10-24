@@ -49,7 +49,6 @@ const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 
 function AppContent() {
   const location = useLocation();
-  const { isMaintenanceMode } = useMaintenanceMode();
   const { isLoading: authLoading } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("Todos los Productos");
   const [selectedFilter, setSelectedFilter] = useState("Todos los Productos");
@@ -73,11 +72,6 @@ function AppContent() {
       preloadAdminComponents();
     }
   }, [location.pathname]);
-
-  // Mostrar página de mantenimiento si está activada (ANTES de cualquier otra verificación)
-  if (isMaintenanceMode) {
-    return <MaintenancePage />;
-  }
 
   // Mostrar loading mientras se valida la autenticación
   if (authLoading) {
@@ -481,18 +475,30 @@ function HomePage({ searchQuery, selectedFilter }) {
   );
 }
 
+function MaintenanceWrapper({ children }) {
+  const { isMaintenanceMode } = useMaintenanceMode();
+  
+  if (isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
+  
+  return children;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
-            <AppContent />
-            {/* Widget de chat de soporte Tawk.to */}
-            <TawkToChat />
-          </Router>
-        </CartProvider>
-      </AuthProvider>
+      <MaintenanceWrapper>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <AppContent />
+              {/* Widget de chat de soporte Tawk.to */}
+              <TawkToChat />
+            </Router>
+          </CartProvider>
+        </AuthProvider>
+      </MaintenanceWrapper>
     </ErrorBoundary>
   );
 }
