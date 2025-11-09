@@ -22,6 +22,7 @@ export default function Contact() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [successInfo, setSuccessInfo] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -42,7 +43,11 @@ export default function Contact() {
 
             if (response.data.success) {
                 showSuccess('¡Mensaje enviado exitosamente! Te contactaremos pronto.');
-                
+                setSuccessInfo({
+                    nombre: formData.nombre,
+                    email: formData.email,
+                    asunto: formData.asunto
+                });
                 // Limpiar formulario
                 setFormData({
                     nombre: '',
@@ -52,6 +57,7 @@ export default function Contact() {
                     mensaje: '',
                     tipoConsulta: 'general'
                 });
+                setError('');
             } else {
                 throw new Error(response.data.error || 'Error al enviar el mensaje');
             }
@@ -60,12 +66,14 @@ export default function Contact() {
             
             // Manejar error específico de rate limiting
             if (err.response?.status === 429) {
-                setError('Has enviado demasiados mensajes. Espera 15 minutos antes de enviar otro mensaje.');
-                showError('Límite de mensajes alcanzado');
+                const rateLimitMessage = err.response?.data?.error || 'Has enviado muchos mensajes en poco tiempo. Intenta de nuevo en unos minutos.';
+                setError(rateLimitMessage);
+                showError(rateLimitMessage);
             } else {
                 setError(err.message || 'Error al enviar el mensaje. Inténtalo de nuevo.');
                 showError('Error al enviar el mensaje');
             }
+            setSuccessInfo(null);
         } finally {
             setLoading(false);
         }
@@ -283,6 +291,24 @@ export default function Contact() {
                         {error && (
                             <div className="mt-4">
                                 <FormError error={error} />
+                            </div>
+                        )}
+                        {successInfo && (
+                            <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4">
+                                <div className="flex items-start">
+                                    <svg className="h-6 w-6 text-green-500 mt-1 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-green-800">
+                                            ¡Gracias, {successInfo.nombre || 'tu'} mensaje fue recibido!
+                                        </h3>
+                                        <p className="text-sm text-green-700 mt-1">
+                                            Confirmamos que recibimos tu consulta sobre <span className="font-medium">{successInfo.asunto}</span>.
+                                            Te responderemos al correo <span className="font-medium">{successInfo.email}</span> lo antes posible.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

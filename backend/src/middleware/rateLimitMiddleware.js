@@ -231,11 +231,11 @@ export const inventoryRateLimit = rateLimit({
 
 // Rate limiting para contacto (moderadamente restrictivo para prevenir spam)
 export const contactRateLimit = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.NODE_ENV === 'production' ? 5 : 100, // 5 mensajes por 15 minutos para prevenir spam
+    windowMs: 10 * 60 * 1000, // 10 minutos
+    max: process.env.NODE_ENV === 'production' ? 12 : 300, // más permisivo para usuarios legítimos
     message: {
         success: false,
-        error: 'Demasiados mensajes de contacto. Intenta de nuevo en 15 minutos.',
+        error: 'Estás enviando mensajes muy rápido. Intenta de nuevo en unos minutos.',
         code: 'CONTACT_RATE_LIMIT_EXCEEDED'
     },
     standardHeaders: true,
@@ -251,7 +251,7 @@ export const contactRateLimit = rateLimit({
 
         res.status(429).json({
             success: false,
-            error: 'Demasiados mensajes de contacto. Intenta de nuevo en 15 minutos.',
+            error: 'Has enviado muchos mensajes en poco tiempo. Intenta de nuevo en 10 minutos.',
             code: 'CONTACT_RATE_LIMIT_EXCEEDED'
         });
     }
