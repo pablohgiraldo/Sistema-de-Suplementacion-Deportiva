@@ -37,7 +37,7 @@ export const createPayment = async (req, res) => {
         const transaction = await paymentService.createPayUTransaction({
             orderId: order._id.toString(),
             amount: order.total,
-            currency: 'COP',
+            currency: 'USD',
             description: `Orden ${order.orderNumber} - ${order.items.length} productos`,
             buyer: buyer,
             shippingAddress: shippingAddress,
@@ -51,7 +51,7 @@ export const createPayment = async (req, res) => {
             payuReferenceCode: transaction.referenceCode,
             paymentMethod: paymentMethod,
             amount: order.total,
-            currency: 'COP'
+            currency: 'USD'
         });
         
         res.status(200).json({
@@ -83,6 +83,7 @@ export const generatePaymentForm = async (req, res) => {
     try {
         // La orden ya fue validada por el middleware validateOrderForPayment
         const order = req.order;
+        const { paymentMethod } = req.body;
         
         // Generar formulario
         const buyer = {
@@ -94,9 +95,10 @@ export const generatePaymentForm = async (req, res) => {
         const formData = paymentService.generatePayUForm({
             orderId: order._id.toString(),
             amount: order.total,
-            currency: 'COP',
+            currency: 'USD',
             description: `Orden ${order.orderNumber}`,
-            buyer: buyer
+            buyer: buyer,
+            paymentMethod
         });
         
         res.status(200).json({
@@ -249,7 +251,7 @@ export const handlePayUResponse = async (req, res) => {
             `lapState=${lapTransactionState || ''}&` +
             `message=${encodeURIComponent(message || '')}&` +
             `value=${TX_VALUE || ''}&` +
-            `currency=${currency || 'COP'}`;
+            `currency=${currency || 'USD'}`;
         
         res.redirect(redirectUrl);
         

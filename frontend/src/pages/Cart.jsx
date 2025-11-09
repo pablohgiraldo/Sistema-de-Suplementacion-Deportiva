@@ -24,6 +24,21 @@ const getProductImage = (productId) => {
   return sampleProductImages[index];
 };
 
+const CURRENCY_LOCALE = 'en-US';
+const CURRENCY_CODE = 'USD';
+const SHIPPING_THRESHOLD = 100;
+const SHIPPING_COST = 2.5;
+const TAX_RATE = 0.19;
+
+const formatPrice = (amount) => {
+    return new Intl.NumberFormat(CURRENCY_LOCALE, {
+        style: 'currency',
+        currency: CURRENCY_CODE,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
+};
+
 export default function Cart() {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
@@ -42,11 +57,13 @@ export default function Cart() {
     const [removingItem, setRemovingItem] = useState(null);
 
     // Cálculos de costos
-    const subtotal = getCartTotal();
-    const shippingCost = cartItems.length > 0 ? (subtotal > 100 ? 0 : 2.5) : 0; // Envío gratis sobre $100 USD
-    const taxRate = 0.19; // IVA 19% sobre USD
-    const taxes = Math.round((subtotal * taxRate) * 100) / 100;
-    const total = Math.round((subtotal + shippingCost + taxes) * 100) / 100;
+    const subtotal = parseFloat(getCartTotal().toFixed(2));
+    const rawShipping = cartItems.length > 0
+        ? (subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
+        : 0;
+    const shippingCost = parseFloat(rawShipping.toFixed(2));
+    const taxes = parseFloat((subtotal * TAX_RATE).toFixed(2));
+    const total = Math.max(parseFloat((subtotal + shippingCost + taxes).toFixed(2)), 0);
 
     const handleUpdateQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
@@ -309,7 +326,7 @@ export default function Cart() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600">Subtotal ({getCartItemCount()} productos)</span>
                                         <span className="font-semibold text-gray-900">
-                                            ${subtotal.toFixed(2)} USD
+                                            {formatPrice(subtotal)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
@@ -320,7 +337,7 @@ export default function Cart() {
                                             </svg>
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            ${shippingCost.toFixed(2)} USD
+                                            {formatPrice(shippingCost)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
@@ -331,7 +348,7 @@ export default function Cart() {
                                             </svg>
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            ${taxes.toFixed(2)} USD
+                                            {formatPrice(taxes)}
                                         </span>
                                     </div>
 
@@ -339,7 +356,7 @@ export default function Cart() {
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-bold text-gray-900">Total</span>
                                             <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                                ${total.toFixed(2)} USD
+                                                {formatPrice(total)}
                                             </span>
                                         </div>
                                     </div>

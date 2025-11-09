@@ -5,11 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import useNotifications from '../hooks/useNotifications';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LoyaltyRedeemCard from '../components/LoyaltyRedeemCard';
-import { 
-    FormInput, 
-    FormButton, 
-    FormGroup, 
-    FormError, 
+import {
+    FormInput,
+    FormButton,
+    FormGroup,
+    FormError,
     FormSelect,
     AddressInput,
     CardInput,
@@ -18,7 +18,7 @@ import {
 
 const Checkout = () => {
     const navigate = useNavigate();
-    const { cartItems, cartTotal, clearCart } = useCart();
+    const { cartItems, getCartTotal, clearCart } = useCart();
     const { user } = useAuth();
     const { showSuccess, showError } = useNotifications();
 
@@ -47,7 +47,7 @@ const Checkout = () => {
             phone: ''
         },
         // Método de pago
-        paymentMethod: 'credit_card',
+        paymentMethod: 'CREDIT_CARD',
         cardNumber: '',
         expiryDate: '',
         cvv: '',
@@ -62,7 +62,7 @@ const Checkout = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [citySuggestions, setCitySuggestions] = useState([]);
     const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-    
+
     // Estado para descuento de loyalty
     const [loyaltyDiscount, setLoyaltyDiscount] = useState({
         pointsRedeemed: 0,
@@ -77,7 +77,7 @@ const Checkout = () => {
             discountAmount: discountData.discountAmount,
             applied: true
         });
-        showSuccess(`¡${discountData.pointsRedeemed} puntos canjeados! Descuento de $${discountData.discountAmount.toFixed(2)} USD aplicado.`);
+        showSuccess(`¡${discountData.pointsRedeemed} puntos canjeados! Descuento de ${formatPrice(discountData.discountAmount)} aplicado.`);
     };
 
     // Ciudades por departamento
@@ -392,7 +392,7 @@ const Checkout = () => {
         }
 
         // Validar método de pago
-        if (formData.paymentMethod === 'credit_card') {
+        if (formData.paymentMethod === 'CREDIT_CARD') {
             if (!formData.cardNumber) {
                 newErrors.cardNumber = 'Número de tarjeta requerido';
             } else if (!/^\d{4}\s?\d{4}\s?\d{4}\s?\d{4}$/.test(formData.cardNumber.replace(/\s/g, ''))) {
@@ -436,6 +436,11 @@ const Checkout = () => {
 
         if (!validateForm()) {
             showError('Por favor corrige los errores en el formulario');
+            return;
+        }
+
+        if (formData.paymentMethod === 'PAYPAL') {
+            showError('PayPal estará disponible próximamente. Por favor elige otro método de pago.');
             return;
         }
 
@@ -502,7 +507,8 @@ const Checkout = () => {
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 },
                 body: JSON.stringify({
-                    orderId: orderResult.data._id
+                    orderId: orderResult.data._id,
+                    paymentMethod: formData.paymentMethod
                 })
             });
 
@@ -546,21 +552,30 @@ const Checkout = () => {
     };
 
     // Formatear precio
+    const CURRENCY_LOCALE = 'en-US';
+    const CURRENCY_CODE = 'USD';
+    const SHIPPING_THRESHOLD = 100;
+    const SHIPPING_COST = 2.5;
+
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat(CURRENCY_LOCALE, {
             style: 'currency',
-            currency: 'USD',
+            currency: CURRENCY_CODE,
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(price);
     };
 
     // Calcular totales
-    const subtotal = cartTotal || 0;
-    const shipping = subtotal > 100 ? 0 : 2.5; // Envío gratis sobre $100 USD, costo $2.50 USD
-    const tax = Math.round((subtotal * 0.19) * 100) / 100; // IVA 19% sobre USD
-    const loyaltyDiscountAmount = loyaltyDiscount.applied ? loyaltyDiscount.discountAmount : 0;
-    const total = Math.round((subtotal + shipping + tax - loyaltyDiscountAmount) * 100) / 100;
+    const subtotal = getCartTotal ? parseFloat(getCartTotal().toFixed(2)) : 0;
+    const shipping = cartItems.length > 0
+        ? (subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
+        : 0;
+    const tax = parseFloat((subtotal * 0.19).toFixed(2));
+    const loyaltyDiscountAmount = loyaltyDiscount.applied
+        ? parseFloat(Number(loyaltyDiscount.discountAmount || 0).toFixed(2))
+        : 0;
+    const total = Math.max(parseFloat((subtotal + shipping + tax - loyaltyDiscountAmount).toFixed(2)), 0);
 
     if (cartItems.length === 0) {
         return (
@@ -988,8 +1003,8 @@ const Checkout = () => {
                                                 type="radio"
                                                 id="credit_card"
                                                 name="paymentMethod"
-                                                value="credit_card"
-                                                checked={formData.paymentMethod === 'credit_card'}
+                                                value="CREDIT_CARD"
+                                                checked={formData.paymentMethod === 'CREDIT_CARD'}
                                                 onChange={handleInputChange}
                                                 className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -1005,7 +1020,7 @@ const Checkout = () => {
                                             </div>
                                         </div>
 
-                                        {formData.paymentMethod === 'credit_card' && (
+                                        {formData.paymentMethod === 'CREDIT_CARD' && (
                                             <div className="mt-4 ml-7 space-y-4 border-t pt-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1091,8 +1106,8 @@ const Checkout = () => {
                                                 type="radio"
                                                 id="paypal"
                                                 name="paymentMethod"
-                                                value="paypal"
-                                                checked={formData.paymentMethod === 'paypal'}
+                                                value="PAYPAL"
+                                                checked={formData.paymentMethod === 'PAYPAL'}
                                                 onChange={handleInputChange}
                                                 className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -1105,7 +1120,7 @@ const Checkout = () => {
                                                 </label>
                                             </div>
                                         </div>
-                                        {formData.paymentMethod === 'paypal' && (
+                                        {formData.paymentMethod === 'PAYPAL' && (
                                             <div className="mt-4 ml-7 border-t pt-4">
                                                 <p className="text-sm text-gray-600">
                                                     Serás redirigido a PayPal para completar tu pago de forma segura.
@@ -1121,8 +1136,8 @@ const Checkout = () => {
                                                 type="radio"
                                                 id="pse"
                                                 name="paymentMethod"
-                                                value="pse"
-                                                checked={formData.paymentMethod === 'pse'}
+                                                value="PSE"
+                                                checked={formData.paymentMethod === 'PSE'}
                                                 onChange={handleInputChange}
                                                 className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -1135,7 +1150,7 @@ const Checkout = () => {
                                                 </label>
                                             </div>
                                         </div>
-                                        {formData.paymentMethod === 'pse' && (
+                                        {formData.paymentMethod === 'PSE' && (
                                             <div className="mt-4 ml-7 border-t pt-4">
                                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                                                     <div className="flex items-start">
@@ -1157,11 +1172,11 @@ const Checkout = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <p className="text-sm text-gray-600 mb-3">
                                                     Paga directamente desde tu cuenta bancaria de forma segura y rápida.
                                                 </p>
-                                                
+
                                                 <div className="grid grid-cols-2 gap-3 text-xs mb-3">
                                                     <div className="flex items-center p-2 bg-gray-50 rounded">
                                                         <div className="w-6 h-4 bg-blue-600 rounded mr-2 flex items-center justify-center">
@@ -1188,7 +1203,7 @@ const Checkout = () => {
                                                         <span className="font-medium">Colpatria</span>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                                                     <div className="flex items-center">
                                                         <svg className="h-4 w-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -1218,11 +1233,11 @@ const Checkout = () => {
                                     <div>
                                         <label className="text-sm text-gray-700">
                                             Acepto los{' '}
-                                            <a href="#" className="text-blue-600 hover:underline">
+                                            <a href="/terms" className="text-blue-600 hover:underline">
                                                 términos y condiciones
                                             </a>{' '}
                                             y la{' '}
-                                            <a href="#" className="text-blue-600 hover:underline">
+                                            <a href="/privacy" className="text-blue-600 hover:underline">
                                                 política de privacidad
                                             </a>
                                         </label>
@@ -1239,7 +1254,7 @@ const Checkout = () => {
                             {/* Tarjeta de Loyalty Points */}
                             {user && (
                                 <div className="mb-4">
-                                    <LoyaltyRedeemCard 
+                                    <LoyaltyRedeemCard
                                         onDiscountApplied={handleLoyaltyDiscountApplied}
                                         currentDiscount={loyaltyDiscountAmount}
                                     />

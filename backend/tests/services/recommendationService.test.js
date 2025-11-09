@@ -86,9 +86,25 @@ describe('Recommendation Service', () => {
             expect(recommendations.length).toBeLessThanOrEqual(limit);
         });
 
-        it('debería manejar usuarios sin historial de compras', async () => {
+        it('debería usar productos populares como fallback cuando no hay historial', async () => {
             // Arrange
             const userId = 'newUser123';
+            const popularFallback = [
+                {
+                    _id: 'popular1',
+                    name: 'Producto Popular',
+                    brand: 'SuperGains',
+                    price: 99900,
+                    imageUrl: 'https://example.com/popular1.jpg',
+                    description: 'Top ventas',
+                    categories: ['proteina'],
+                    stock: 25,
+                    totalQuantity: 50,
+                    totalOrders: 30,
+                    recommendationScore: 50,
+                    recommendationReason: 'Producto popular'
+                }
+            ];
 
             Order.find.mockReturnValue({
                 populate: jest.fn().mockReturnValue({
@@ -96,17 +112,14 @@ describe('Recommendation Service', () => {
                 })
             });
 
-            Product.find.mockReturnValue({
-                populate: jest.fn().mockReturnValue({
-                    exec: jest.fn().mockResolvedValue([])
-                })
-            });
+            Order.aggregate.mockResolvedValue(popularFallback);
 
             // Act
             const recommendations = await recommendationService.getUserBasedRecommendations(userId, 5);
 
             // Assert
-            expect(recommendations).toEqual([]);
+            expect(Order.aggregate).toHaveBeenCalled();
+            expect(recommendations).toEqual(popularFallback);
         });
 
         it('debería filtrar productos ya comprados por el usuario', async () => {

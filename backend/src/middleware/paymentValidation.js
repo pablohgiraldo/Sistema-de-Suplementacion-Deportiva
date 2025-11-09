@@ -25,7 +25,8 @@ export const validateTransactionData = (req, res, next) => {
                 'PSE',
                 'CASH',
                 'BANK_TRANSFER',
-                'REFERENCED'
+                'REFERENCED',
+                'PAYPAL'
             ];
             
             if (!validMethods.includes(paymentMethod)) {
@@ -312,8 +313,8 @@ export const validateTransactionAmount = async (req, res, next) => {
         }
         
         // Validar moneda
-        if (currency !== 'COP') {
-            console.warn(`⚠️ Moneda diferente a COP: ${currency}`);
+        if (currency !== 'USD') {
+            console.warn(`⚠️ Moneda diferente a USD: ${currency}`);
         }
         
         next();

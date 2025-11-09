@@ -38,12 +38,26 @@ const getPayUConfig = () => {
  * @param {string} currency - Moneda (COP, USD, etc.)
  * @returns {string} - Firma MD5
  */
-const generateSignature = (referenceCode, amount, currency = 'COP') => {
+const normalizeAmount = (amount) => {
+    if (typeof amount === 'number') {
+        return amount.toFixed(2);
+    }
+    if (typeof amount === 'string') {
+        const parsed = parseFloat(amount);
+        if (!Number.isNaN(parsed)) {
+            return parsed.toFixed(2);
+        }
+    }
+    throw new Error('Monto inválido para generar firma');
+};
+
+const generateSignature = (referenceCode, amount, currency = 'USD') => {
     const config = getPayUConfig();
     const { apiKey, merchantId } = config;
     
     // Formato: ApiKey~merchantId~referenceCode~amount~currency
-    const signatureString = `${apiKey}~${merchantId}~${referenceCode}~${amount}~${currency}`;
+    const normalizedAmount = normalizeAmount(amount);
+    const signatureString = `${apiKey}~${merchantId}~${referenceCode}~${normalizedAmount}~${currency}`;
     
     return crypto.createHash('md5').update(signatureString).digest('hex');
 };
@@ -60,7 +74,7 @@ export const createPayUTransaction = async (orderData) => {
         const {
             orderId,
             amount,
-            currency = 'COP',
+            currency = 'USD',
             description,
             buyer,
             shippingAddress,
@@ -91,7 +105,7 @@ export const createPayUTransaction = async (orderData) => {
                     notifyUrl: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/payments/payu-callback`,
                     additionalValues: {
                         TX_VALUE: {
-                            value: amount,
+                            value: parseFloat(normalizeAmount(amount)),
                             currency: currency
                         }
                     },
@@ -105,7 +119,6 @@ export const createPayUTransaction = async (orderData) => {
                     }
                 },
                 type: 'AUTHORIZATION_AND_CAPTURE',
-                paymentMethod: paymentMethod,
                 paymentCountry: 'CO',
                 ipAddress: '127.0.0.1',
                 cookie: 'cookie_' + Date.now(),
@@ -113,6 +126,10 @@ export const createPayUTransaction = async (orderData) => {
             },
             test: config.isTest
         };
+
+        if (paymentMethod === 'PSE') {
+            payuRequest.transaction.paymentMethod = 'PSE';
+        }
         
         console.log(`📤 Creando transacción PayU: ${referenceCode} por $${amount} ${currency}`);
         
@@ -489,7 +506,14 @@ async function handlePaymentFailure(order, paymentData) {
  */
 export const generatePayUForm = (orderData) => {
     const config = getPayUConfig();
-    const { orderId, amount, currency = 'COP', description, buyer } = orderData;
+    const {
+        orderId,
+        amount,
+        currency = 'USD',
+        description,
+        buyer,
+        paymentMethod
+    } = orderData;
     
     const referenceCode = orderId;
     const signature = generateSignature(referenceCode, amount, currency);
@@ -501,14 +525,14 @@ export const generatePayUForm = (orderData) => {
     const confirmationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-confirmation`;
     const responseUrl = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/payments/payu-callback`;
     
-    return {
+    const baseFormData = {
         formUrl,
         formData: {
             merchantId: config.merchantId,
             accountId: config.accountId,
             description: description || `Orden SuperGains ${referenceCode}`,
             referenceCode: referenceCode,
-            amount: amount,
+            amount: normalizeAmount(amount),
             tax: '0',
             taxReturnBase: '0',
             currency: currency,
@@ -521,6 +545,12 @@ export const generatePayUForm = (orderData) => {
             confirmationUrl: confirmationUrl
         }
     };
+
+    if (paymentMethod === 'PSE') {
+        baseFormData.formData.paymentMethod = 'PSE';
+    }
+
+    return baseFormData;
 };
 
 export default {

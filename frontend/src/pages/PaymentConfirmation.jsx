@@ -126,7 +126,7 @@ const PaymentConfirmation = () => {
     };
 
     // Formatear precio
-    const formatPrice = (price, currency = 'COP') => {
+    const formatPrice = (price, currency = 'USD') => {
         if (currency === 'COP') {
             return new Intl.NumberFormat('es-CO', {
                 style: 'currency',
@@ -137,7 +137,7 @@ const PaymentConfirmation = () => {
         } else {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
-                currency: currency,
+                currency: currency || 'USD',
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(price);
