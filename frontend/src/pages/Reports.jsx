@@ -21,6 +21,42 @@ const Reports = () => {
         endDate
     } = useSalesData(dateRange);
 
+    const formatDateTime = (value) => {
+        if (!value) return 'N/A';
+        try {
+            return new Date(value).toLocaleString('es-CO', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        } catch {
+            return value;
+        }
+    };
+
+    const renderLoadingState = (message = 'Cargando datos...') => (
+        <div className="flex items-center justify-center h-64">
+            <LoadingSpinner text={message} />
+        </div>
+    );
+
+    const renderErrorState = () => (
+        <div className="text-center py-10">
+            <div className="text-red-600 mb-4">
+                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Error al cargar datos</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+                onClick={refetch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+                Reintentar
+            </button>
+        </div>
+    );
+
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
     const renderSalesChart = () => {
@@ -34,33 +70,8 @@ const Reports = () => {
             });
         }
 
-        if (isLoading) {
-            return (
-                <div className="flex items-center justify-center h-64">
-                    <LoadingSpinner text="Cargando datos de ventas..." />
-                </div>
-            );
-        }
-
-        if (isError) {
-            return (
-                <div className="text-center py-10">
-                    <div className="text-red-600 mb-4">
-                        <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Error al cargar datos</h3>
-                    <p className="text-gray-600 mb-4">{error}</p>
-                    <button
-                        onClick={refetch}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Reintentar
-                    </button>
-                </div>
-            );
-        }
+        if (isLoading) return renderLoadingState('Cargando datos de ventas...');
+        if (isError) return renderErrorState();
 
         // Construir datos para el gráfico de manera más robusta
         let chartDataForDisplay = [];
@@ -185,6 +196,39 @@ const Reports = () => {
                     </div>
                 </div>
 
+                {/* Órdenes recientes */}
+                {salesData?.recentOrders?.length > 0 && (
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Órdenes recientes</h3>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pago</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {salesData.recentOrders.map((order) => (
+                                        <tr key={order.orderNumber}>
+                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.orderNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">{order.customer}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">{formatCurrency(order.total)}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 capitalize">{order.status}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 capitalize">{order.paymentStatus}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">{formatDateTime(order.createdAt)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
                 {/* Información adicional */}
                 {startDate && endDate && (
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -193,6 +237,166 @@ const Reports = () => {
                         </div>
                     </div>
                 )}
+            </div>
+        );
+    };
+
+    const renderProductsTab = () => {
+        if (isLoading) return renderLoadingState('Cargando desempeño de productos...');
+        if (isError) return renderErrorState();
+
+        const products = salesData?.productPerformance || [];
+
+        if (products.length === 0) {
+            return (
+                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-600">
+                    No hay datos de productos disponibles para el período seleccionado.
+                </div>
+            );
+        }
+
+        return (
+            <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Top productos por ingresos</h3>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unidades</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ingresos</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Precio promedio</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {products.map((product) => (
+                                <tr key={product.productId}>
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600">{product.brand}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{product.totalQuantity.toLocaleString('en-US')}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(product.totalRevenue)}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(product.averageItemPrice)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    };
+
+    const renderCustomersTab = () => {
+        if (isLoading) return renderLoadingState('Cargando desempeño de clientes...');
+        if (isError) return renderErrorState();
+
+        const customers = salesData?.customerPerformance || [];
+
+        if (customers.length === 0) {
+            return (
+                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-600">
+                    No hay datos de clientes disponibles para el período seleccionado.
+                </div>
+            );
+        }
+
+        return (
+            <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Clientes con mayor aporte</h3>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Órdenes</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total gastado</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Última orden</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {customers.map((customer) => (
+                                <tr key={customer.customerId}>
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{customer.name}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600">{customer.email}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{customer.totalOrders}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(customer.totalSpent)}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatDateTime(customer.lastOrderDate)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    };
+
+    const renderInventoryTab = () => {
+        if (isLoading) return renderLoadingState('Cargando datos de inventario...');
+        if (isError) return renderErrorState();
+
+        const summary = salesData?.inventory?.summary || {};
+        const lowStock = salesData?.inventory?.lowStock || [];
+
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <p className="text-sm font-medium text-gray-500">Productos monitoreados</p>
+                        <p className="mt-2 text-3xl font-semibold text-gray-900">{summary.totalProducts || 0}</p>
+                    </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <p className="text-sm font-medium text-gray-500">Stock disponible</p>
+                        <p className="mt-2 text-3xl font-semibold text-gray-900">{(summary.totalAvailableStock || 0).toLocaleString('en-US')}</p>
+                    </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <p className="text-sm font-medium text-gray-500">Stock reservado</p>
+                        <p className="mt-2 text-3xl font-semibold text-gray-900">{(summary.totalReservedStock || 0).toLocaleString('en-US')}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <p className="text-sm font-medium text-gray-500">Productos con stock bajo</p>
+                        <p className="mt-2 text-3xl font-semibold text-gray-900">{summary.lowStockProducts || 0}</p>
+                    </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <p className="text-sm font-medium text-gray-500">Productos sin stock</p>
+                        <p className="mt-2 text-3xl font-semibold text-gray-900">{summary.outOfStockProducts || 0}</p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Productos con stock crítico</h3>
+                    {lowStock.length === 0 ? (
+                        <p className="text-gray-600">No hay productos con stock bajo en este momento.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stock actual</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stock mínimo</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Disponible</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {lowStock.map((item) => (
+                                        <tr key={`${item.productId}-${item.name}`}>
+                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.name}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">{item.brand}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">{(item.currentStock ?? 0).toLocaleString('en-US')}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">{(item.minStock ?? 0).toLocaleString('en-US')}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">{(item.availableStock ?? 0).toLocaleString('en-US')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
         );
     };
@@ -253,24 +457,9 @@ const Reports = () => {
                 {/* Contenido de las tabs */}
                 <div className="mt-8">
                     {activeTab === 'sales' && renderSalesChart()}
-                    {activeTab === 'products' && (
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Reportes de Productos</h3>
-                            <p className="text-gray-600">Próximamente...</p>
-                        </div>
-                    )}
-                    {activeTab === 'customers' && (
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Reportes de Clientes</h3>
-                            <p className="text-gray-600">Próximamente...</p>
-                        </div>
-                    )}
-                    {activeTab === 'inventory' && (
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Reportes de Inventario</h3>
-                            <p className="text-gray-600">Próximamente...</p>
-                        </div>
-                    )}
+                    {activeTab === 'products' && renderProductsTab()}
+                    {activeTab === 'customers' && renderCustomersTab()}
+                    {activeTab === 'inventory' && renderInventoryTab()}
                 </div>
             </div>
         </div>

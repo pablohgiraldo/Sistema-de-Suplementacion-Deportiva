@@ -651,33 +651,38 @@ export async function getOrdersSummary(req, res) {
             if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
         }
 
-        // Obtener estadísticas básicas
+        const matchStages = Object.keys(dateFilter).length > 0 ? [{ $match: dateFilter }] : [];
+
         const [
             totalOrders,
-            totalRevenue,
+            totalRevenueAggregation,
             ordersByStatus,
             ordersByPaymentStatus,
-            recentOrders
+            recentOrders,
+            productPerformanceAggregation,
+            customerPerformanceAggregation,
+            inventorySnapshot,
+            lowStockAggregation
         ] = await Promise.all([
             // Total de órdenes
             Order.countDocuments(dateFilter),
 
             // Ingresos totales
             Order.aggregate([
-                { $match: dateFilter },
+                ...matchStages,
                 { $group: { _id: null, total: { $sum: '$total' } } }
             ]),
 
             // Órdenes por estado
             Order.aggregate([
-                { $match: dateFilter },
+                ...matchStages,
                 { $group: { _id: '$status', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),
 
             // Órdenes por estado de pago
             Order.aggregate([
-                { $match: dateFilter },
+                ...matchStages,
                 { $group: { _id: '$paymentStatus', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),
@@ -688,17 +693,142 @@ export async function getOrdersSummary(req, res) {
                 .populate('items.product', 'name brand')
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select('orderNumber user total status paymentStatus createdAt')
+                .select('orderNumber user total status paymentStatus createdAt items')
+                .lean(),
+
+            // Desempeño de productos
+            Order.aggregate([
+                ...matchStages,
+                { $unwind: '$items' },
+                {
+                    $group: {
+                        _id: '$items.product',
+                        totalQuantity: { $sum: '$items.quantity' },
+                        totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+                        averageItemPrice: { $avg: '$items.price' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$product',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                { $sort: { totalRevenue: -1 } },
+                { $limit: 5 }
+            ]),
+
+            // Desempeño por clientes
+            Order.aggregate([
+                ...matchStages,
+                {
+                    $group: {
+                        _id: '$user',
+                        totalOrders: { $sum: 1 },
+                        totalSpent: { $sum: '$total' },
+                        lastOrderDate: { $max: '$createdAt' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'user'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$user',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                { $sort: { totalSpent: -1 } },
+                { $limit: 5 }
+            ]),
+
+            // Resumen de inventario
+            Inventory.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalProducts: { $sum: 1 },
+                        totalCurrentStock: { $sum: '$currentStock' },
+                        totalAvailableStock: { $sum: '$availableStock' },
+                        totalReservedStock: { $sum: '$reservedStock' },
+                        lowStockProducts: {
+                            $sum: {
+                                $cond: [
+                                    { $lte: ['$currentStock', '$minStock'] },
+                                    1,
+                                    0
+                                ]
+                            }
+                        },
+                        outOfStockProducts: {
+                            $sum: {
+                                $cond: [
+                                    { $eq: ['$currentStock', 0] },
+                                    1,
+                                    0
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]),
+
+            // Productos con stock bajo
+            Inventory.aggregate([
+                {
+                    $match: {
+                        $expr: { $lte: ['$currentStock', '$minStock'] },
+                        status: { $ne: 'discontinued' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'product',
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$product',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $project: {
+                        productId: '$product._id',
+                        name: '$product.name',
+                        brand: '$product.brand',
+                        imageUrl: '$product.imageUrl',
+                        currentStock: '$currentStock',
+                        minStock: '$minStock',
+                        availableStock: '$availableStock',
+                        reservedStock: '$reservedStock',
+                        status: '$status'
+                    }
+                },
+                { $sort: { availableStock: 1 } },
+                { $limit: 5 }
+            ])
         ]);
 
-        // Calcular ingresos totales
-        const revenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
-
-        // Calcular promedio por orden
+        const revenue = totalRevenueAggregation.length > 0 ? totalRevenueAggregation[0].total : 0;
         const averageOrderValue = totalOrders > 0 ? revenue / totalOrders : 0;
 
-
-        // Formatear datos de estado
         const statusSummary = ordersByStatus.reduce((acc, item) => {
             acc[item._id] = item.count;
             return acc;
@@ -709,12 +839,66 @@ export async function getOrdersSummary(req, res) {
             return acc;
         }, {});
 
+        const productPerformance = productPerformanceAggregation.map(entry => {
+            const product = entry.product || {};
+            const productId = (product._id || entry._id) ? (product._id || entry._id).toString() : null;
+
+            return {
+                productId,
+                name: product.name || 'Producto no disponible',
+                brand: product.brand || 'Sin marca',
+                imageUrl: product.imageUrl || null,
+                totalQuantity: entry.totalQuantity || 0,
+                totalRevenue: Math.round((entry.totalRevenue || 0) * 100) / 100,
+                averageItemPrice: Math.round((entry.averageItemPrice || 0) * 100) / 100
+            };
+        });
+
+        const customerPerformance = customerPerformanceAggregation.map(entry => {
+            const user = entry.user || {};
+            const customerId = (user._id || entry._id) ? (user._id || entry._id).toString() : null;
+
+            return {
+                customerId,
+                name: user.nombre || 'Cliente no disponible',
+                email: user.email || 'Sin email',
+                totalOrders: entry.totalOrders || 0,
+                totalSpent: Math.round((entry.totalSpent || 0) * 100) / 100,
+                lastOrderDate: entry.lastOrderDate || null
+            };
+        });
+
+        const inventorySummaryRaw = inventorySnapshot[0] || {};
+        const inventorySummary = {
+            totalProducts: inventorySummaryRaw.totalProducts || 0,
+            totalCurrentStock: inventorySummaryRaw.totalCurrentStock || 0,
+            totalAvailableStock: inventorySummaryRaw.totalAvailableStock || 0,
+            totalReservedStock: inventorySummaryRaw.totalReservedStock || 0,
+            lowStockProducts: inventorySummaryRaw.lowStockProducts || 0,
+            outOfStockProducts: inventorySummaryRaw.outOfStockProducts || 0
+        };
+
+        const lowStockProducts = lowStockAggregation.map(item => {
+            const productId = item.productId || item.product?._id || item.product || null;
+            return {
+                productId: productId ? productId.toString() : null,
+                name: item.name || item.product?.name || 'Producto no disponible',
+                brand: item.brand || item.product?.brand || 'Sin marca',
+                imageUrl: item.imageUrl || item.product?.imageUrl || null,
+                currentStock: item.currentStock,
+                minStock: item.minStock,
+                availableStock: item.availableStock,
+                reservedStock: item.reservedStock,
+                status: item.status
+            };
+        });
+
         res.json({
             success: true,
             data: {
                 summary: {
                     totalOrders,
-                    totalRevenue: revenue,
+                    totalRevenue: Math.round(revenue * 100) / 100,
                     averageOrderValue: Math.round(averageOrderValue * 100) / 100
                 },
                 statusBreakdown: {
@@ -723,20 +907,25 @@ export async function getOrdersSummary(req, res) {
                 },
                 recentOrders: recentOrders.map(order => ({
                     orderNumber: order.orderNumber,
-                    customer: order.user?.nombre || 'Usuario eliminado', // ✅ Validación para usuario eliminado
+                    customer: order.user?.nombre || 'Usuario eliminado',
                     total: order.total,
                     status: order.status,
                     paymentStatus: order.paymentStatus,
                     createdAt: order.createdAt,
                     itemCount: order.items.length
                 })),
+                productPerformance,
+                customerPerformance,
+                inventory: {
+                    summary: inventorySummary,
+                    lowStock: lowStockProducts
+                },
                 period: {
                     startDate: startDate || null,
                     endDate: endDate || null
                 }
             }
         });
-
     } catch (error) {
         console.error('Error al obtener resumen de órdenes:', error);
         res.status(500).json({

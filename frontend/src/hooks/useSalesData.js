@@ -104,11 +104,13 @@ const useSalesData = (dateRange = '7') => {
 
     // Función para formatear moneda
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-CO', {
+        const value = Number(amount) || 0;
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
-        }).format(amount);
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
     };
 
     // Función para obtener etiqueta del rango
