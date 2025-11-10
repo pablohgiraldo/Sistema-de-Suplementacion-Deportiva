@@ -13,6 +13,13 @@ export const useInventoryTable = () => {
         needs_restock: false,
         search: ''
     });
+    const [debouncedFilters, setDebouncedFilters] = useState({
+        status: '',
+        stock_min: '',
+        stock_max: '',
+        needs_restock: false,
+        search: ''
+    });
     const [pagination, setPagination] = useState({
         currentPage: 1,
         totalPages: 1,
@@ -32,15 +39,31 @@ export const useInventoryTable = () => {
             setLoading(true);
             setError(null);
 
-            const params = new URLSearchParams({
-                page: pagination.currentPage,
-                limit: pagination.limit,
-                sortBy: sorting.sortBy,
-                sortOrder: sorting.sortOrder,
-                ...filters
+            const params = new URLSearchParams();
+            params.set('page', pagination.currentPage.toString());
+            params.set('limit', pagination.limit.toString());
+            params.set('sortBy', sorting.sortBy);
+            params.set('sortOrder', sorting.sortOrder);
+
+            Object.entries(debouncedFilters).forEach(([key, value]) => {
+                if (key === 'search' && typeof value === 'string') {
+                    const trimmed = value.trim();
+                    if (trimmed) params.set(key, trimmed);
+                    return;
+                }
+
+                if (typeof value === 'boolean') {
+                    if (value) params.set(key, 'true');
+                    return;
+                }
+
+                if (value !== '' && value !== null && value !== undefined) {
+                    params.set(key, String(value));
+                }
             });
 
-            const response = await api.get(`/inventory?${params}`);
+            const queryString = params.toString();
+            const response = await api.get(`/inventory${queryString ? `?${queryString}` : ''}`);
             console.log('Inventory API response:', response.data);
 
             if (response.data.success) {
@@ -66,7 +89,15 @@ export const useInventoryTable = () => {
         } finally {
             setLoading(false);
         }
-    }, [pagination.currentPage, pagination.limit, sorting, filters]);
+    }, [pagination.currentPage, pagination.limit, sorting, debouncedFilters]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedFilters(filters);
+        }, 350);
+
+        return () => clearTimeout(handler);
+    }, [filters]);
 
     // Efecto para cargar inventario inicial
     useEffect(() => {

@@ -14,8 +14,13 @@ export async function getInventories(req, res) {
             limit = 50,
             page = 1,
             sortBy = 'createdAt',
-            sortOrder = 'desc'
+            sortOrder = 'desc',
+            search
         } = req.query;
+
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const skip = (pageNum - 1) * limitNum;
 
         // Construir query de filtros
         let query = {};
@@ -29,10 +34,10 @@ export async function getInventories(req, res) {
         if (stock_min || stock_max) {
             query.currentStock = {};
             if (stock_min) {
-                query.currentStock.$gte = parseInt(stock_min);
+                query.currentStock.$gte = Number(stock_min);
             }
             if (stock_max) {
-                query.currentStock.$lte = parseInt(stock_max);
+                query.currentStock.$lte = Number(stock_max);
             }
         }
 
@@ -41,10 +46,53 @@ export async function getInventories(req, res) {
             query.$expr = { $lte: ['$currentStock', '$minStock'] };
         }
 
-        // Configurar paginación
-        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
-        const pageNum = Math.max(1, parseInt(page) || 1);
-        const skip = (pageNum - 1) * limitNum;
+        // Filtro por búsqueda
+        if (search && search.trim()) {
+            const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(escapedSearch, 'i');
+
+            const matchedProducts = await Product.find({
+                $or: [
+                    { name: regex },
+                    { brand: regex },
+                    { description: regex },
+                    { categories: regex }
+                ]
+            }).select('_id');
+
+            const productIds = matchedProducts.map(product => product._id.toString());
+            if (productIds.length === 0) {
+                return res.json({
+                    success: true,
+                    count: 0,
+                    totalCount: 0,
+                    data: [],
+                    pagination: {
+                        currentPage: pageNum,
+                        totalPages: 0,
+                        hasNextPage: false,
+                        hasPrevPage: false,
+                        nextPage: null,
+                        prevPage: null,
+                        limit: limitNum,
+                        startIndex: 0,
+                        endIndex: 0,
+                        showing: '0 de 0 registros'
+                    },
+                    filters: {
+                        status: status || null,
+                        stock_min: stock_min || null,
+                        stock_max: stock_max || null,
+                        needs_restock: needs_restock || null,
+                        search: search.trim(),
+                        sortBy,
+                        sortOrder
+                    }
+                });
+            }
+
+            query.product = { $in: productIds };
+        }
 
         // Configurar ordenamiento
         const sortOptions = {
@@ -73,8 +121,8 @@ export async function getInventories(req, res) {
         const hasPrevPage = pageNum > 1;
         const nextPage = hasNextPage ? pageNum + 1 : null;
         const prevPage = hasPrevPage ? pageNum - 1 : null;
-        const startIndex = skip + 1;
-        const endIndex = Math.min(skip + limitNum, totalCount);
+        const startIndex = totalCount === 0 ? 0 : skip + 1;
+        const endIndex = totalCount === 0 ? 0 : Math.min(skip + limitNum, totalCount);
 
         res.json({
             success: true,
@@ -91,13 +139,14 @@ export async function getInventories(req, res) {
                 limit: limitNum,
                 startIndex,
                 endIndex,
-                showing: `${startIndex}-${endIndex} de ${totalCount} registros`
+                showing: totalCount === 0 ? '0 de 0 registros' : `${startIndex}-${endIndex} de ${totalCount} registros`
             },
             filters: {
                 status: status || null,
                 stock_min: stock_min || null,
                 stock_max: stock_max || null,
                 needs_restock: needs_restock || null,
+                search: search?.trim() || null,
                 sortBy,
                 sortOrder
             }

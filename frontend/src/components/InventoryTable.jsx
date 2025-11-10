@@ -157,13 +157,26 @@ const InventoryTable = () => {
                             <span className="text-sm text-gray-600">Necesita reabastecimiento</span>
                         </label>
 
-                        <input
-                            type="text"
-                            placeholder="Buscar producto..."
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md text-sm w-48"
-                        />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Buscar producto..."
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-md text-sm w-48 pr-8"
+                            />
+                            {filters.search && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleFilterChange('search', '')}
+                                    className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,6 +336,15 @@ const InventoryTable = () => {
                         })}
                     </tbody>
                 </table>
+                {!loading && inventory.length === 0 && (
+                    <div className="px-6 py-10 text-center text-gray-500">
+                        <svg className="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2a4 4 0 014-4h4m0 0l-3-3m3 3l-3 3" />
+                        </svg>
+                        <p className="text-lg font-medium text-gray-700">No encontramos resultados</p>
+                        <p className="mt-1 text-sm text-gray-500">Prueba ajustando los filtros o buscando con otros términos.</p>
+                    </div>
+                )}
             </div>
 
             {/* Paginación */}
